@@ -18,6 +18,8 @@ import os
 import random
 import time
 
+from urllib.parse import urlsplit, urlunsplit
+
 import requests
 
 from .errors import (
@@ -54,6 +56,29 @@ PERFIL_OPERACIONAL = "operacional"
 PERFIL_ADMIN = "admin"
 
 
+# Rotas do web client que costumam vir coladas na URL copiada do navegador
+# (`https://empresa.odoo.com/odoo/crm`). O JSON-2 mora na raiz do domínio: se
+# elas ficarem no meio do caminho, a chamada cai no controller da interface e
+# volta "Session expired (invalid CSRF token)" em vez de autenticar por Bearer.
+_ROTAS_WEB = ("odoo", "web")
+
+
+def _base_json2(url):
+    """Raiz do domínio, sem as rotas de interface que o JSON-2 não usa."""
+    partes = urlsplit(url.strip())
+    if not partes.netloc:  # sem esquema, urlsplit joga o host dentro de path
+        return url.strip().rstrip("/")
+    caminho = []
+    for seg in partes.path.split("/"):
+        if not seg:
+            continue
+        if seg.lower() in _ROTAS_WEB:
+            break  # daqui para a frente é navegação da interface (/odoo/crm, /web#…)
+        caminho.append(seg)
+    return urlunsplit((partes.scheme, partes.netloc,
+                       "/" + "/".join(caminho) if caminho else "", "", ""))
+
+
 class OdooCredentials:
     """URL, banco e chave de um perfil. A chave nunca é impressa nem logada."""
 
@@ -68,7 +93,7 @@ class OdooCredentials:
                 "Gere em Configurações → Usuários e Empresas → Usuários → "
                 "aba Preferências → Nova chave de API e coloque no .env."
             )
-        self.url = url.rstrip("/")
+        self.url = _base_json2(url)
         self.db = db
         self.api_key = api_key
         self.perfil = perfil

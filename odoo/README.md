@@ -29,6 +29,13 @@ ODOO_API_KEY=<chave do usuário de serviço>      # perfil operacional
 ODOO_ADMIN_API_KEY=<chave do usuário admin>     # perfil configuração (Fase 3)
 ```
 
+`ODOO_URL` é a **raiz do domínio**. Se você colar a URL do navegador
+(`https://suaempresa.odoo.com/odoo/crm`), a camada corta sozinha as rotas de
+interface (`/odoo`, `/web`) — sem isso a chamada cai no controller da tela e
+volta `400 Session expired (invalid CSRF token)` em vez de autenticar por
+Bearer. Um prefixo de proxy antes dessas rotas (`https://interno/erp/odoo`) é
+preservado (`https://interno/erp`).
+
 As chaves saem de **Configurações → Usuários e Empresas → Usuários → aba
 Preferências → Nova chave de API**. Chave de usuário comum expira em até 90
 dias; só admin cria chave permanente. Expiração aparece como erro 401 legível,
@@ -208,7 +215,7 @@ código (separação de privilégio, ausência de `unlink`, ausência de XML-RPC
 
 | Fase | Escopo | Estado |
 |---|---|---|
-| 1 | Cliente, schema, extração, 5 análises | implementada, **falta validar contra a base real** |
+| 1 | Cliente, schema, extração, 5 análises | implementada e **validada contra a base real** (`grupo-setima`, equipes 16/17/21 conferidas pelo nome) |
 | 2 | Edição de dados com dry-run e auditoria | implementada, **falta validar contra a base real** |
 | 3 | Campos, estágios, tags e automações (`config diff`/`config apply`) | **não implementada** |
 

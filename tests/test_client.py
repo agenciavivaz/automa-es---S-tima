@@ -12,6 +12,7 @@ from odoo.errors import (
     OdooTransportError,
     ReadOnlyClientError,
 )
+from odoo.client import OdooClient, OdooCredentials
 from conftest import CHAVE_FALSA, RespostaFalsa, SessaoFalsa, montar_cliente
 
 
@@ -188,3 +189,30 @@ def test_timeout_configuravel(sessao):
     sessao.respostas.append(RespostaFalsa(200, 0))
     cliente.search_count("crm.lead", [])
     assert sessao.chamadas[0]["timeout"] == 5.0
+
+
+@pytest.mark.parametrize("informada, esperada", [
+    # A URL que o usuário copia do navegador carrega a rota do web client.
+    ("https://empresa.odoo.com/odoo", "https://empresa.odoo.com"),
+    ("https://empresa.odoo.com/odoo/crm", "https://empresa.odoo.com"),
+    ("https://empresa.odoo.com/web", "https://empresa.odoo.com"),
+    ("https://empresa.odoo.com/", "https://empresa.odoo.com"),
+    ("https://empresa.odoo.com", "https://empresa.odoo.com"),
+    # Prefixo de proxy antes da rota de interface continua fazendo parte da base.
+    ("https://interno.exemplo.com/erp/odoo", "https://interno.exemplo.com/erp"),
+])
+def test_url_normalizada_para_a_raiz_do_json2(informada, esperada):
+    credenciais = OdooCredentials(url=informada, db="basefalsa",
+                                  api_key=CHAVE_FALSA, perfil="operacional")
+    assert credenciais.url == esperada
+
+
+def test_endpoint_ignora_rota_do_web_client(sessao):
+    credenciais = OdooCredentials(url="https://empresa.odoo.com/odoo", db="basefalsa",
+                                  api_key=CHAVE_FALSA, perfil="operacional")
+    cliente = OdooClient(credenciais, session=sessao)
+    sessao.respostas.append(RespostaFalsa(200, 0))
+
+    cliente.search_count("crm.lead", [])
+
+    assert sessao.chamadas[0]["url"] == "https://empresa.odoo.com/json/2/crm.lead/search_count"
