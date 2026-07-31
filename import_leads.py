@@ -143,6 +143,23 @@ def row_ja_existe(row: dict, meta_ids: set, emails: set, phones: set) -> bool:
     return False
 
 
+# Detecta linhas de teste do Meta (Lead Ads Testing Tool): dados dummy que não
+# devem entrar no CRM. Ex.: nome "<test lead: dummy data for full_name>",
+# email "test@meta.com".
+_TEST_EMAILS = {"test@meta.com", "test@fb.com"}
+
+
+def is_meta_test_row(row: dict) -> bool:
+    email = (row.get("email") or "").strip().lower()
+    if email in _TEST_EMAILS:
+        return True
+    blob = " ".join(
+        str(row.get(f) or "")
+        for f in ("first_name", "last_name", "full_name", "company_name")
+    ).lower()
+    return "dummy data for" in blob or "test lead: dummy data" in blob
+
+
 # Mapeamento hash das Properties do Odoo -> coluna no Sheets
 LEAD_PROPERTIES_MAP = {
     "21787d30494d3a40": "qual_o_seu_cargo_?",
@@ -241,6 +258,14 @@ def main():
 
     meta_ids, emails, phones = get_existing_identities(models, uid)
     new_records = [r for r in records if not row_ja_existe(r, meta_ids, emails, phones)]
+
+    # Barra leads de teste do Meta antes de criar no Odoo.
+    antes = len(new_records)
+    new_records = [r for r in new_records if not is_meta_test_row(r)]
+    ignorados = antes - len(new_records)
+    if ignorados:
+        log.info(f"{ignorados} lead(s) de teste do Meta ignorado(s) (não entram no Odoo).")
+
     log.info(f"{len(new_records)} lead(s) novo(s) para importar.")
 
     if not new_records:

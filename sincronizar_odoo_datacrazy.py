@@ -127,6 +127,23 @@ def marcar_sincronizado(models, uid, lead_id: int, tag_id: int):
     kw(models, uid, "crm.lead", "write", [[lead_id], {"tag_ids": [(4, tag_id)]}])
 
 
+# Padrões que identificam leads de teste do Meta (Lead Ads Testing Tool).
+# Ex.: nome "<test lead: dummy data for full_name>", email "test@meta.com".
+TEST_EMAILS = {"test@meta.com", "test@fb.com"}
+
+
+def is_meta_test_lead(lead: dict) -> bool:
+    """True se o lead for um envio de teste do Meta (dados dummy), que não deve ir ao DataCrazy."""
+    email = (lead.get("email_from") or "").strip().lower()
+    if email in TEST_EMAILS:
+        return True
+    blob = " ".join(
+        str(lead.get(f) or "")
+        for f in ("name", "contact_name", "partner_name")
+    ).lower()
+    return "test lead: dummy data" in blob or "dummy data for" in blob
+
+
 # ---------------------------------------------------------------------------
 # Transformação Odoo → payload DataCrazy
 # ---------------------------------------------------------------------------
@@ -242,12 +259,22 @@ def main():
 
     enviados = 0
     erros = 0
+    ignorados = 0
     for lead in leads:
         team = lead.get("team_id")
         team_id = team[0] if isinstance(team, (list, tuple)) else team
         webhook_url = WEBHOOKS.get(team_id, "")
         pipeline = PIPELINE_LABEL.get(team_id, str(team_id))
         if not webhook_url:
+            continue
+
+        # Ignora leads de teste do Meta (dados dummy). Marca para não reavaliar
+        # a cada execução, mas não conta como enviado.
+        if is_meta_test_lead(lead):
+            log.info(f"Ignorado (lead de teste do Meta): Odoo#{lead['id']} | {lead.get('name')} | {pipeline}")
+            if not DRY_RUN:
+                marcar_sincronizado(models, uid, lead["id"], tag_id)
+            ignorados += 1
             continue
 
         try:
@@ -273,7 +300,7 @@ def main():
             log.error(f"Erro no lead Odoo#{lead.get('id')}: {exc}")
             erros += 1
 
-    log.info(f"=== Concluído: {enviados} enviado(s), {erros} erro(s) ===")
+    log.info(f"=== Concluído: {enviados} enviado(s), {ignorados} ignorado(s) (teste Meta), {erros} erro(s) ===")
     if erros:
         raise SystemExit(1)
 
