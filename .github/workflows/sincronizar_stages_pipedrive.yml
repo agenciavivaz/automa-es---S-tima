@@ -24,6 +24,11 @@ jobs:
   sincronizar:
     runs-on: ubuntu-latest
     environment: automações
+    # ⛔ DESATIVADO (2026-09-08): sincronização Pipedrive → Odoo descontinuada.
+    # Enquanto esta guarda for `false`, o job é pulado e nenhum script roda —
+    # nem por "Run workflow". NÃO reative sem pedido explícito no chat.
+    # Código mantido apenas como referência histórica.
+    if: ${{ false }}
 
     steps:
       - name: Checkout código

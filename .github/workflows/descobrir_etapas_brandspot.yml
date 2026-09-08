@@ -1,18 +1,18 @@
 name: Diagnostico Etapas BrandSpot (somente leitura)
 
 on:
+  # Gatilho `push` removido (2026-09-08) para não disparar em commits.
   workflow_dispatch:
-  push:
-    branches:
-      - claude/pipedrive-odoo-sync-analysis-p7cbto
-    paths:
-      - descobrir_etapas_brandspot.py
-      - .github/workflows/descobrir_etapas_brandspot.yml
 
 jobs:
   diagnostico:
     runs-on: ubuntu-latest
     environment: automações
+    # ⛔ DESATIVADO (2026-09-08): diagnóstico Pipedrive → Odoo descontinuado.
+    # Enquanto esta guarda for `false`, o job é pulado e nenhum script roda —
+    # nem por "Run workflow". NÃO reative sem pedido explícito no chat.
+    # Código mantido apenas como referência histórica.
+    if: ${{ false }}
 
     steps:
       - name: Checkout código
