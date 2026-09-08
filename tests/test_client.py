@@ -33,6 +33,31 @@ def test_monta_endpoint_headers_e_corpo_nomeado(sessao, cliente):
     }
 
 
+@pytest.mark.parametrize(
+    "url_configurada",
+    [
+        "https://exemplo.odoo.com",
+        "https://exemplo.odoo.com/",
+        "https://exemplo.odoo.com/odoo",
+        "https://exemplo.odoo.com/odoo/",
+        "https://exemplo.odoo.com/web",
+    ],
+)
+def test_sufixo_do_web_client_nao_entra_no_endpoint(url_configurada):
+    """`ODOO_URL` copiada da barra do navegador (`.../odoo`) ainda bate na API."""
+    from odoo.client import OdooClient, OdooCredentials
+
+    sessao = SessaoFalsa()
+    sessao.respostas.append(RespostaFalsa(200, 4))
+    credenciais = OdooCredentials(url=url_configurada, db="basefalsa",
+                                  api_key=CHAVE_FALSA, perfil="operacional")
+    cliente = OdooClient(credenciais, session=sessao)
+
+    cliente.search_count("crm.team", [])
+
+    assert sessao.chamadas[0]["url"] == "https://exemplo.odoo.com/json/2/crm.team/search_count"
+
+
 def test_write_e_create_usam_ids_vals_e_vals_list(sessao, cliente):
     sessao.respostas.extend([RespostaFalsa(200, True), RespostaFalsa(200, [42])])
 

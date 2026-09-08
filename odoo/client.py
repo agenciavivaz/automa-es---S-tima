@@ -68,7 +68,7 @@ class OdooCredentials:
                 "Gere em Configurações → Usuários e Empresas → Usuários → "
                 "aba Preferências → Nova chave de API e coloque no .env."
             )
-        self.url = url.rstrip("/")
+        self.url = _normalizar_base(url)
         self.db = db
         self.api_key = api_key
         self.perfil = perfil
@@ -372,6 +372,24 @@ def cliente_operacional(*, somente_leitura=False, timeout=None, env=None, sessio
 # ---------------------------------------------------------------------------
 # Auxiliares
 # ---------------------------------------------------------------------------
+
+def _normalizar_base(url):
+    """Base da instância para o JSON-2, ex.: `https://empresa.odoo.com`.
+
+    O endpoint JSON-2 mora na raiz (`{base}/json/2/...`). Se a `ODOO_URL` vier
+    com o caminho do web client no fim (`/odoo` no Odoo 17+, `/web` no legado),
+    a chamada cairia em `.../odoo/json/2/...`, que é roteado para o web client e
+    responde `400 Session expired (invalid CSRF token)` em vez da API. Removemos
+    esse sufixo para que a configuração `.../odoo` — a URL que o usuário copia da
+    barra do navegador — também funcione.
+    """
+    base = url.rstrip("/")
+    for sufixo in ("/odoo", "/web"):
+        if base.lower().endswith(sufixo):
+            base = base[: -len(sufixo)].rstrip("/")
+            break
+    return base
+
 
 def _serializar_domain(domain):
     """Tuplas viram listas — JSON não tem tupla."""
