@@ -230,9 +230,15 @@ def enviar_datacrazy(webhook_url: str, payload: dict) -> bool:
         headers={"Content-Type": "application/json"},
         timeout=30,
     )
+    body = (r.text or "").strip()[:500]
     if r.status_code >= 300:
-        log.error(f"DataCrazy respondeu {r.status_code}: {r.text[:300]}")
+        log.error(f"DataCrazy respondeu {r.status_code}: {body}")
         return False
+    # Loga a resposta MESMO em 2xx: o webhook de "Entrada de Negócios" devolve
+    # 200 mesmo quando o mapeamento de campos ainda não foi configurado (ele só
+    # registra o JSON em "Dados recebidos" e não cria o card). Sem este log, um
+    # descarte silencioso do DataCrazy pareceria "enviado com sucesso".
+    log.info(f"DataCrazy respondeu {r.status_code}: {body or '(corpo vazio)'}")
     return True
 
 
@@ -301,6 +307,22 @@ def main():
             erros += 1
 
     log.info(f"=== Concluído: {enviados} enviado(s), {ignorados} ignorado(s) (teste Meta), {erros} erro(s) ===")
+
+    # Resumo visível na aba Actions do run (sem precisar abrir o log).
+    resumo_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if resumo_path:
+        try:
+            with open(resumo_path, "a", encoding="utf-8") as fh:
+                fh.write(
+                    "### Sincronização Odoo → DataCrazy\n\n"
+                    f"- Leads pendentes encontrados: **{len(leads)}**\n"
+                    f"- Enviados ao DataCrazy: **{enviados}**\n"
+                    f"- Ignorados (teste Meta): **{ignorados}**\n"
+                    f"- Erros: **{erros}**\n"
+                )
+        except OSError as exc:
+            log.warning(f"Não consegui escrever o resumo do run: {exc}")
+
     if erros:
         raise SystemExit(1)
 
