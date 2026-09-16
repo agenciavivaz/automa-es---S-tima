@@ -123,8 +123,23 @@ def get_partner(models, uid, partner_id: int) -> dict:
     return res[0] if res else {}
 
 
-def marcar_sincronizado(models, uid, lead_id: int, tag_id: int):
-    kw(models, uid, "crm.lead", "write", [[lead_id], {"tag_ids": [(4, tag_id)]}])
+def marcar_sincronizado(models, uid, lead_id: int, tag_id: int) -> bool:
+    """Aplica a tag de dedup no lead. Tenta algumas vezes: se o lead já foi
+    enviado ao DataCrazy e a marcação falhar, ele voltaria a ser enviado no
+    próximo ciclo (card e WhatsApp duplicados). Retorna True se marcou."""
+    for tentativa in range(1, 4):
+        try:
+            kw(models, uid, "crm.lead", "write", [[lead_id], {"tag_ids": [(4, tag_id)]}])
+            return True
+        except Exception as exc:
+            espera = 2 ** (tentativa - 1)  # 1s, 2s, 4s
+            log.warning(
+                f"Falha ao marcar tag no lead Odoo#{lead_id} "
+                f"(tentativa {tentativa}/3): {exc}"
+            )
+            if tentativa < 3:
+                time.sleep(espera)
+    return False
 
 
 # Padrões que identificam leads de teste do Meta (Lead Ads Testing Tool).
@@ -289,16 +304,31 @@ def main():
                 log.info(f"[DRY_RUN] Odoo#{lead['id']} ({pipeline}) → {json.dumps(payload, ensure_ascii=False)}")
                 continue
 
-            if enviar_datacrazy(webhook_url, payload):
-                marcar_sincronizado(models, uid, lead["id"], tag_id)
-                log.info(f"Enviado: Odoo#{lead['id']} | {payload['negocio']} | {pipeline}")
-                enviados += 1
-            else:
+            if not enviar_datacrazy(webhook_url, payload):
                 erros += 1
-            time.sleep(DELAY_ENTRE_ENVIOS)
+                time.sleep(DELAY_ENTRE_ENVIOS)
+                continue
         except Exception as exc:
             log.error(f"Erro no lead Odoo#{lead.get('id')}: {exc}")
             erros += 1
+            continue
+
+        # Enviado com sucesso. A marcação da tag é o que impede o reenvio no
+        # próximo ciclo — se ela falhar aqui, o lead já entrou no DataCrazy e
+        # NÃO pode ser reenviado, então isso é registrado como CRITICAL para
+        # marcação manual em vez de virar duplicata silenciosa.
+        if marcar_sincronizado(models, uid, lead["id"], tag_id):
+            log.info(f"Enviado: Odoo#{lead['id']} | {payload['negocio']} | {pipeline}")
+            enviados += 1
+        else:
+            log.critical(
+                f"Lead Odoo#{lead['id']} FOI enviado ao DataCrazy ({pipeline}) mas NÃO "
+                f"recebeu a tag '{TAG_NAME}'. Adicione a tag manualmente no Odoo para "
+                f"evitar reenvio (card/WhatsApp duplicado) no próximo ciclo."
+            )
+            enviados += 1
+            erros += 1
+        time.sleep(DELAY_ENTRE_ENVIOS)
 
     log.info(f"=== Concluído: {enviados} enviado(s), {ignorados} ignorado(s) (teste Meta), {erros} erro(s) ===")
     if erros:
