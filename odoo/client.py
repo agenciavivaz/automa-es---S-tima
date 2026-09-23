@@ -68,7 +68,13 @@ class OdooCredentials:
                 "Gere em Configurações → Usuários e Empresas → Usuários → "
                 "aba Preferências → Nova chave de API e coloque no .env."
             )
-        self.url = url.rstrip("/")
+        # A URL copiada do navegador costuma vir com o sufixo /odoo (rota do
+        # webclient). O JSON-2 fica na raiz: /odoo/json/2 cai no CSRF do
+        # webclient e volta 400 "Session expired".
+        url = url.rstrip("/")
+        if url.endswith("/odoo"):
+            url = url[: -len("/odoo")]
+        self.url = url
         self.db = db
         self.api_key = api_key
         self.perfil = perfil

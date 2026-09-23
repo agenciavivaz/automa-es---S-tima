@@ -12,6 +12,7 @@ from odoo.errors import (
     OdooTransportError,
     ReadOnlyClientError,
 )
+from odoo.client import OdooCredentials
 from conftest import CHAVE_FALSA, RespostaFalsa, SessaoFalsa, montar_cliente
 
 
@@ -188,3 +189,9 @@ def test_timeout_configuravel(sessao):
     sessao.respostas.append(RespostaFalsa(200, 0))
     cliente.search_count("crm.lead", [])
     assert sessao.chamadas[0]["timeout"] == 5.0
+
+
+def test_url_com_sufixo_odoo_do_navegador_vai_para_a_raiz():
+    cred = OdooCredentials(url="https://exemplo.odoo.com/odoo/", db="b", api_key="k",
+                           perfil="operacional")
+    assert cred.url == "https://exemplo.odoo.com"
