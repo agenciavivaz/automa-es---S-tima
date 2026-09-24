@@ -1,0 +1,89 @@
+// Estilo das telas do ABM Setima. Tudo fica sob .o_abm_setima (classe posta
+// só nas visões abm_setima.*), então nenhuma outra tela do Odoo muda.
+
+.o_abm_setima {
+    // ---------------------------------------------------------------- abas
+    // Abas do notebook viram botões (pílulas) em vez de "fichário".
+    .o_notebook_headers {
+        margin-bottom: map-get($spacers, 3);
+
+        .nav-tabs {
+            border-bottom: 0;
+            gap: map-get($spacers, 2);
+            flex-wrap: wrap;
+        }
+        .nav-item { margin-bottom: 0; }
+        .nav-link {
+            border: 1px solid $border-color;
+            border-radius: 999px;
+            padding: .45rem 1.1rem;
+            background-color: $o-view-background-color;
+            color: $body-color;
+            font-weight: 500;
+            transition: background-color .15s, color .15s, border-color .15s;
+
+            &:hover {
+                border-color: $primary;
+                color: $primary;
+            }
+            &.active {
+                background-color: $primary;
+                border-color: $primary;
+                color: color-contrast($primary);
+            }
+        }
+    }
+    .o_notebook > .tab-content {
+        border: 0;
+    }
+
+    // ------------------------------------------------------- blocos de info
+    .o_abm_box {
+        border: 1px solid $border-color;
+        border-radius: $border-radius-lg;
+        background-color: rgba($primary, .025);
+        padding: map-get($spacers, 3) map-get($spacers, 3) map-get($spacers, 1);
+
+        .o_inner_group { margin-bottom: 0; }
+        .o_cell { padding-top: .2rem; padding-bottom: .2rem; }
+        .o_form_label { color: $text-muted; font-weight: 400; }
+    }
+    .o_abm_box_title {
+        display: flex;
+        align-items: center;
+        gap: map-get($spacers, 2);
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: $text-muted;
+        margin-bottom: map-get($spacers, 2);
+
+        .fa { color: $primary; font-size: .9rem; }
+    }
+
+    // ------------------------------------------------------------ cabeçalho
+    .o_abm_header h1 { font-weight: 700; }
+
+    // ----------------------------------------------------- lista do comitê
+    .o_abm_section_hint {
+        color: $text-muted;
+        font-size: .85rem;
+    }
+    .o_field_x2many_list .o_list_table {
+        thead th {
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: $text-muted;
+        }
+        tbody tr:hover { background-color: rgba($primary, .04); }
+    }
+
+    // --------------------------------------------------- chatter separado
+    .o-mail-Form-chatter {
+        margin-top: map-get($spacers, 4);
+        border-top: 1px solid $border-color;
+        padding-top: map-get($spacers, 3);
+    }
+}

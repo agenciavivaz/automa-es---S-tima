@@ -116,7 +116,7 @@ def form_arch(acao_comite_id: int) -> str:
         <field name="type" invisible="1"/>
         <field name="company_currency" invisible="1"/>
 
-        <div class="oe_title mb-3">
+        <div class="oe_title o_abm_header mb-3">
             <h1 class="mb-2"><field name="name" placeholder="Nome da conta"/></h1>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <field name="x_abm_faixa" widget="badge" readonly="1"
@@ -134,43 +134,58 @@ def form_arch(acao_comite_id: int) -> str:
             </div>
         </div>
 
-        <group col="3" class="mb-2">
-            <group string="Conta">
-                <field name="x_abm_tier" string="Tier"/>
-                <field name="x_abm_trilha" string="Trilha"/>
-                <field name="x_abm_preparacao" string="Preparação"/>
-                <field name="user_id" string="SDR" widget="many2one_avatar_user"/>
-                <field name="x_abm_ultimo_sinal_data" string="Último sinal" readonly="1"
-                       invisible="not x_abm_ultimo_sinal_data"/>
-            </group>
-            <group string="Cadência">
-                <field name="x_abm_cadencia_status" string="Status"/>
-                <field name="x_abm_cadencia_inicio" string="Início" invisible="not x_abm_cadencia_inicio"/>
-                <field name="x_abm_onda" string="Onda" invisible="not x_abm_onda"/>
-                <field name="x_abm_ref_inatividade" string="Sem sinal desde" readonly="1"
-                       invisible="not x_abm_ref_inatividade"/>
-                <field name="activity_date_deadline" string="Próxima atividade" readonly="1"
-                       widget="remaining_days" invisible="not activity_date_deadline"/>
-                <field name="activity_summary" string="O que fazer" readonly="1"
-                       invisible="not activity_summary"/>
-            </group>
-            <group string="Empresa">
-                <field name="partner_id" string="Empresa"
-                       context="{{'res_partner_search_mode': 'customer', 'show_address': 1}}"
-                       options="{{'always_reload': True}}"/>
-                <field name="x_abm_dominios_extra" string="Outros domínios" invisible="not x_abm_dominios_extra"/>
-                <field name="x_abm_linkedin_empresa" string="Nome no LinkedIn"/>
-                <field name="website" string="Site" widget="url" invisible="not website"/>
-                <field name="phone" string="Telefone" widget="phone" invisible="not phone"/>
-                <field name="email_from" string="E-mail" widget="email" invisible="not email_from"/>
-                <field name="team_id" invisible="1"/>
-            </group>
-        </group>
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-lg-4">
+                <div class="o_abm_box h-100">
+                    <div class="o_abm_box_title"><i class="fa fa-bullseye"/>Conta</div>
+                    <group>
+                        <field name="x_abm_tier" string="Tier"/>
+                        <field name="x_abm_trilha" string="Trilha"/>
+                        <field name="x_abm_preparacao" string="Preparação"/>
+                        <field name="user_id" string="SDR" widget="many2one_avatar_user"/>
+                        <field name="x_abm_ultimo_sinal_data" string="Último sinal" readonly="1"
+                               invisible="not x_abm_ultimo_sinal_data"/>
+                    </group>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="o_abm_box h-100">
+                    <div class="o_abm_box_title"><i class="fa fa-road"/>Cadência</div>
+                    <group>
+                        <field name="x_abm_cadencia_status" string="Status"/>
+                        <field name="x_abm_cadencia_inicio" string="Início" invisible="not x_abm_cadencia_inicio"/>
+                        <field name="x_abm_onda" string="Onda" invisible="not x_abm_onda"/>
+                        <field name="x_abm_ref_inatividade" string="Sem sinal desde" readonly="1"
+                               invisible="not x_abm_ref_inatividade"/>
+                        <field name="activity_date_deadline" string="Próxima atividade" readonly="1"
+                               widget="remaining_days" invisible="not activity_date_deadline"/>
+                        <field name="activity_summary" string="O que fazer" readonly="1"
+                               invisible="not activity_summary"/>
+                    </group>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="o_abm_box h-100">
+                    <div class="o_abm_box_title"><i class="fa fa-building-o"/>Empresa</div>
+                    <group>
+                        <field name="partner_id" string="Empresa"
+                               context="{{'res_partner_search_mode': 'customer', 'show_address': 1}}"
+                               options="{{'always_reload': True}}"/>
+                        <field name="x_abm_dominios_extra" string="Outros domínios" invisible="not x_abm_dominios_extra"/>
+                        <field name="x_abm_linkedin_empresa" string="Nome no LinkedIn"/>
+                        <field name="website" string="Site" widget="url" invisible="not website"/>
+                        <field name="phone" string="Telefone" widget="phone" invisible="not phone"/>
+                        <field name="email_from" string="E-mail" widget="email" invisible="not email_from"/>
+                        <field name="team_id" invisible="1"/>
+                    </group>
+                </div>
+            </div>
+        </div>
 
         <notebook>
             <page string="Comitê de compra" name="abm_comite">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-                    <span class="text-muted small">
+                    <span class="o_abm_section_hint">
                         Ordenado por prioridade: 1 decisor, 2 influenciador, 3 demais, 9 fora do ICP.
                     </span>
                     <button {comite.replace('class="oe_stat_button"', 'class="btn btn-secondary btn-sm"')}
@@ -185,7 +200,7 @@ def form_arch(acao_comite_id: int) -> str:
                 </field>
             </page>
             <page string="Sinais" name="abm_sinais">
-                <div class="text-muted small mb-2">
+                <div class="o_abm_section_hint mb-2">
                     Cada sinal soma pontos por 30 dias. 30+ = Engajada, 60+ = Quente.
                 </div>
                 <field name="x_abm_sinal_ids" nolabel="1" colspan="2"
