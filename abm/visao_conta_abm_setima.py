@@ -117,6 +117,9 @@ def form_arch(acao_comite_id: int) -> str:
             <group string="Conta ABM">
                 <field name="x_abm_tier" string="Tier"/>
                 <field name="x_abm_trilha" string="Trilha"/>
+                <field name="x_abm_preparacao" string="Preparação"/>
+                <field name="x_abm_preparacao_inicio" string="Preparação liberada em" readonly="1"
+                       invisible="not x_abm_preparacao_inicio"/>
                 <field name="x_abm_ultimo_sinal_data" string="Último sinal" readonly="1"/>
                 <field name="user_id" string="Responsável (SDR)" widget="many2one_avatar_user"/>
                 <field name="priority" string="Prioridade" widget="priority"/>
