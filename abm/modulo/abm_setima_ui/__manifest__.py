@@ -1,7 +1,7 @@
 {
     "name": "ABM Sétima – visual",
     "summary": "Estilo das telas do ABM Setima (só onde houver a classe o_abm_setima)",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.0.1",
     "category": "Sales/CRM",
     "depends": ["web", "crm"],
     "data": [],

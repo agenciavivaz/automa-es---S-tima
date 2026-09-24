@@ -4,19 +4,24 @@
 .o_abm_setima {
     // ---------------------------------------------------------------- abas
     // Abas do notebook viram botões (pílulas) em vez de "fichário".
+    // O Odoo esconde o overflow vertical da barra de abas (overflow-y: hidden)
+    // e puxa a aba 1px para baixo; o respiro vertical evita cortar as pílulas.
     .o_notebook_headers {
         margin-bottom: map-get($spacers, 3);
+        padding-block: 3px;
 
         .nav-tabs {
             border-bottom: 0;
             gap: map-get($spacers, 2);
             flex-wrap: wrap;
         }
-        .nav-item { margin-bottom: 0; }
+        .nav-item { margin: 0; }
         .nav-link {
+            margin: 0;
             border: 1px solid $border-color;
             border-radius: 999px;
             padding: .45rem 1.1rem;
+            line-height: 1.3;
             background-color: $o-view-background-color;
             color: $body-color;
             font-weight: 500;
@@ -27,9 +32,12 @@
                 color: $primary;
             }
             &.active {
-                background-color: $primary;
-                border-color: $primary;
-                color: color-contrast($primary);
+                &, &:hover, &:focus, &:active {
+                    background-color: $primary;
+                    border-color: $primary;
+                    border-bottom-color: $primary;
+                    color: color-contrast($primary);
+                }
             }
         }
     }
