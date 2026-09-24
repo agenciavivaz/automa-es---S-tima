@@ -279,32 +279,124 @@ action = {{
                    f"'default_user_id': {sdr_id}}}"})
 
 
-# Card do kanban: acrescenta a linha ABM logo abaixo das tags (herda o card padrão).
-KANBAN_ARCH = """
+# Card do kanban ABM (aprovado na prévia "Card ABM Setima"). Substitui o
+# template do card herdado; só vale para a visão abm_setima.view_kanban.
+# Cores: borda/selo por temperatura (fria info, engajada warning, quente
+# danger, cliente success). Só classes Bootstrap e ícones Font Awesome.
+_COR = "record.x_abm_cor.raw_value"
+_BORDA = (f"{_COR} == 'quente' ? 'border-danger' : {_COR} == 'engajada' ? 'border-warning' : "
+          f"{_COR} == 'cliente' ? 'border-success' : 'border-info'")
+_SELO = (f"{_COR} == 'quente' ? 'text-bg-danger' : {_COR} == 'engajada' ? 'text-bg-warning' : 'text-bg-info'")
+_BARRA = (f"{_COR} == 'quente' ? 'bg-danger' : {_COR} == 'engajada' ? 'bg-warning' : 'bg-info'")
+_ICONE = (f"{_COR} == 'quente' ? 'fa-fire' : {_COR} == 'engajada' ? 'fa-thermometer-half' : 'fa-snowflake-o'")
+
+KANBAN_ARCH = f"""
 <data>
     <xpath expr="//kanban" position="attributes">
         <attribute name="class" add="o_abm_setima" separator=" "/>
     </xpath>
-    <xpath expr="//t[@t-name='card']//field[@name='tag_ids']" position="after">
-        <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
-            <field name="x_abm_faixa" widget="badge"
-                   decoration-info="x_abm_faixa == 'fria'"
-                   decoration-warning="x_abm_faixa == 'engajada'"
-                   decoration-danger="x_abm_faixa == 'quente'"/>
-            <span class="badge text-bg-light" title="Score ABM">
-                <i class="fa fa-signal me-1"/><field name="x_abm_score"/>
-            </span>
-            <span class="badge text-bg-light" invisible="not x_abm_tier">
-                Tier <field name="x_abm_tier"/>
-            </span>
-            <field name="x_abm_trilha" widget="badge" invisible="x_abm_trilha in (False, 'a_definir')"/>
-            <field name="x_abm_cadencia_status" widget="badge"
-                   decoration-success="x_abm_cadencia_status == 'ativa'"
-                   invisible="x_abm_cadencia_status in (False, 'nao_iniciada')"/>
-        </div>
+    <xpath expr="//progressbar" position="replace">
+        <progressbar field="x_abm_faixa"
+                     colors='{{"fria": "info", "engajada": "warning", "quente": "danger"}}'
+                     help="Temperatura das contas da coluna: fria, engajada, quente."/>
     </xpath>
-    <xpath expr="//t[@t-name='card']//field[@name='lead_properties']" position="attributes">
-        <attribute name="invisible">1</attribute>
+    <xpath expr="//templates" position="before">
+        <field name="x_abm_cor"/>
+        <field name="x_abm_faixa"/>
+        <field name="x_abm_score"/>
+        <field name="x_abm_score_pct"/>
+        <field name="x_abm_tier"/>
+        <field name="x_abm_trilha"/>
+        <field name="x_abm_preparacao"/>
+        <field name="x_abm_cadencia_status"/>
+        <field name="x_abm_cadencia_label"/>
+        <field name="x_abm_comite_total"/>
+        <field name="x_abm_comite_decisores"/>
+        <field name="x_abm_comite_conectados"/>
+        <field name="x_abm_comite_emails_ok"/>
+        <field name="x_abm_dias_estagio"/>
+        <field name="activity_state"/>
+        <field name="activity_summary"/>
+        <field name="activity_type_id"/>
+        <field name="activity_type_icon"/>
+        <field name="activity_date_deadline"/>
+    </xpath>
+    <xpath expr="//t[@t-name='card']" position="replace">
+        <t t-name="card">
+            <div t-att-class="'border-start border-4 ps-2 d-flex flex-column gap-2 ' + ({_BORDA})">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div class="text-truncate">
+                        <field name="name" class="fw-bold fs-6 d-block text-truncate"/>
+                        <field name="x_abm_dominio" class="small text-muted"/>
+                    </div>
+                    <span t-if="{_COR} == 'cliente'" class="badge rounded-pill text-bg-success">Cliente</span>
+                    <span t-elif="record.x_abm_tier.raw_value"
+                          t-att-class="'badge ' + (record.x_abm_tier.raw_value == '1' ? 'text-bg-dark' : 'text-bg-light border')">
+                        T<t t-out="record.x_abm_tier.raw_value"/>
+                    </span>
+                </div>
+
+                <div t-if="{_COR} != 'cliente'" class="d-flex align-items-center gap-2">
+                    <span t-att-class="'badge rounded-pill ' + ({_SELO})">
+                        <i t-att-class="'fa me-1 ' + ({_ICONE})"/><t t-out="record.x_abm_faixa.value or 'Fria'"/>
+                    </span>
+                    <div class="progress flex-grow-1 position-relative" style="height: 6px;"
+                         title="Score: 30 = engajada, 60 = quente">
+                        <div t-att-class="'progress-bar ' + ({_BARRA})"
+                             t-attf-style="width: {{{{ record.x_abm_score_pct.raw_value }}}}%;"/>
+                        <span class="position-absolute top-0 bottom-0 border-start border-secondary opacity-50" style="left: 33%;"/>
+                        <span class="position-absolute top-0 bottom-0 border-start border-secondary opacity-50" style="left: 66%;"/>
+                    </div>
+                    <span class="fw-bold small"><t t-out="record.x_abm_score.raw_value"/></span>
+                </div>
+
+                <div class="d-flex flex-wrap gap-1">
+                    <span t-if="record.x_abm_cadencia_label.raw_value"
+                          t-att-class="'badge rounded-pill ' + (record.x_abm_cadencia_status.raw_value == 'ativa' ? 'text-bg-success' : 'text-bg-light border')">
+                        <i t-if="record.x_abm_cadencia_status.raw_value == 'ativa'" class="fa fa-play me-1"/>
+                        <t t-out="record.x_abm_cadencia_label.raw_value"/>
+                    </span>
+                    <span t-elif="record.x_abm_preparacao.raw_value == 'fila' and {_COR} != 'cliente'"
+                          class="badge rounded-pill text-bg-light border">
+                        <i class="fa fa-hourglass-half me-1"/>Preparação na fila
+                    </span>
+                    <span t-elif="record.x_abm_preparacao.raw_value == 'liberada'"
+                          class="badge rounded-pill text-bg-light border">
+                        <i class="fa fa-check me-1"/>Preparação liberada
+                    </span>
+                    <span t-if="record.x_abm_trilha.raw_value and record.x_abm_trilha.raw_value != 'a_definir'"
+                          class="badge rounded-pill text-bg-light border">
+                        <t t-out="record.x_abm_trilha.value"/>
+                    </span>
+                </div>
+
+                <div class="d-flex flex-wrap column-gap-3 small text-muted">
+                    <span title="Pessoas no comitê"><i class="fa fa-users me-1"/><b class="text-body"><t t-out="record.x_abm_comite_total.raw_value"/></b></span>
+                    <span title="Decisores"><i class="fa fa-star me-1"/><b class="text-body"><t t-out="record.x_abm_comite_decisores.raw_value"/></b> decisores</span>
+                    <span t-if="{_COR} != 'cliente'" title="Conectados no LinkedIn"><i class="fa fa-linkedin-square me-1 text-primary"/><b class="text-body"><t t-out="record.x_abm_comite_conectados.raw_value"/></b></span>
+                    <span title="E-mails válidos"><i class="fa fa-envelope-o me-1"/><b class="text-body"><t t-out="record.x_abm_comite_emails_ok.raw_value"/></b></span>
+                </div>
+
+                <div t-if="record.activity_date_deadline.raw_value"
+                     t-att-class="'d-flex align-items-center gap-2 rounded px-2 py-1 small bg-light ' + (record.activity_state.raw_value == 'overdue' ? 'text-danger' : '')">
+                    <i t-att-class="'fa ' + (record.activity_type_icon.raw_value or 'fa-tasks')"/>
+                    <span class="text-truncate"><t t-out="record.activity_summary.raw_value or record.activity_type_id.value"/></span>
+                    <field name="activity_date_deadline" widget="remaining_days" class="ms-auto text-nowrap"/>
+                </div>
+                <div t-else="" class="d-flex align-items-center gap-2 rounded px-2 py-1 small bg-light text-muted">
+                    <i class="fa fa-minus"/><span>Sem atividade agendada</span>
+                </div>
+            </div>
+            <footer class="pt-1">
+                <div class="d-flex align-items-center gap-2 w-100">
+                    <field name="user_id" widget="many2one_avatar_user" domain="[('share', '=', False)]"/>
+                    <field name="activity_ids" widget="kanban_activity"/>
+                    <span class="ms-auto small text-muted" title="Dias no estágio atual">
+                        <i class="fa fa-clock-o me-1"/><t t-out="record.x_abm_dias_estagio.raw_value"/> d no estágio
+                    </span>
+                </div>
+            </footer>
+        </t>
     </xpath>
 </data>
 """

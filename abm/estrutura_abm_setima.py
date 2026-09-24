@@ -250,6 +250,55 @@ def campos_contato():
 
 
 # ---------------------------------------------------------------------------
+# Campos calculados do card do kanban (não armazenados: recalculam ao abrir)
+# ---------------------------------------------------------------------------
+_COMITE = "    filhos = r.partner_id.commercial_partner_id.child_ids.filtered(lambda p: not p.x_abm_optout) if r.partner_id else r.env['res.partner']\n"
+
+
+def campos_card():
+    print("Campos do card (kanban)")
+    m = "crm.lead"
+    campo("field_lead_comite_total", m, "x_abm_comite_total", "integer", "ABM · Pessoas no comitê",
+          store=False, compute="for r in self:\n" + _COMITE + "    r['x_abm_comite_total'] = len(filhos)")
+    campo("field_lead_comite_decisores", m, "x_abm_comite_decisores", "integer", "ABM · Decisores",
+          store=False, compute="for r in self:\n" + _COMITE +
+          "    r['x_abm_comite_decisores'] = len(filhos.filtered(lambda p: p.x_abm_prioridade == 1))")
+    campo("field_lead_comite_conectados", m, "x_abm_comite_conectados", "integer", "ABM · Conectados no LinkedIn",
+          store=False, compute="for r in self:\n" + _COMITE +
+          "    r['x_abm_comite_conectados'] = len(filhos.filtered(lambda p: p.x_abm_li_conexao == 'aceito'))")
+    campo("field_lead_comite_emails", m, "x_abm_comite_emails_ok", "integer", "ABM · E-mails válidos",
+          store=False, compute="for r in self:\n" + _COMITE +
+          "    r['x_abm_comite_emails_ok'] = len(filhos.filtered(lambda p: p.email and p.x_email_status in ('Verificado', 'Válido')))")
+    campo("field_lead_cadencia_label", m, "x_abm_cadencia_label", "char", "ABM · Situação da cadência",
+          store=False, compute="""for r in self:
+    txt = ''
+    if r.x_abm_cadencia_status == 'ativa' and r.x_abm_cadencia_inicio:
+        fer = set((r.env['ir.config_parameter'].sudo().get_param('abm.feriados') or '').split(','))
+        d = r.x_abm_cadencia_inicio
+        hoje = datetime.date.today()
+        n = 0
+        while d <= hoje:
+            if d.weekday() < 5 and d.isoformat() not in fer:
+                n += 1
+            d += datetime.timedelta(days=1)
+        txt = 'Onda %s · D%s' % (r.x_abm_onda or 1, max(n, 1))
+    elif r.x_abm_cadencia_status == 'pausada':
+        txt = 'Cadência pausada'
+    elif r.x_abm_cadencia_status == 'concluida':
+        txt = 'Cadência concluída'
+    r['x_abm_cadencia_label'] = txt""")
+    campo("field_lead_cor", m, "x_abm_cor", "char", "ABM · Cor do card", store=False,
+          compute="""cliente = self.env.ref('abm_setima.stage_cliente_expansao', raise_if_not_found=False)
+for r in self:
+    r['x_abm_cor'] = 'cliente' if cliente and r.stage_id == cliente else (r.x_abm_faixa or 'fria')""")
+    campo("field_lead_score_pct", m, "x_abm_score_pct", "integer", "ABM · Score (% da barra)", store=False,
+          compute="for r in self:\n    r['x_abm_score_pct'] = min(100, int((r.x_abm_score or 0) * 100 / 90))")
+    campo("field_lead_dias_estagio", m, "x_abm_dias_estagio", "integer", "ABM · Dias no estágio", store=False,
+          compute="for r in self:\n    d = r.date_last_stage_update or r.create_date\n"
+                  "    r['x_abm_dias_estagio'] = (datetime.datetime.now() - d).days if d else 0")
+
+
+# ---------------------------------------------------------------------------
 # 1.7 / 1.8 / 1.9 / 1.10 Atividades, modelos de e-mail, planos, rotina
 # ---------------------------------------------------------------------------
 TIPOS_ATIVIDADE = [
@@ -399,6 +448,7 @@ def main():
     modelo_sinal()
     campos_conta()
     campos_contato()
+    campos_card()
     atividades_e_modelos(sdr_id)
     parametros(team_id, sdr_id)
     if not APLICAR:
