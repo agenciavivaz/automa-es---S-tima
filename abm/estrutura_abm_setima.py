@@ -345,8 +345,7 @@ def atividades_e_modelos(sdr_id):
     if APLICAR:
         garantir("plan_preparacao_conta", "mail.activity.plan", {
             "name": "ABM – Preparação da conta", "res_model": "crm.lead",
-            "template_ids": [tpl("act_dossie", 0), tpl("act_validar_comite", 1),
-                             tpl("act_li_interagir", 2)]})
+            "template_ids": [tpl("act_validar_comite", 0), tpl("act_li_interagir", 1)]})
         garantir("plan_preparacao_reuniao", "mail.activity.plan", {
             "name": "ABM – Preparação de reunião", "res_model": "crm.lead",
             "template_ids": [tpl("act_preparar_reuniao", 1, "before_plan_date"),

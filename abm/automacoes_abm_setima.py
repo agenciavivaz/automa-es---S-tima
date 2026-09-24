@@ -59,7 +59,8 @@ GERAR_CADENCIA = r'''
             'abm_setima.act_dossie', date_deadline=uteis[0], user_id=sdr_id,
             summary='Definir trilha antes do primeiro e-mail')
         notas.append('Trilha a definir: os e-mails usam o modelo "Sem configurador" até a trilha ser definida.')
-    # Ordem: e-mail + LinkedIn primeiro; ligação e WhatsApp por último.
+    # Cadência fria só com e-mail e LinkedIn. Ligação e WhatsApp NÃO entram aqui:
+    # só quando a conta fica quente (A4) ou chega formulário (A15).
     # Sem asset na cadência padrão: ele só entra para o decisor após conexão aceita (A11/A16).
     passos = [
         (1, 'act_li_conectar', 'LinkedIn – Conectar', ''),
@@ -69,9 +70,7 @@ GERAR_CADENCIA = r'''
         (8, 'act_li_mensagem', 'LinkedIn – Mensagem de valor', ''),
         (11, 'act_email', 'E-mail', 'E3'),
         (14, 'act_li_mensagem', 'LinkedIn – Follow-up', ''),
-        (17, 'act_ligacao', 'Ligação', ''),
-        (19, 'act_whatsapp', 'WhatsApp', ''),
-        (21, 'act_email', 'E-mail', 'E4'),
+        (18, 'act_email', 'E-mail', 'E4'),
     ]
     total = 0
     for p in escolhidos:
@@ -79,8 +78,6 @@ GERAR_CADENCIA = r'''
             if tipo == 'act_li_conectar' and p.x_abm_li_conexao == 'aceito':
                 continue
             if tipo == 'act_email' and (not p.email or p.x_email_status in ('Inválido', 'Indisponível')):
-                continue
-            if tipo in ('act_ligacao', 'act_whatsapp') and not p.phone:
                 continue
             if tipo == 'act_email':
                 link = conta.x_abm_link_email
@@ -101,8 +98,6 @@ GERAR_CADENCIA = r'''
                 html += '<p>Trilha: %s · Modelo: <b>ABM · %s · %s</b></p>' % (rotulo, email_cod, rotulo)
             if tipo == 'act_li_mensagem':
                 html += '<p><i>Só se a conexão foi aceita; senão, marcar como feita. Conteúdo de valor (case, dado, post), sem asset e sem pitch.</i></p>'
-            if tipo == 'act_whatsapp':
-                html += '<p><i>Só se já houve alguma interação (resposta, conexão aceita, reação); senão, marcar como feita. Enviar pelo DataCrazy.</i></p>'
             conta.with_context(**QUIET).activity_schedule(
                 'abm_setima.' + tipo, date_deadline=uteis[dia - 1], user_id=sdr_id,
                 summary='[Cadência] D%s %s – %s (%s)' % (dia, canal, p.name, p.function or '-'),
@@ -135,12 +130,28 @@ for conta in records:
         'abm_setima.act_iniciar_cadencia', date_deadline=uteis[0], user_id=sdr_id,
         summary='Iniciar cadência – %s' % conta.name)
 ''',
-    # A4 — conta quente
+    # A4 — conta quente: libera ligação (hoje) e WhatsApp (próximo dia útil)
+    # para quem está na cadência; se ninguém, para os decisores.
     "a4": CABECALHO + r'''
 for conta in records:
-    conta.with_context(**QUIET).activity_schedule(
-        'abm_setima.act_ligacao', date_deadline=hoje, user_id=sdr_id,
-        summary='Conta quente: ligar para o decisor hoje')
+    empresa = conta.partner_id.commercial_partner_id
+    ativos = empresa.child_ids.filtered(lambda p: not p.x_abm_optout and p.x_abm_prioridade != 9)
+    pessoas = ativos.filtered(lambda p: p.x_abm_na_cadencia) or ativos.filtered(lambda p: p.x_abm_prioridade == 1)
+    com_telefone = pessoas.filtered(lambda p: p.phone)
+    for p in com_telefone:
+        base = '<p><b>%s</b> — %s<br/>Telefone: %s</p><p>Conta quente (score %s). Ofereça 20 min.</p>' % (
+            esc(p.name), esc(p.function), esc(p.phone), conta.x_abm_score)
+        conta.with_context(**QUIET).activity_schedule(
+            'abm_setima.act_ligacao', date_deadline=hoje, user_id=sdr_id,
+            summary='[Quente] Ligar – %s (%s)' % (p.name, p.function or '-'), note=base, x_abm_partner_id=p.id)
+        conta.with_context(**QUIET).activity_schedule(
+            'abm_setima.act_whatsapp', date_deadline=proximo_util, user_id=sdr_id,
+            summary='[Quente] WhatsApp – %s' % p.name, x_abm_partner_id=p.id,
+            note=base + '<p><i>Se a ligação não foi atendida. Enviar pelo DataCrazy.</i></p>')
+    if not com_telefone:
+        conta.with_context(**QUIET).activity_schedule(
+            'abm_setima.act_ligacao', date_deadline=hoje, user_id=sdr_id,
+            summary='[Quente] Conta quente sem telefone: buscar número do decisor')
     if gestor:
         conta.message_subscribe(partner_ids=gestor.partner_id.ids)
 ''',
