@@ -27,28 +27,28 @@ TAG_ABM_MONTADORAS = 17
 
 # Colunas do comitê (mesmas na aba da conta e na lista editável).
 COLUNAS_COMITE = """
+    <field name="x_abm_prioridade" string="Prior." width="50px"/>
     <field name="name" string="Nome"/>
     <field name="function" string="Cargo"/>
     <field name="x_abm_papel" string="Papel" widget="badge"
            decoration-danger="x_abm_papel == 'Decisor'"
            decoration-warning="x_abm_papel == 'Influenciador-chave'"
            decoration-info="x_abm_papel == 'Influenciador'"/>
-    <field name="x_abm_senioridade" string="Senioridade"/>
     <field name="x_abm_area" string="Área"/>
+    <field name="x_abm_senioridade" string="Senioridade" optional="hide"/>
     <field name="email" string="E-mail" widget="email"/>
     <field name="x_email_status" string="Status e-mail" widget="badge"
            decoration-success="x_email_status in ('Verificado', 'Válido')"
            decoration-warning="x_email_status in ('Extrapolado', 'catch-all')"
            decoration-danger="x_email_status in ('Inválido', 'Indisponível')"/>
-    <field name="phone" string="Telefone" widget="phone"/>
-    <field name="x_linkedin_url" string="LinkedIn" widget="url"/>
-    <field name="x_abm_prioridade" string="Prior."/>
-    <field name="x_abm_li_conexao" string="Conexão LI" widget="badge"
+    <field name="phone" string="Telefone" widget="phone" optional="show"/>
+    <field name="x_linkedin_url" string="LinkedIn" widget="url" text="Perfil"/>
+    <field name="x_abm_li_conexao" string="Conexão" widget="badge"
            decoration-success="x_abm_li_conexao == 'aceito'"
            decoration-info="x_abm_li_conexao == 'enviado'"
            decoration-danger="x_abm_li_conexao == 'recusado_ou_expirado'"/>
-    <field name="x_abm_na_cadencia" string="Na cadência" widget="boolean_toggle"/>
-    <field name="x_abm_optout" string="Opt-out" widget="boolean_toggle"/>
+    <field name="x_abm_na_cadencia" string="Cadência" widget="boolean_toggle"/>
+    <field name="x_abm_optout" string="Opt-out" widget="boolean_toggle" optional="show"/>
     <field name="x_abm_canal_inicial" string="Canal inicial" optional="hide"/>
     <field name="city" string="Cidade" optional="hide"/>
     <field name="category_id" string="Tags" widget="many2many_tags" optional="hide"/>
@@ -56,14 +56,21 @@ COLUNAS_COMITE = """
 """
 
 LISTA_COMITE = f"""
-<list string="Comitê de compra" editable="bottom" default_order="x_abm_prioridade, x_abm_papel, name"
-      decoration-bf="x_abm_papel in ('Decisor', 'Influenciador-chave')">
+<list string="Comitê de compra" editable="bottom" limit="100"
+      default_order="x_abm_prioridade, x_abm_papel, name"
+      decoration-bf="x_abm_papel in ('Decisor', 'Influenciador-chave')"
+      decoration-muted="x_abm_optout or x_abm_prioridade == 9">
     {COLUNAS_COMITE}
 </list>
 """
 
 
 def form_arch(acao_comite_id: int) -> str:
+    """Tela da conta: tudo em largura total. O chatter fica DENTRO do sheet,
+    no fim — no Odoo 19 isso o mantém embaixo em vez de na lateral
+    (mail/static/src/chatter/web/form_compiler.js: "if chatter is inside
+    sheet, keep it there"). Campos vazios somem para não ocupar espaço."""
+    comite = f'type="action" name="{acao_comite_id}" class="oe_stat_button"'
     return f"""
 <form string="Conta ABM" class="o_abm_setima">
     <header>
@@ -80,8 +87,17 @@ def form_arch(acao_comite_id: int) -> str:
     </header>
     <sheet>
         <div class="oe_button_box" name="button_box">
-            <button name="{acao_comite_id}" type="action" class="oe_stat_button" icon="fa-users">
-                <div class="o_stat_info"><span class="o_stat_text">Editar comitê</span></div>
+            <button {comite} icon="fa-users" help="Abrir e editar o comitê">
+                <field name="x_abm_comite_total" widget="statinfo" string="No comitê"/>
+            </button>
+            <button {comite} icon="fa-star" help="Decisores (prioridade 1)">
+                <field name="x_abm_comite_decisores" widget="statinfo" string="Decisores"/>
+            </button>
+            <button {comite} icon="fa-linkedin-square" help="Conectados no LinkedIn">
+                <field name="x_abm_comite_conectados" widget="statinfo" string="Conectados"/>
+            </button>
+            <button {comite} icon="fa-envelope-o" help="E-mails verificados ou válidos">
+                <field name="x_abm_comite_emails_ok" widget="statinfo" string="E-mails ok"/>
             </button>
             <button name="action_schedule_meeting" type="object" class="oe_stat_button"
                     icon="fa-calendar" context="{{'partner_id': partner_id}}" invisible="not id">
@@ -100,66 +116,68 @@ def form_arch(acao_comite_id: int) -> str:
         <field name="type" invisible="1"/>
         <field name="company_currency" invisible="1"/>
 
-        <div class="oe_title">
-            <h1><field name="name" placeholder="Nome da conta"/></h1>
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <div class="oe_title mb-3">
+            <h1 class="mb-2"><field name="name" placeholder="Nome da conta"/></h1>
+            <div class="d-flex flex-wrap align-items-center gap-2">
                 <field name="x_abm_faixa" widget="badge" readonly="1"
                        decoration-info="x_abm_faixa == 'fria'"
                        decoration-warning="x_abm_faixa == 'engajada'"
                        decoration-danger="x_abm_faixa == 'quente'"/>
                 <span class="fw-bold">Score <field name="x_abm_score" readonly="1" class="d-inline"/></span>
+                <span class="text-muted">·</span>
+                <span class="badge text-bg-success" invisible="x_abm_cadencia_status != 'ativa'">
+                    <i class="fa fa-play me-1"/><field name="x_abm_cadencia_label" class="d-inline"/>
+                </span>
+                <field name="x_abm_dominio" widget="url" class="d-inline" invisible="not x_abm_dominio"/>
                 <field name="tag_ids" widget="many2many_tags" options="{{'color_field': 'color'}}"
                        placeholder="Tags"/>
             </div>
         </div>
 
-        <group>
-            <group string="Conta ABM">
+        <group col="3" class="mb-2">
+            <group string="Conta">
                 <field name="x_abm_tier" string="Tier"/>
                 <field name="x_abm_trilha" string="Trilha"/>
                 <field name="x_abm_preparacao" string="Preparação"/>
-                <field name="x_abm_preparacao_inicio" string="Preparação liberada em" readonly="1"
-                       invisible="not x_abm_preparacao_inicio"/>
-                <field name="x_abm_ultimo_sinal_data" string="Último sinal" readonly="1"/>
-                <field name="user_id" string="Responsável (SDR)" widget="many2one_avatar_user"/>
-                <field name="priority" string="Prioridade" widget="priority"/>
-                <field name="activity_date_deadline" string="Próxima atividade" readonly="1"/>
-                <field name="activity_summary" string="Resumo da atividade" readonly="1"/>
+                <field name="user_id" string="SDR" widget="many2one_avatar_user"/>
+                <field name="x_abm_ultimo_sinal_data" string="Último sinal" readonly="1"
+                       invisible="not x_abm_ultimo_sinal_data"/>
             </group>
             <group string="Cadência">
                 <field name="x_abm_cadencia_status" string="Status"/>
-                <field name="x_abm_cadencia_inicio" string="Início"/>
-                <field name="x_abm_onda" string="Onda"/>
-                <field name="x_abm_ref_inatividade" string="Sem sinal desde" readonly="1"/>
-                <field name="date_last_stage_update" string="Último movimento" readonly="1"/>
-                <field name="team_id" string="Equipe" readonly="1"/>
+                <field name="x_abm_cadencia_inicio" string="Início" invisible="not x_abm_cadencia_inicio"/>
+                <field name="x_abm_onda" string="Onda" invisible="not x_abm_onda"/>
+                <field name="x_abm_ref_inatividade" string="Sem sinal desde" readonly="1"
+                       invisible="not x_abm_ref_inatividade"/>
+                <field name="activity_date_deadline" string="Próxima atividade" readonly="1"
+                       widget="remaining_days" invisible="not activity_date_deadline"/>
+                <field name="activity_summary" string="O que fazer" readonly="1"
+                       invisible="not activity_summary"/>
             </group>
             <group string="Empresa">
                 <field name="partner_id" string="Empresa"
                        context="{{'res_partner_search_mode': 'customer', 'show_address': 1}}"
                        options="{{'always_reload': True}}"/>
-                <field name="website" string="Site" widget="url"/>
-                <field name="phone" string="Telefone geral" widget="phone"/>
-                <field name="city" string="Cidade"/>
-                <field name="state_id" string="Estado"/>
-            </group>
-            <group string="Identificação">
-                <field name="x_abm_dominio" string="Domínio"/>
-                <field name="x_abm_dominios_extra" string="Outros domínios"/>
+                <field name="x_abm_dominios_extra" string="Outros domínios" invisible="not x_abm_dominios_extra"/>
                 <field name="x_abm_linkedin_empresa" string="Nome no LinkedIn"/>
-                <field name="email_from" string="E-mail geral" widget="email"/>
+                <field name="website" string="Site" widget="url" invisible="not website"/>
+                <field name="phone" string="Telefone" widget="phone" invisible="not phone"/>
+                <field name="email_from" string="E-mail" widget="email" invisible="not email_from"/>
+                <field name="team_id" invisible="1"/>
             </group>
         </group>
 
         <notebook>
             <page string="Comitê de compra" name="abm_comite">
-                <div class="text-muted mb-2">
-                    Ordenado por prioridade (1 decisor, 2 influenciador, 3 demais, 9 fora).
-                    Para incluir ou editar (papel, conexão, na cadência, opt-out), use o botão
-                    <b>Editar comitê</b> no topo.
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                    <span class="text-muted small">
+                        Ordenado por prioridade: 1 decisor, 2 influenciador, 3 demais, 9 fora do ICP.
+                    </span>
+                    <button {comite.replace('class="oe_stat_button"', 'class="btn btn-secondary btn-sm"')}
+                            icon="fa-pencil" string="Editar comitê"/>
                 </div>
-                <field name="x_studio_comite" nolabel="1" readonly="1">
-                    <list default_order="x_abm_prioridade, x_abm_papel, name"
+                <field name="x_studio_comite" nolabel="1" readonly="1" colspan="2">
+                    <list limit="100" default_order="x_abm_prioridade, x_abm_papel, name"
                           decoration-bf="x_abm_papel in ('Decisor', 'Influenciador-chave')"
                           decoration-muted="x_abm_optout or x_abm_prioridade == 9">
                         {COLUNAS_COMITE}
@@ -167,10 +185,10 @@ def form_arch(acao_comite_id: int) -> str:
                 </field>
             </page>
             <page string="Sinais" name="abm_sinais">
-                <div class="text-muted mb-2">
+                <div class="text-muted small mb-2">
                     Cada sinal soma pontos por 30 dias. 30+ = Engajada, 60+ = Quente.
                 </div>
-                <field name="x_abm_sinal_ids" nolabel="1"
+                <field name="x_abm_sinal_ids" nolabel="1" colspan="2"
                        context="{{'default_x_lead_id': id}}">
                     <list editable="top" default_order="x_data desc"
                           decoration-muted="not x_ativo">
@@ -192,7 +210,7 @@ def form_arch(acao_comite_id: int) -> str:
                         <field name="x_abm_dossie_url" string="Dossiê" widget="url"/>
                         <field name="x_abm_asset_url" string="Asset" widget="url"/>
                     </group>
-                    <group string="Links com UTM (copiar e usar no canal)">
+                    <group string="Links com UTM">
                         <field name="x_abm_link_email" string="E-mail" widget="CopyClipboardChar"/>
                         <field name="x_abm_link_linkedin" string="LinkedIn DM" widget="CopyClipboardChar"/>
                         <field name="x_abm_link_whatsapp" string="WhatsApp" widget="CopyClipboardChar"/>
@@ -207,18 +225,20 @@ def form_arch(acao_comite_id: int) -> str:
                                options="{{'currency_field': 'company_currency'}}"/>
                         <field name="probability" string="Probabilidade (%)"/>
                         <field name="date_deadline" string="Fechamento esperado"/>
+                        <field name="priority" string="Prioridade" widget="priority"/>
                     </group>
                     <group string="Origem">
                         <field name="campaign_id" string="Campanha"/>
                         <field name="source_id" string="Origem"/>
                         <field name="medium_id" string="Meio"/>
                         <field name="create_date" string="Criada em" readonly="1"/>
+                        <field name="date_last_stage_update" string="Último movimento" readonly="1"/>
                     </group>
                 </group>
             </page>
         </notebook>
+        <chatter/>
     </sheet>
-    <chatter/>
 </form>
 """
 
