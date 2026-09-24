@@ -66,10 +66,11 @@ LISTA_COMITE = f"""
 
 
 def form_arch(acao_comite_id: int) -> str:
-    """Tela da conta: tudo em largura total. O chatter fica DENTRO do sheet,
-    no fim — no Odoo 19 isso o mantém embaixo em vez de na lateral
-    (mail/static/src/chatter/web/form_compiler.js: "if chatter is inside
-    sheet, keep it there"). Campos vazios somem para não ocupar espaço."""
+    """Tela da conta em largura total: formulário SEM <sheet> (o sheet do
+    Odoo 19 tem max-width de 1400px — web/.../form_controller.scss; sem ele o
+    formulário ocupa toda a área). Sem sheet, o chatter fica onde foi posto,
+    no fim, e não vai para a lateral (mail/.../form_compiler.js). Campos
+    vazios somem para não ocupar espaço."""
     comite = f'type="action" name="{acao_comite_id}" class="oe_stat_button"'
     return f"""
 <form string="Conta ABM" class="o_abm_setima">
@@ -85,8 +86,7 @@ def form_arch(acao_comite_id: int) -> str:
                domain="['|', ('team_ids', 'in', team_id), ('team_ids', '=', False)]"
                readonly="won_status == 'lost' or not active"/>
     </header>
-    <sheet>
-        <div class="oe_button_box" name="button_box">
+    <div class="oe_button_box" name="button_box">
             <button {comite} icon="fa-users" help="Abrir e editar o comitê">
                 <field name="x_abm_comite_total" widget="statinfo" string="No comitê"/>
             </button>
@@ -238,7 +238,6 @@ def form_arch(acao_comite_id: int) -> str:
             </page>
         </notebook>
         <chatter/>
-    </sheet>
 </form>
 """
 
