@@ -59,16 +59,18 @@ GERAR_CADENCIA = r'''
             'abm_setima.act_dossie', date_deadline=uteis[0], user_id=sdr_id,
             summary='Definir trilha antes do primeiro e-mail')
         notas.append('Trilha a definir: os e-mails usam o modelo "Sem configurador" até a trilha ser definida.')
+    # Ordem: e-mail + LinkedIn primeiro; ligação e WhatsApp por último.
+    # Sem asset na cadência padrão: ele só entra para o decisor após conexão aceita (A11/A16).
     passos = [
         (1, 'act_li_conectar', 'LinkedIn – Conectar', ''),
         (1, 'act_email', 'E-mail', 'E1'),
         (3, 'act_li_interagir', 'LinkedIn – Interagir', ''),
-        (4, 'act_email', 'E-mail', 'E2'),
-        (6, 'act_ligacao', 'Ligação', ''),
-        (8, 'act_li_mensagem', 'LinkedIn – Mensagem com asset', ''),
-        (10, 'act_email', 'E-mail', 'E3'),
-        (13, 'act_ligacao', 'Ligação', ''),
-        (18, 'act_li_mensagem', 'LinkedIn – Follow-up', ''),
+        (5, 'act_email', 'E-mail', 'E2'),
+        (8, 'act_li_mensagem', 'LinkedIn – Mensagem de valor', ''),
+        (11, 'act_email', 'E-mail', 'E3'),
+        (14, 'act_li_mensagem', 'LinkedIn – Follow-up', ''),
+        (17, 'act_ligacao', 'Ligação', ''),
+        (19, 'act_whatsapp', 'WhatsApp', ''),
         (21, 'act_email', 'E-mail', 'E4'),
     ]
     total = 0
@@ -78,7 +80,7 @@ GERAR_CADENCIA = r'''
                 continue
             if tipo == 'act_email' and (not p.email or p.x_email_status in ('Inválido', 'Indisponível')):
                 continue
-            if tipo == 'act_ligacao' and not p.phone:
+            if tipo in ('act_ligacao', 'act_whatsapp') and not p.phone:
                 continue
             if tipo == 'act_email':
                 link = conta.x_abm_link_email
@@ -94,11 +96,13 @@ GERAR_CADENCIA = r'''
                 esc(p.email) or '-', esc(p.x_email_status) or 'sem status', esc(p.phone) or '-')
             if link:
                 html += '<p>Link da conta: %s</p>' % esc(link)
-            html += '<p>Asset: %s<br/>Dossiê: %s</p>' % (esc(conta.x_abm_asset_url) or '-', esc(conta.x_abm_dossie_url) or '-')
+            html += '<p>Dossiê: %s</p>' % (esc(conta.x_abm_dossie_url) or '-')
             if email_cod:
                 html += '<p>Trilha: %s · Modelo: <b>ABM · %s · %s</b></p>' % (rotulo, email_cod, rotulo)
-            if tipo == 'act_li_mensagem' and dia in (8, 18):
-                html += '<p><i>Só se a conexão foi aceita; senão, marcar como feita.</i></p>'
+            if tipo == 'act_li_mensagem':
+                html += '<p><i>Só se a conexão foi aceita; senão, marcar como feita. Conteúdo de valor (case, dado, post), sem asset e sem pitch.</i></p>'
+            if tipo == 'act_whatsapp':
+                html += '<p><i>Só se já houve alguma interação (resposta, conexão aceita, reação); senão, marcar como feita. Enviar pelo DataCrazy.</i></p>'
             conta.with_context(**QUIET).activity_schedule(
                 'abm_setima.' + tipo, date_deadline=uteis[dia - 1], user_id=sdr_id,
                 summary='[Cadência] D%s %s – %s (%s)' % (dia, canal, p.name, p.function or '-'),
@@ -223,6 +227,15 @@ for p in records:
     conta.with_context(**QUIET).activity_schedule(
         'abm_setima.act_li_mensagem', date_deadline=proximo_util, user_id=sdr_id,
         summary='[Cadência] Mensagem pós-conexão – %s' % p.name, x_abm_partner_id=p.id)
+    # Decisor conectado: hora de preparar o asset personalizado (com o cliente/produção).
+    decisor = p.x_abm_prioridade == 1 or p.x_abm_papel == 'Decisor'
+    ja_tem = env['mail.activity'].search_count([
+        ('x_abm_partner_id', '=', p.id), ('activity_type_id', '=', env.ref('abm_setima.act_asset').id)])
+    if decisor and not ja_tem:
+        conta.with_context(**QUIET).activity_schedule(
+            'abm_setima.act_asset', date_deadline=uteis[5], user_id=(gestor or env.user).id,
+            summary='Asset personalizado – %s (decisor conectado)' % p.name, x_abm_partner_id=p.id)
+        nota(conta, 'Decisor %s aceitou a conexão: tarefa de asset personalizado criada.' % esc(p.name))
 ''',
     # A12 — opt-out (5.5)
     "a12": CABECALHO + r'''
@@ -257,6 +270,23 @@ for conta in records:
         continue
     escolhidos.write({'x_abm_na_cadencia': True})
 ''' + GERAR_CADENCIA,
+    # A16 — asset pronto (URL preenchida): enviar aos decisores conectados
+    "a16": CABECALHO + r'''
+for conta in records:
+    empresa = conta.partner_id.commercial_partner_id
+    decisores = empresa.child_ids.filtered(
+        lambda p: not p.x_abm_optout and p.x_abm_li_conexao == 'aceito'
+        and (p.x_abm_prioridade == 1 or p.x_abm_papel == 'Decisor'))
+    for p in decisores:
+        conta.with_context(**QUIET).activity_schedule(
+            'abm_setima.act_li_mensagem', date_deadline=proximo_util, user_id=sdr_id,
+            summary='[Cadência] Enviar asset – %s' % p.name, x_abm_partner_id=p.id,
+            note='<p>Asset: %s</p><p>Mensagem curta no LinkedIn, oferecendo 20 min para mostrar.</p>' % esc(conta.x_abm_asset_url))
+    if not decisores:
+        conta.with_context(**QUIET).activity_schedule(
+            'abm_setima.act_li_mensagem', date_deadline=proximo_util, user_id=sdr_id,
+            summary='Asset pronto: definir para quem enviar – %s' % conta.name)
+''',
     # A15 — formulário de conta-alvo (5.7)
     "a15": CABECALHO + r'''
 for lead in records:
@@ -336,6 +366,10 @@ def regras():
         ("a14", "A14 · Onda 2", "crm.lead", {
             "trigger": "on_time", "data": "x_abm_cadencia_inicio", "dias": 21,
             "filter_domain": f"[{equipe}, ('stage_id', '=', {s['em_cadencia']}), ('x_abm_onda', '=', 1)]"}),
+        ("a16", "A16 · Asset pronto", "crm.lead", {
+            "trigger": "on_write", "campos": ["x_abm_asset_url"],
+            "filter_pre_domain": "[('x_abm_asset_url', '=', False)]",
+            "filter_domain": f"[{equipe}, ('x_abm_asset_url', '!=', False)]"}),
         ("a15", "A15 · Formulário de conta-alvo", "crm.lead", {
             "trigger": "on_create",
             "filter_domain": f"[('team_id', '!=', {t}), ('email_from', '!=', False)]"}),

@@ -258,7 +258,8 @@ TIPOS_ATIVIDADE = [
     ("act_validar_comite", "ABM · Validar comitê", "default", "fa-users",
      "Confirmar o cargo atual no LinkedIn e ajustar papel e prioridade no comitê (botão Editar comitê)."),
     ("act_asset", "ABM · Preparar asset", "default", "fa-cube",
-     "Configurador espelho ou raio-x. Colar a URL no campo Asset."),
+     "Asset personalizado para o decisor (só após conexão aceita). Alinhar com o cliente/produção "
+     "o que será enviado e colar a URL no campo Asset: isso gera a tarefa de envio para a SDR."),
     ("act_iniciar_cadencia", "ABM · Iniciar cadência", "default", "fa-play",
      "Revisar dossiê, trilha e asset. Marcar \"Na cadência\" em até 3 pessoas e mover para Em cadência."),
     ("act_li_interagir", "ABM · LinkedIn – Seguir/Interagir", "default", "fa-linkedin",
@@ -298,7 +299,7 @@ post".</li>
 EMAILS = [
     ("E1", "Observação da conta", "Observação específica da conta (lançamento recente, configurador atual) + link."),
     ("E2", "Prova", "Case VW Tera em 3 linhas + uma pergunta."),
-    ("E3", "Oferta", "Montamos um configurador espelho da marca — posso mostrar em 20 min?"),
+    ("E3", "Oferta", "Convite para 20 min: case + calculadora de ROI (sem asset personalizado)."),
     ("E4", "Encerramento", "Encerramento educado, porta aberta."),
 ]
 TRILHAS = [("sem", "Sem configurador"), ("fraco", "Configurador fraco")]
@@ -345,7 +346,7 @@ def atividades_e_modelos(sdr_id):
         garantir("plan_preparacao_conta", "mail.activity.plan", {
             "name": "ABM – Preparação da conta", "res_model": "crm.lead",
             "template_ids": [tpl("act_dossie", 0), tpl("act_validar_comite", 1),
-                             tpl("act_li_interagir", 2), tpl("act_asset", 5)]})
+                             tpl("act_li_interagir", 2)]})
         garantir("plan_preparacao_reuniao", "mail.activity.plan", {
             "name": "ABM – Preparação de reunião", "res_model": "crm.lead",
             "template_ids": [tpl("act_preparar_reuniao", 1, "before_plan_date"),

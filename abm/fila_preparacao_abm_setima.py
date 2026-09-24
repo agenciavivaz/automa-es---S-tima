@@ -14,11 +14,12 @@ aos poucos:
   - FREIO: se a SDR já tem abm.preparacao_limite_pendentes (padrão 10) ou mais
     atividades ABM vencidas/para hoje, não libera nada naquele dia;
   - cada conta liberada recebe, em dias úteis: Dossiê (D0), Validar comitê
-    (D1), LinkedIn – Seguir/Interagir (D2) e Preparar asset (D5), todas para
+    (D1) e LinkedIn – Seguir/Interagir (D2), todas para
     a SDR, sem notificação por e-mail; nota interna na conta.
 
-Com 2 contas/dia a SDR recebe no máximo ~8 tarefas de preparação por dia
-(cada conta põe 1 tarefa em 4 dias diferentes).
+Com 2 contas/dia a SDR recebe no máximo ~6 tarefas de preparação por dia
+(cada conta põe 1 tarefa em 3 dias diferentes). O asset não faz parte da
+preparação: só entra para o decisor depois da conexão aceita (A11/A16).
 
 A ação agendada nasce DESATIVADA (regra 4 da spec). Para simular sem gravar:
     python abm/fila_preparacao_abm_setima.py --simular
@@ -84,8 +85,7 @@ else:
         liberar = [x[3] for x in fila[:por_dia]]
     etapas = [('abm_setima.act_dossie', 0, 'Dossiê da conta'),
               ('abm_setima.act_validar_comite', 1, 'Validar comitê'),
-              ('abm_setima.act_li_interagir', 2, 'LinkedIn – seguir e interagir'),
-              ('abm_setima.act_asset', 5, 'Preparar asset')]
+              ('abm_setima.act_li_interagir', 2, 'LinkedIn – seguir e interagir')]
     for conta in liberar:
         linhas = []
         for xmlid, du, resumo in etapas:
