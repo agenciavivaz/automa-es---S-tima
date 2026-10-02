@@ -70,13 +70,25 @@ def area(departamentos, subdepartamentos, cargo):
         return "Marketing"
     if "Information Technology" in deps and deps & {"Product", "Engineering & Technical"}:
         return "TI/Digital"
+    por_departamento = "Outros"
     for dep, nome in (("Product", "Produto"), ("Engineering & Technical", "Engenharia/Design"),
                       ("Information Technology", "TI/Digital"), ("Operations", "Operações"),
                       ("Sales", "Comercial/Vendas"), ("Human Resources", "RH"),
                       ("Finance", "Financeiro/Controladoria"), ("Legal", "Compliance/Jurídico")):
         if dep in deps:
-            return nome
-    return "Outros"
+            por_departamento = nome
+            break
+    # Sem departamento útil (ou RH sem cargo de RH, ex.: "E-Performance Manager"),
+    # o cargo decide. CEO/presidente seguem em "Outros", como nos comitês atuais.
+    if por_departamento in ("Outros", "RH"):
+        for padrao, nome in ((r"marketing|brand|marca|comunica|communication|rela[cç][oõ]es p[uú]blicas|\bpr\b|crm|reputa", "Marketing"),
+                             (r"product|produto|e-performance", "Produto"),
+                             (r"digital|e-commerce|ecommerce|\bit\b|technology|tecnologia", "TI/Digital"),
+                             (r"design|engenharia|engineering", "Engenharia/Design"),
+                             (r"sales|vendas|comercial|commercial|dealer|concession", "Comercial/Vendas")):
+            if re.search(padrao, cargo, re.I):
+                return nome
+    return por_departamento
 
 
 def canal(status):

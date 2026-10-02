@@ -75,3 +75,15 @@ CRM → ABM Setima → **Atividades ABM**: todas as atividades de tipos "ABM · 
 Atrasadas, Hoje, Próximos 7 dias, Preparação, Cadência, Quente). Telas próprias
 com prioridade 250, para não virarem padrão em outros lugares. Script
 idempotente: `abm/odoo/menu_atividades.py`.
+
+## Expansão de contas (2026-10-02)
+29 contas novas da base do LinkedIn Ads com decisores no Brasil (diagnóstico em
+`abm/diagnostico_decisores_brasil_2026-10-02.csv`). Comitês enriquecidos no
+Apollo (182 pessoas, 182 créditos, só e-mail/LinkedIn, sem celular): 178
+contatos novos, mesma regra de prioridade/papel/área. Contas em Alvo/na fila
+(VW Caminhões e Ônibus é cliente: "Cliente – expansão", não preparar).
+
+```bash
+python criar_contas_abm.py contas.json [--aplicar]          # abm/contas_expansao_*.json
+python importar_comite_apollo.py export.csv [--aplicar]     # CSV no formato de export do Apollo
+```
