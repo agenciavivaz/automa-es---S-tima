@@ -1,0 +1,46 @@
+conta,situacao,decisores_brasil_icp,como_achar_no_apollo,exemplos_de_cargo,observacao
+General Motors (Chevrolet),enriquecer,37,dominios gm.com + chevrolet.com.br,General Director of Design; Product Marketing Director; General Director Sales & Marketing SA,Chevrolet entra dentro da GM (uma conta só)
+Volkswagen Caminhões e Ônibus,enriquecer,23,dominio vwco.com.br,Presidente e CEO,
+CNH (New Holland + Case IH),enriquecer,28,dominios cnh.com + newholland.com + caseih.com,Vice-presidente do Grupo,New Holland e Case IH decidem dentro da CNH (uma conta só)
+GWM Brasil,enriquecer,30*,nome "GWM Brasil",Head of Procurement; COO; Head of Product Planning; Head of Sales & E-commerce,*contagem sem filtro de área
+BMW Group Brasil (+ Motorrad),enriquecer,10,dominios bmw.com.br + bmwgroup.com,Presidente,BMW Motorrad dentro da BMW
+Iveco,enriquecer,9,dominios iveco.com.br + iveco.com,General Director,
+Randoncorp (Randon),enriquecer,8,dominios randon.com.br + randoncorp.com,Dir. Presidente; Product Owner Vertical Montadora,
+Jacto,enriquecer,6,dominio jacto.com.br,Diretor Geral; Head de Compras; Head of Digital Agriculture,
+Geely Brasil,enriquecer,3+,nome "Geely Brasil",Head de Marketing e Comunicação; Head of Product & Brand,
+MG Motor Brasil,enriquecer,3+,nome "MG Motor Brasil",Head of Marketing Product and PR,
+Jetour,enriquecer,3+,nome "Jetour",Marketing Product and PR Director; Sales Director,
+Omoda & Jaecoo Brasil,enriquecer,7,dominio omodajaecoo.com.br,CEO Presidente,
+Audi do Brasil,enriquecer,5,dominio audi.com.br,Presidente & CEO,
+Porsche Brasil,enriquecer,3,dominio porsche.com.br,CEO,
+JLR / Land Rover Brasil,enriquecer,5,dominio jaguarlandrover.com,Head of Procurement Brazil,não confundir com Land Rio (concessionária)
+Grupo CAOA,enriquecer,4,dominio caoa.com.br,CEO,distribui Hyundai e Subaru; Caoa Chery já é conta
+Kawasaki Motores do Brasil,enriquecer,2+,nome "Kawasaki Motores do Brasil",Chefe de Marketing,
+Shineray do Brasil,enriquecer,3,dominio shineray.com.br,CEO; Head de Marketing,
+Royal Enfield,enriquecer,1,dominio royalenfield.com,Head de Marketing Latam,
+Comil Ônibus,enriquecer,2,dominio comilonibus.com.br,CEO; Diretor Comercial e de Marketing,
+Stara,enriquecer,1,dominio stara.com.br,Director of Sales and Marketing,
+Librelato,enriquecer,1,dominio librelato.com.br,Diretor Comercial e Marketing,
+JCB Brasil,enriquecer,2,dominio jcb.com,Director of Product Strategy and Engineering; Head of Procurement,
+Komatsu Brasil,enriquecer,2,dominio komatsu.com.br,VP Construction Equipment,
+Sany Brasil,enriquecer,2,dominio sanydobrasil.com.br,CEO; Sales & Marketing Director,
+Suzuki Motos (J. Toledo),enriquecer,2,dominio suzukimotos.com.br,CEO,Suzuki carros (HPE) é outra empresa
+Dafra Motos,enriquecer,2,nome "Dafra Motos",VP; Diretor Industrial,
+JAC Motors,enriquecer,3,dominio jacmotors.com.br,Diretor Nacional de Pós-vendas,
+LS Tractor Brasil,enriquecer,1,dominio lstractor.com.br,CEO,
+Harley-Davidson,verificar,2,nome "Harley-Davidson Motor Company",CFO Latam; Director of Operations,resultado mistura concessionárias
+Voltz Motors,verificar,1,nome "Voltz Motors",Creative Director,
+Liebherr Brasil,verificar,1,dominio liebherr.com,Managing Director Sales,
+Volvo Trucks / Volvo CE,verificar,?,dominio volvogroup.com,—,resultado mistura concessionárias (Rivesa Volvo); filtrar organização "Volvo Group" no Apollo
+Caterpillar,verificar,?,dominio caterpillar.com,—,aparece quase só a Sotreq (dealer)
+Peugeot / Citroën / Fiat,não criar conta,1,—,—,decisão fica na Stellantis South America (já é conta)
+Lexus,não criar conta,0,—,—,decisão na Toyota do Brasil (já é conta)
+Massey Ferguson / Valtra / Fendt,não criar conta,0,—,—,marcas da AGCO (já é conta)
+Volare / Neobus,não criar conta,0,—,—,marcas da Marcopolo (já é conta)
+Denza,não criar conta,0,—,—,marca da BYD (já é conta)
+Subaru,não criar conta,0,—,—,distribuída pela CAOA
+Changan / GAC / Avatr / Dongfeng / BAIC / Lepas,sem decisor no Brasil,0,—,—,GAC só jurídico e engenharia; demais sem operação mapeada no Apollo
+Haojue / Kymco / Traxx / Bull / Watt,sem decisor no Brasil,0,—,—,
+Agrale / Foton / Sinotruk / XCMG,sem decisor no Brasil,0,—,—,busca por nome traz homônimos (Foton Informática / Banco XCMG)
+Caio / Mascarello / Busscar / Eletra,sem decisor no Brasil,0,—,—,
+Yanmar / Kubota / Montana / Guerra / Facchini / Noma,sem decisor no Brasil,0,—,—,
