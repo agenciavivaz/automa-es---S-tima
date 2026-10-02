@@ -2,7 +2,7 @@
 Idempotente. Uso: python abm/odoo/menu_atividades.py (requer ODOO_URL/ODOO_DB/ODOO_API_KEY)."""
 import os, json, requests
 U = os.environ["ODOO_URL"].rstrip("/").removesuffix("/odoo")
-H = {"Authorization": f"Bearer {os.environ[\"ODOO_API_KEY\"]}", "X-Odoo-Database": os.environ["ODOO_DB"]}
+H = {"Authorization": "Bearer " + os.environ["ODOO_API_KEY"], "X-Odoo-Database": os.environ["ODOO_DB"]}
 def call(model, method, **kw):
     r = requests.post(f"{U}/json/2/{model}/{method}", headers=H, json=kw, timeout=60); r.raise_for_status(); return r.json()
 PRIO = 250  # bem acima do padrão (16): estas telas nunca viram a visão padrão de atividades

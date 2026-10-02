@@ -68,3 +68,10 @@ Conteúdo de alto valor personalizado (ex.: lead magnet adaptado, estudo do
 configurador da conta, demo 3D). Produção pedida ao gestor quando o decisor
 aceita a conexão (A11); quando a URL é preenchida, a SDR recebe a tarefa de
 enviar por mensagem no LinkedIn aos decisores conectados (A16).
+
+## Menu Atividades ABM
+CRM → ABM Setima → **Atividades ABM**: todas as atividades de tipos "ABM · …"
+(kanban por etapa, lista com botão Feito, calendário e pivot; filtros Minhas,
+Atrasadas, Hoje, Próximos 7 dias, Preparação, Cadência, Quente). Telas próprias
+com prioridade 250, para não virarem padrão em outros lugares. Script
+idempotente: `abm/odoo/menu_atividades.py`.
