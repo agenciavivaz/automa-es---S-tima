@@ -1,0 +1,783 @@
+{
+ "automacoes": [
+  {
+   "id": 24,
+   "name": "ABM · A1 · Entrou em Alvo",
+   "active": true,
+   "action_server_ids": [
+    1325
+   ],
+   "filter_domain": "[('team_id', '=', 20), ('stage_id', 'in', [87])]",
+   "filter_pre_domain": "[('stage_id', 'not in', [87])]",
+   "trigger": "on_write"
+  },
+  {
+   "id": 25,
+   "name": "ABM · A2 · Ficou engajada",
+   "active": true,
+   "action_server_ids": [
+    1326
+   ],
+   "filter_domain": "[('team_id', '=', 20), ('x_abm_faixa', 'in', ['engajada', 'quente']), ('stage_id', 'in', [87, 88, 94])]",
+   "filter_pre_domain": "[('x_abm_faixa', 'in', [False, 'fria'])]",
+   "trigger": "on_write"
+  },
+  {
+   "id": 26,
+   "name": "ABM · A3 · 21 dias aquecendo",
+   "active": true,
+   "action_server_ids": [
+    1327
+   ],
+   "filter_domain": "[('team_id', '=', 20), ('stage_id', '=', 88)]",
+   "filter_pre_domain": false,
+   "trigger": "on_time"
+  },
+  {
+   "id": 27,
+   "name": "ABM · A4 · Conta quente",
+   "active": true,
+   "action_server_ids": [
+    1328
+   ],
+   "filter_domain": "[('team_id', '=', 20), ('x_abm_faixa', '=', 'quente'), ('stage_id', 'not in', [91, 92, 95, 96])]",
+   "filter_pre_domain": "[('x_abm_faixa', '!=', 'quente')]",
+   "trigger": "on_write"
+  },
+  {
+   "id": 28,
+   "name": "ABM · A5 · Início da cadência",
+   "active": false,
+   "action_server_ids": [
+    1329
+   ],
+   "filter_domain": "[('team_id', '=', 20), ('stage_id', 'in', [90])]",
+   "filter_pre_domain": "[('stage_id', 'not in', [90])]",
+   "trigger": "on_write"
+  },
+  {
+   "id": 29,
+   "name": "ABM · A6 · Parar cadência",
+   "active": true,
+   "action_server_ids": [
+    1330
+   ],
+   "filter_domain": "[('team_id', '=', 20), ('stage_id', 'in', [91, 94, 95])]",
+   "filter_pre_domain": "[('stage_id', 'not in', [91, 94, 95])]",
+   "trigger": "on_write"
+  },
+  {
+   "id": 30,
+   "name": "ABM · A7 · Conversa",
+   "active": true,
+   "action_server_ids": [
+    1331
+   ],
+   "filter_domain": "[('team_id', '=', 20), ('stage_id', 'in', [91])]",
+   "filter_pre_domain": "[('stage_id', 'not in', [91])]",
+   "trigger": "on_write"
+  },
+  {
+   "id": 31,
+   "name": "ABM · A8 · Reunião agendada",
+   "active": true,
+   "action_server_ids": [
+    1332
+   ],
+   "filter_domain": "[('team_id', '=', 20), ('stage_id', 'in', [92])]",
+   "filter_pre_domain": "[('stage_id', 'not in', [92])]",
+   "trigger": "on_write"
+  },
+  {
+   "id": 32,
+   "name": "ABM · A9 · Cadência sem sinal",
+   "active": true,
+   "action_server_ids": [
+    1333
+   ],
+   "filter_domain": "[('team_id', '=', 20), ('stage_id', '=', 90)]",
+   "filter_pre_domain": false,
+   "trigger": "on_time"
+  },
+  {
+   "id": 33,
+   "name": "ABM · A10 · E-mail recebido",
+   "active": true,
+   "action_server_ids": [
+    1334
+   ],
+   "filter_domain": "[('team_id', '=', 20)]",
+   "filter_pre_domain": false,
+   "trigger": "on_message_received"
+  },
+  {
+   "id": 34,
+   "name": "ABM · A11 · Conexão aceita",
+   "active": true,
+   "action_server_ids": [
+    1335
+   ],
+   "filter_domain": "[('x_abm_li_conexao', '=', 'aceito'), ('parent_id', '!=', False)]",
+   "filter_pre_domain": "[('x_abm_li_conexao', '!=', 'aceito')]",
+   "trigger": "on_write"
+  },
+  {
+   "id": 35,
+   "name": "ABM · A12 · Opt-out",
+   "active": true,
+   "action_server_ids": [
+    1336
+   ],
+   "filter_domain": "[('x_abm_optout', '=', True)]",
+   "filter_pre_domain": "[('x_abm_optout', '=', False)]",
+   "trigger": "on_write"
+  },
+  {
+   "id": 36,
+   "name": "ABM · A13 · Sinal expira",
+   "active": true,
+   "action_server_ids": [
+    1337
+   ],
+   "filter_domain": "[('x_ativo', '=', True)]",
+   "filter_pre_domain": false,
+   "trigger": "on_time"
+  },
+  {
+   "id": 37,
+   "name": "ABM · A14 · Onda 2",
+   "active": false,
+   "action_server_ids": [
+    1338
+   ],
+   "filter_domain": "[('team_id', '=', 20), ('stage_id', '=', 90), ('x_abm_onda', '=', 1)]",
+   "filter_pre_domain": false,
+   "trigger": "on_time"
+  },
+  {
+   "id": 38,
+   "name": "ABM · A15 · Formulário de conta-alvo",
+   "active": true,
+   "action_server_ids": [
+    1339
+   ],
+   "filter_domain": "[('team_id', '!=', 20), ('email_from', '!=', False)]",
+   "filter_pre_domain": false,
+   "trigger": "on_create"
+  },
+  {
+   "id": 39,
+   "name": "ABM · A16 · Asset pronto",
+   "active": true,
+   "action_server_ids": [
+    1340
+   ],
+   "filter_domain": "[('team_id', '=', 20), ('x_abm_asset_url', '!=', False)]",
+   "filter_pre_domain": "[('x_abm_asset_url', '=', False)]",
+   "trigger": "on_write"
+  }
+ ],
+ "acoes": [
+  {
+   "id": 1325,
+   "name": "ABM · A1 · Entrou em Alvo",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nfor conta in records:\n    if conta.x_abm_preparacao != 'liberada':\n        conta.write({'x_abm_preparacao': 'fila'})\n"
+  },
+  {
+   "id": 1326,
+   "name": "ABM · A2 · Ficou engajada",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\ndef preparar(conta):\n    \"\"\"Tarefas de preparação da conta, todas no mesmo dia (mesmas da fila diária).\"\"\"\n    etapas = [('abm_setima.act_validar_comite', 'Validar comitê'),\n              ('abm_setima.act_li_interagir', 'LinkedIn – seguir e interagir')]\n    if conta.x_abm_trilha in (False, 'a_definir'):\n        etapas.append(('abm_setima.act_trilha', 'Definir trilha'))\n    for xmlid, resumo in etapas:\n        conta.with_context(**QUIET).activity_schedule(\n            xmlid, date_deadline=uteis[0], user_id=sdr_id,\n            summary='[Preparação] %s – %s' % (resumo, conta.name))\n    conta.write({'x_abm_preparacao': 'liberada', 'x_abm_preparacao_inicio': uteis[0]})\n    nota(conta, 'Conta ficou engajada antes da fila: preparação liberada junto (%s).' % ', '.join([e[1] for e in etapas]))\n\nfor conta in records:\n    conta.write({'stage_id': env.ref('abm_setima.stage_engajada').id})\n    if conta.x_abm_preparacao != 'liberada':\n        preparar(conta)\n    conta.with_context(**QUIET).activity_schedule(\n        'abm_setima.act_iniciar_cadencia', date_deadline=uteis[0], user_id=sdr_id,\n        summary='Iniciar cadência – %s' % conta.name)\n"
+  },
+  {
+   "id": 1327,
+   "name": "ABM · A3 · 21 dias aquecendo",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\ndef preparar(conta):\n    \"\"\"Tarefas de preparação da conta, todas no mesmo dia (mesmas da fila diária).\"\"\"\n    etapas = [('abm_setima.act_validar_comite', 'Validar comitê'),\n              ('abm_setima.act_li_interagir', 'LinkedIn – seguir e interagir')]\n    if conta.x_abm_trilha in (False, 'a_definir'):\n        etapas.append(('abm_setima.act_trilha', 'Definir trilha'))\n    for xmlid, resumo in etapas:\n        conta.with_context(**QUIET).activity_schedule(\n            xmlid, date_deadline=uteis[0], user_id=sdr_id,\n            summary='[Preparação] %s – %s' % (resumo, conta.name))\n    conta.write({'x_abm_preparacao': 'liberada', 'x_abm_preparacao_inicio': uteis[0]})\n    nota(conta, 'Conta ficou engajada antes da fila: preparação liberada junto (%s).' % ', '.join([e[1] for e in etapas]))\n\nfor conta in records:\n    conta.write({'stage_id': env.ref('abm_setima.stage_engajada').id})\n    if conta.x_abm_preparacao != 'liberada':\n        preparar(conta)\n    conta.with_context(**QUIET).activity_schedule(\n        'abm_setima.act_iniciar_cadencia', date_deadline=uteis[0], user_id=sdr_id,\n        summary='Iniciar cadência – %s' % conta.name)\n"
+  },
+  {
+   "id": 1328,
+   "name": "ABM · A4 · Conta quente",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nfor conta in records:\n    if gestor:\n        conta.message_subscribe(partner_ids=gestor.partner_id.ids)\n    sinais = conta.x_abm_sinal_ids.filtered(lambda s: s.x_ativo)\n    # Formulário: a A15 já criou a tarefa de contato em até 1h com a pessoa que se cadastrou.\n    if conta.activity_ids.filtered(lambda a: (a.summary or '').startswith('Formulário:')):\n        nota(conta, 'Conta quente (score %s) por cadastro: seguir a tarefa de contato do formulário.' % conta.x_abm_score)\n        continue\n    # Braço erguido: a prioridade é responder quem levantou a mão, não ligar para o comitê.\n    positivas = sinais.filtered(lambda s: s.x_tipo == 'resposta_positiva').sorted('x_data', reverse=True)\n    if positivas:\n        quem = positivas[0].x_partner_id\n        conta.with_context(**QUIET).activity_schedule(\n            'abm_setima.act_agendar', date_deadline=hoje, user_id=sdr_id,\n            summary='[Quente] Braço erguido: responder e agendar – %s' % (quem.name or conta.name),\n            x_abm_partner_id=quem.id or False,\n            note='<p>Resposta positiva. Responder hoje, propor 20 min e mover a conta para Conversa.</p>')\n        continue\n    empresa = conta.partner_id.commercial_partner_id\n    ativos = empresa.child_ids.filtered(lambda p: not p.x_abm_optout and p.x_abm_prioridade != 9)\n    pessoas = ativos.filtered(lambda p: p.x_abm_na_cadencia) or ativos.filtered(lambda p: p.x_abm_prioridade == 1)\n    com_telefone = pessoas.filtered(lambda p: p.phone)\n    for p in com_telefone:\n        base = '<p><b>%s</b> — %s<br/>Telefone: %s</p><p>Conta quente (score %s). Ofereça 20 min.</p>' % (\n            esc(p.name), esc(p.function), esc(p.phone), conta.x_abm_score)\n        conta.with_context(**QUIET).activity_schedule(\n            'abm_setima.act_ligacao', date_deadline=hoje, user_id=sdr_id,\n            summary='[Quente] Ligar – %s (%s)' % (p.name, p.function or '-'), note=base, x_abm_partner_id=p.id)\n        conta.with_context(**QUIET).activity_schedule(\n            'abm_setima.act_whatsapp', date_deadline=proximo_util, user_id=sdr_id,\n            summary='[Quente] WhatsApp – %s' % p.name, x_abm_partner_id=p.id,\n            note=base + '<p><i>Se a ligação não foi atendida. Enviar pelo DataCrazy.</i></p>')\n    if not com_telefone:\n        conta.with_context(**QUIET).activity_schedule(\n            'abm_setima.act_ligacao', date_deadline=hoje, user_id=sdr_id,\n            summary='[Quente] Conta quente sem telefone: buscar número do decisor')\n"
+  },
+  {
+   "id": 1329,
+   "name": "ABM · A5 · Início da cadência",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nfor conta in records:\n    notas = []\n\n    empresa = conta.partner_id.commercial_partner_id\n    elegiveis = empresa.child_ids.filtered(\n        lambda p: not p.x_abm_optout and p.x_abm_prioridade != 9 and p.x_abm_papel != 'Fora')\n    ordem = lambda p: (p.x_abm_prioridade or 3, 0 if p.x_email_status in ('Verificado', 'Válido') else 1, p.name or '')\n\n    escolhidos = elegiveis.filtered(lambda p: p.x_abm_na_cadencia)\n    if not escolhidos:\n        escolhidos = elegiveis.filtered(lambda p: p.x_abm_prioridade in (1, 2)).sorted(ordem)[:3]\n        escolhidos.write({'x_abm_na_cadencia': True})\n        notas.append('Ninguém marcado \"Na cadência\": escolhidos automaticamente %s.' % ', '.join(escolhidos.mapped('name')))\n    conta.write({'x_abm_cadencia_status': 'ativa', 'x_abm_cadencia_inicio': hoje, 'x_abm_onda': 1})\n\n    trilha = conta.x_abm_trilha or 'a_definir'\n    rotulo = 'Configurador fraco' if trilha == 'config_fraco' else 'Sem configurador'\n    if trilha == 'a_definir':\n        conta.with_context(**QUIET).activity_schedule(\n            'abm_setima.act_trilha', date_deadline=uteis[0], user_id=sdr_id,\n            summary='Definir trilha antes do primeiro e-mail')\n        notas.append('Trilha a definir: os e-mails usam o modelo \"Sem configurador\" até a trilha ser definida.')\n    # Cadência fria só com e-mail e LinkedIn. Ligação e WhatsApp NÃO entram aqui:\n    # só quando a conta fica quente (A4) ou chega formulário (A15).\n    # Sem asset na cadência padrão: ele só entra para o decisor após conexão aceita (A11/A16).\n    passos = [\n        (1, 'act_li_conectar', 'LinkedIn – Conectar', ''),\n        (1, 'act_email', 'E-mail', 'E1'),\n        (3, 'act_li_interagir', 'LinkedIn – Interagir', ''),\n        (5, 'act_email', 'E-mail', 'E2'),\n        (8, 'act_li_mensagem', 'LinkedIn – Mensagem de valor', ''),\n        (11, 'act_email', 'E-mail', 'E3'),\n        (14, 'act_li_mensagem', 'LinkedIn – Follow-up', ''),\n        (18, 'act_email', 'E-mail', 'E4'),\n    ]\n    total = 0\n    for p in escolhidos:\n        for dia, tipo, canal, email_cod in passos:\n            if tipo == 'act_li_conectar' and p.x_abm_li_conexao == 'aceito':\n                continue\n            if tipo == 'act_email' and (not p.email or p.x_email_status in ('Inválido', 'Indisponível')):\n                continue\n            if tipo == 'act_email':\n                link = conta.x_abm_link_email\n            elif tipo.startswith('act_li'):\n                link = conta.x_abm_link_linkedin\n            else:\n                link = ''\n            html = '<p><b>%s</b> — %s<br/>Papel: %s · Prioridade: %s</p>' % (\n                esc(p.name), esc(p.function), esc(p.x_abm_papel) or '-', p.x_abm_prioridade or '-')\n            if p.x_linkedin_url:\n                html += '<p>LinkedIn: <a href=\"%s\" target=\"_blank\">%s</a></p>' % (esc(p.x_linkedin_url), esc(p.x_linkedin_url))\n            html += '<p>E-mail: %s (%s)<br/>Telefone: %s</p>' % (\n                esc(p.email) or '-', esc(p.x_email_status) or 'sem status', esc(p.phone) or '-')\n            if link:\n                html += '<p>Link da conta: %s</p>' % esc(link)\n            html += '<p>Dossiê: %s</p>' % (esc(conta.x_abm_dossie_url) or '-')\n            if email_cod:\n                html += '<p>Trilha: %s · Modelo: <b>ABM · %s · %s</b></p>' % (rotulo, email_cod, rotulo)\n            if tipo == 'act_li_mensagem':\n                html += '<p><i>Só se a conexão foi aceita; senão, marcar como feita. Conteúdo de valor (case, dado, post), sem asset e sem pitch.</i></p>'\n            conta.with_context(**QUIET).activity_schedule(\n                'abm_setima.' + tipo, date_deadline=uteis[dia - 1], user_id=sdr_id,\n                summary='[Cadência] D%s %s – %s (%s)' % (dia, canal, p.name, p.function or '-'),\n                note=html, x_abm_partner_id=p.id)\n            total += 1\n    notas.append('Onda %s: %s na cadência, %s atividade(s) criada(s).' % (\n        conta.x_abm_onda, ', '.join(escolhidos.mapped('name')) or 'ninguém', total))\n    nota(conta, '<br/>'.join(notas))\n"
+  },
+  {
+   "id": 1330,
+   "name": "ABM · A6 · Parar cadência",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nnutricao = env.ref('abm_setima.stage_nutricao')\nfor conta in records:\n    pendentes = conta.activity_ids.filtered(lambda a: (a.summary or '').startswith('[Cadência]'))\n    n = len(pendentes)\n    pendentes.unlink()\n    conta.write({'x_abm_cadencia_status': 'concluida' if conta.stage_id == nutricao else 'pausada'})\n    nota(conta, 'Cadência parada (%s): %s atividade(s) cancelada(s).' % (conta.stage_id.name, n))\n"
+  },
+  {
+   "id": 1331,
+   "name": "ABM · A7 · Conversa",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nfor conta in records:\n    conta.with_context(**QUIET).activity_schedule(\n        'abm_setima.act_agendar', date_deadline=uteis[0], user_id=sdr_id,\n        summary='Agendar reunião – %s' % conta.name)\n"
+  },
+  {
+   "id": 1332,
+   "name": "ABM · A8 · Reunião agendada",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nfor conta in records:\n    conta.with_context(**QUIET).activity_schedule(\n        'abm_setima.act_preparar_reuniao', date_deadline=uteis[0], user_id=sdr_id,\n        summary='Preparar reunião – %s' % conta.name)\n    if gestor:\n        conta.message_subscribe(partner_ids=gestor.partner_id.ids)\n"
+  },
+  {
+   "id": 1333,
+   "name": "ABM · A9 · Cadência sem sinal",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nfor conta in records:\n    conta.write({'stage_id': env.ref('abm_setima.stage_nutricao').id})\n"
+  },
+  {
+   "id": 1334,
+   "name": "ABM · A10 · E-mail recebido",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nAUTOMATICA = ('resposta automática', 'resposta automatica', 'automatic reply', 'auto-reply', 'autoreply',\n              'out of office', 'fora do escritório', 'fora do escritorio', 'ausência', 'ausencia',\n              'estou ausente', 'em férias', 'de férias', 'undeliverable', 'não entregue', 'delivery status')\nCONFIRMACAO = ('recebid', 'recebi', 'obrigad', 'ok', 'ciente', 'thank', 'receiv', 'grato', 'grata')\nACEITE = ('aceito:', 'accepted:', 'aceitou:')\n\ndef texto(html):\n    saida, dentro = [], False\n    for ch in html or '':\n        if ch == '<':\n            dentro = True\n        elif ch == '>':\n            dentro = False\n            saida.append(' ')\n        elif not dentro:\n            saida.append(ch)\n    return ' '.join(''.join(saida).split()).lower()\n\nfor conta in records:\n    msg = conta.message_ids.filtered(lambda m: m.message_type == 'email')[:1]\n    if not msg:\n        continue\n    remetente = (msg.email_from or '').lower()\n    if '<' in remetente:\n        remetente = remetente.split('<')[-1].split('>')[0]\n    dominio = remetente.split('@')[-1] if '@' in remetente else ''\n    empresa = conta.partner_id.commercial_partner_id\n    contato = env['res.partner']\n    if msg.author_id and msg.author_id.commercial_partner_id == empresa and msg.author_id != empresa:\n        contato = msg.author_id\n    elif remetente:\n        contato = empresa.child_ids.filtered(lambda p: (p.email or '').lower() == remetente)[:1]\n    dominios = [x.strip().lower() for x in ((conta.x_abm_dominio or '') + ',' + (conta.x_abm_dominios_extra or '')).split(',') if x.strip()]\n    if not contato and dominio not in dominios:\n        continue\n    assunto = (msg.subject or '').lower()\n    corpo = texto(msg.body)\n    quem = contato.name or remetente\n    # Corpo curto sem conteúdo além da citação: \"recebido\", \"ok, obrigado\".\n    curto = corpo.split(' em ')[0].split(' on ')[0]\n    palavras = curto.replace(',', ' ').replace('.', ' ').replace('!', ' ').split()\n    so_confirmacao = len(palavras) <= 4 and '?' not in curto and any(\n        [p.startswith(k) for p in palavras for k in CONFIRMACAO])\n    if any([k in assunto or k in corpo[:400] for k in AUTOMATICA]) or so_confirmacao:\n        tipo = 'resposta_automatica'\n    elif any([assunto.startswith(k) for k in ACEITE]):\n        tipo = 'resposta_positiva'\n    else:\n        tipo = 'resposta_a_classificar'\n    if tipo == 'resposta_a_classificar':\n        conta.with_context(**QUIET).activity_schedule(\n            'abm_setima.act_classificar', date_deadline=uteis[0], user_id=sdr_id,\n            summary='Classificar resposta – %s' % quem, x_abm_partner_id=contato.id or False)\n    elif tipo == 'resposta_positiva':\n        conta.with_context(**QUIET).activity_schedule(\n            'abm_setima.act_agendar', date_deadline=hoje, user_id=sdr_id,\n            summary='Convite aceito – %s: confirmar e mover para Reunião agendada' % quem,\n            x_abm_partner_id=contato.id or False)\n    env['x_abm_sinal'].create({\n        'x_name': 'Resposta de e-mail – %s' % quem,\n        'x_lead_id': conta.id, 'x_partner_id': contato.id or False,\n        'x_tipo': tipo, 'x_origem': 'email', 'x_detalhe': msg.subject or ''})\n    if tipo == 'resposta_automatica':\n        nota(conta, 'Resposta automática/“recebido” de %s: registrada sem pontos.' % esc(quem))\n"
+  },
+  {
+   "id": 1335,
+   "name": "ABM · A11 · Conexão aceita",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nfor p in records:\n    conta = env['crm.lead'].search([('team_id', '=', team_id), ('partner_id', '=', p.commercial_partner_id.id)], limit=1)\n    if not conta:\n        continue\n    env['x_abm_sinal'].create({\n        'x_name': 'Conexão aceita – %s' % p.name, 'x_lead_id': conta.id, 'x_partner_id': p.id,\n        'x_tipo': 'li_conexao_aceita', 'x_origem': 'linkedin_manual'})\n    conta.with_context(**QUIET).activity_schedule(\n        'abm_setima.act_li_mensagem', date_deadline=proximo_util, user_id=sdr_id,\n        summary='[Cadência] Mensagem pós-conexão – %s' % p.name, x_abm_partner_id=p.id)\n    # Decisor conectado: hora de preparar o asset personalizado (com o cliente/produção).\n    decisor = p.x_abm_prioridade == 1 or p.x_abm_papel == 'Decisor'\n    ja_tem = env['mail.activity'].search_count([\n        ('x_abm_partner_id', '=', p.id), ('activity_type_id', '=', env.ref('abm_setima.act_asset').id)])\n    if decisor and not ja_tem:\n        conta.with_context(**QUIET).activity_schedule(\n            'abm_setima.act_asset', date_deadline=uteis[5], user_id=(gestor or env.user).id,\n            summary='Asset personalizado – %s (decisor conectado)' % p.name, x_abm_partner_id=p.id)\n        nota(conta, 'Decisor %s aceitou a conexão: tarefa de asset personalizado criada.' % esc(p.name))\n"
+  },
+  {
+   "id": 1336,
+   "name": "ABM · A12 · Opt-out",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nfor p in records:\n    atividades = env['mail.activity'].search([('x_abm_partner_id', '=', p.id)])\n    n = len(atividades)\n    atividades.unlink()\n    p.write({'x_abm_na_cadencia': False})\n    conta = env['crm.lead'].search([('team_id', '=', team_id), ('partner_id', '=', p.commercial_partner_id.id)], limit=1)\n    if conta:\n        nota(conta, 'Opt-out de %s: %s atividade(s) cancelada(s).' % (esc(p.name), n))\n"
+  },
+  {
+   "id": 1337,
+   "name": "ABM · A13 · Sinal expira",
+   "code": "\nrecords.write({'x_ativo': False})\n"
+  },
+  {
+   "id": 1338,
+   "name": "ABM · A14 · Onda 2",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nfor conta in records:\n    if conta.x_abm_onda != 1 or not conta.x_abm_cadencia_inicio:\n        continue\n    respostas = conta.x_abm_sinal_ids.filtered(\n        lambda s: s.x_tipo in ('email_resposta', 'li_dm_resposta', 'resposta_a_classificar', 'resposta_negativa', 'resposta_neutra', 'resposta_positiva') and s.x_data and s.x_data.date() >= conta.x_abm_cadencia_inicio)\n    if respostas:\n        continue\n    notas = []\n\n    empresa = conta.partner_id.commercial_partner_id\n    elegiveis = empresa.child_ids.filtered(\n        lambda p: not p.x_abm_optout and p.x_abm_prioridade != 9 and p.x_abm_papel != 'Fora')\n    ordem = lambda p: (p.x_abm_prioridade or 3, 0 if p.x_email_status in ('Verificado', 'Válido') else 1, p.name or '')\n\n    escolhidos = elegiveis.filtered(lambda p: not p.x_abm_na_cadencia and p.x_abm_prioridade in (2, 3)).sorted(ordem)[:2]\n    conta.write({'x_abm_onda': 2})\n    if not escolhidos:\n        nota(conta, 'Onda 2: não há mais contatos elegíveis no comitê.')\n        continue\n    escolhidos.write({'x_abm_na_cadencia': True})\n\n    trilha = conta.x_abm_trilha or 'a_definir'\n    rotulo = 'Configurador fraco' if trilha == 'config_fraco' else 'Sem configurador'\n    if trilha == 'a_definir':\n        conta.with_context(**QUIET).activity_schedule(\n            'abm_setima.act_trilha', date_deadline=uteis[0], user_id=sdr_id,\n            summary='Definir trilha antes do primeiro e-mail')\n        notas.append('Trilha a definir: os e-mails usam o modelo \"Sem configurador\" até a trilha ser definida.')\n    # Cadência fria só com e-mail e LinkedIn. Ligação e WhatsApp NÃO entram aqui:\n    # só quando a conta fica quente (A4) ou chega formulário (A15).\n    # Sem asset na cadência padrão: ele só entra para o decisor após conexão aceita (A11/A16).\n    passos = [\n        (1, 'act_li_conectar', 'LinkedIn – Conectar', ''),\n        (1, 'act_email', 'E-mail', 'E1'),\n        (3, 'act_li_interagir', 'LinkedIn – Interagir', ''),\n        (5, 'act_email', 'E-mail', 'E2'),\n        (8, 'act_li_mensagem', 'LinkedIn – Mensagem de valor', ''),\n        (11, 'act_email', 'E-mail', 'E3'),\n        (14, 'act_li_mensagem', 'LinkedIn – Follow-up', ''),\n        (18, 'act_email', 'E-mail', 'E4'),\n    ]\n    total = 0\n    for p in escolhidos:\n        for dia, tipo, canal, email_cod in passos:\n            if tipo == 'act_li_conectar' and p.x_abm_li_conexao == 'aceito':\n                continue\n            if tipo == 'act_email' and (not p.email or p.x_email_status in ('Inválido', 'Indisponível')):\n                continue\n            if tipo == 'act_email':\n                link = conta.x_abm_link_email\n            elif tipo.startswith('act_li'):\n                link = conta.x_abm_link_linkedin\n            else:\n                link = ''\n            html = '<p><b>%s</b> — %s<br/>Papel: %s · Prioridade: %s</p>' % (\n                esc(p.name), esc(p.function), esc(p.x_abm_papel) or '-', p.x_abm_prioridade or '-')\n            if p.x_linkedin_url:\n                html += '<p>LinkedIn: <a href=\"%s\" target=\"_blank\">%s</a></p>' % (esc(p.x_linkedin_url), esc(p.x_linkedin_url))\n            html += '<p>E-mail: %s (%s)<br/>Telefone: %s</p>' % (\n                esc(p.email) or '-', esc(p.x_email_status) or 'sem status', esc(p.phone) or '-')\n            if link:\n                html += '<p>Link da conta: %s</p>' % esc(link)\n            html += '<p>Dossiê: %s</p>' % (esc(conta.x_abm_dossie_url) or '-')\n            if email_cod:\n                html += '<p>Trilha: %s · Modelo: <b>ABM · %s · %s</b></p>' % (rotulo, email_cod, rotulo)\n            if tipo == 'act_li_mensagem':\n                html += '<p><i>Só se a conexão foi aceita; senão, marcar como feita. Conteúdo de valor (case, dado, post), sem asset e sem pitch.</i></p>'\n            conta.with_context(**QUIET).activity_schedule(\n                'abm_setima.' + tipo, date_deadline=uteis[dia - 1], user_id=sdr_id,\n                summary='[Cadência] D%s %s – %s (%s)' % (dia, canal, p.name, p.function or '-'),\n                note=html, x_abm_partner_id=p.id)\n            total += 1\n    notas.append('Onda %s: %s na cadência, %s atividade(s) criada(s).' % (\n        conta.x_abm_onda, ', '.join(escolhidos.mapped('name')) or 'ninguém', total))\n    nota(conta, '<br/>'.join(notas))\n"
+  },
+  {
+   "id": 1339,
+   "name": "ABM · A15 · Formulário de conta-alvo",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nfor lead in records:\n    email = (lead.email_from or '').lower()\n    if '<' in email:\n        email = email.split('<')[-1].split('>')[0]\n    if lead.team_id.id == team_id or '@' not in email:\n        continue\n    dominio = email.split('@')[-1]\n    conta = env['crm.lead'].search([('team_id', '=', team_id), '|',\n                                    ('x_abm_dominio', '=', dominio),\n                                    ('x_abm_dominios_extra', 'ilike', dominio)], limit=1)\n    if not conta:\n        continue\n    # A tarefa vem ANTES do sinal: o sinal (60 pts) deixa a conta Quente e a A4\n    # reconhece a tarefa \"Formulário:\" para não duplicar ligações.\n    conta.with_context(**QUIET).activity_schedule(\n        'abm_setima.act_ligacao', date_deadline=hoje, user_id=sdr_id,\n        summary='Formulário: contato em até 1h útil – %s' % (lead.contact_name or email))\n    env['x_abm_sinal'].create({\n        'x_name': 'Cadastro – %s' % (lead.contact_name or email), 'x_lead_id': conta.id,\n        'x_tipo': 'formulario', 'x_origem': 'formulario',\n        'x_detalhe': '%s <%s> · lead #%s' % (lead.contact_name or lead.name, email, lead.id)})\n    nota(conta, 'Cadastro de %s (%s): <a href=\"/odoo/crm/%s\">lead de inbound #%s</a>.' % (esc(lead.contact_name or lead.name), esc(email), lead.id, lead.id))\n    nota(lead, 'Pessoa de conta ABM: <a href=\"/odoo/crm/%s\">%s</a>.' % (conta.id, esc(conta.name)))\n"
+  },
+  {
+   "id": 1340,
+   "name": "ABM · A16 · Asset pronto",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr_id = int(ICP.get_param('abm.sdr_user_id'))\ngestor = env['res.users'].browse(int(ICP.get_param('abm.gestor_user_id') or 0))\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\n# Nenhuma tarefa nasce antes do início do processo (abm.inicio).\ninicio = ICP.get_param('abm.inicio')\nhoje = datetime.date.today()\nif inicio:\n    hoje = max(hoje, datetime.datetime.strptime(inicio, '%Y-%m-%d').date())\nuteis = []\nd = hoje\nwhile len(uteis) < 40:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\nproximo_util = uteis[1] if uteis[0] == hoje else uteis[0]\nQUIET = {'mail_activity_quick_update': True}\nesc = lambda s: (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')\nnota = lambda rec, txt: rec.message_post(body=txt, message_type='comment', subtype_xmlid='mail.mt_note')\n\nfor conta in records:\n    empresa = conta.partner_id.commercial_partner_id\n    decisores = empresa.child_ids.filtered(\n        lambda p: not p.x_abm_optout and p.x_abm_li_conexao == 'aceito'\n        and (p.x_abm_prioridade == 1 or p.x_abm_papel == 'Decisor'))\n    for p in decisores:\n        conta.with_context(**QUIET).activity_schedule(\n            'abm_setima.act_li_mensagem', date_deadline=proximo_util, user_id=sdr_id,\n            summary='[Cadência] Enviar asset – %s' % p.name, x_abm_partner_id=p.id,\n            note='<p>Asset: %s</p><p>Mensagem curta no LinkedIn, oferecendo 20 min para mostrar.</p>' % esc(conta.x_abm_asset_url))\n    if not decisores:\n        conta.with_context(**QUIET).activity_schedule(\n            'abm_setima.act_li_mensagem', date_deadline=proximo_util, user_id=sdr_id,\n            summary='Asset pronto: definir para quem enviar – %s' % conta.name)\n"
+  },
+  {
+   "id": 1324,
+   "name": "ABM · Fila de preparação",
+   "code": "\nICP = env['ir.config_parameter'].sudo()\nsimular = env.context.get('abm_simular')\nhoje = datetime.date.today()\nferiados = set((ICP.get_param('abm.feriados') or '').split(','))\nteam_id = int(ICP.get_param('abm.team_id'))\nsdr = env['res.users'].browse(int(ICP.get_param('abm.sdr_user_id')))\npor_dia = int(ICP.get_param('abm.preparacao_contas_dia') or 4)\nlimite = int(ICP.get_param('abm.preparacao_limite_pendentes') or 10)\n\n# próximos dias úteis a partir de hoje (inclusive)\nuteis = []\nd = hoje\nwhile len(uteis) < 10:\n    if d.weekday() < 5 and d.isoformat() not in feriados:\n        uteis.append(d)\n    d += datetime.timedelta(days=1)\n\nrelatorio = []\nif uteis[0] != hoje and not simular:\n    relatorio.append('Hoje não é dia útil: nada liberado.')\nelse:\n    tipos_abm = env['mail.activity.type'].search([('name', '=like', 'ABM · %')])\n    pendentes = env['mail.activity'].search_count([\n        ('user_id', '=', sdr.id), ('res_model', '=', 'crm.lead'),\n        ('activity_type_id', 'in', tipos_abm.ids), ('date_deadline', '<=', hoje)])\n    alvo = env.ref('abm_setima.stage_alvo')\n    candidatas = model.search([\n        ('team_id', '=', team_id), ('stage_id', '=', alvo.id),\n        ('x_abm_preparacao', 'in', [False, 'fila'])])\n    fila = []\n    for conta in candidatas:\n        comite = conta.partner_id.child_ids.filtered(\n            lambda p: not p.x_abm_optout and p.x_abm_prioridade in (1, 2))\n        # Força com teto: comitê grande não passa na frente só pelo volume.\n        # Até 2 decisores (3 pts cada) + até 4 influenciadores (1 pt cada) = máx. 10.\n        forca = 3 * min(len(comite.filtered(lambda p: p.x_abm_prioridade == 1)), 2) + \\\n            min(len(comite.filtered(lambda p: p.x_abm_prioridade == 2)), 4)\n        tier = int(conta.x_abm_tier or 9)\n        # Ordem: tier → score (quem já engaja nos anúncios/site primeiro) → força → nome.\n        fila.append((tier, -(conta.x_abm_score or 0), -forca, conta.name, conta))\n    fila.sort(key=lambda x: (x[0], x[1], x[2], x[3]))\n    relatorio.append('Pendentes da SDR (vencidas/hoje): %s de limite %s' % (pendentes, limite))\n    if pendentes >= limite:\n        liberar = []\n        relatorio.append('Freio ativo: nada liberado hoje.')\n    else:\n        liberar = [x[4] for x in fila[:por_dia]]\n    # Todas as tarefas de preparação no mesmo dia da liberação.\n    for conta in liberar:\n        etapas = [('abm_setima.act_validar_comite', 0, 'Validar comitê'),\n                  ('abm_setima.act_li_interagir', 0, 'LinkedIn – seguir e interagir')]\n        if conta.x_abm_trilha in (False, 'a_definir'):\n            etapas.append(('abm_setima.act_trilha', 0, 'Definir trilha'))\n        linhas = []\n        for xmlid, du, resumo in etapas:\n            prazo = uteis[du]\n            linhas.append('%s em %s' % (resumo, prazo.strftime('%d/%m')))\n            if not simular:\n                conta.with_context(mail_activity_quick_update=True).activity_schedule(\n                    xmlid, date_deadline=prazo, user_id=sdr.id,\n                    summary='[Preparação] %s – %s' % (resumo, conta.name))\n        if not simular:\n            conta.write({'x_abm_preparacao': 'liberada', 'x_abm_preparacao_inicio': hoje})\n            conta.message_post(\n                body='Preparação da conta liberada pela fila ABM: %s.' % '; '.join(linhas),\n                message_type='comment', subtype_xmlid='mail.mt_note')\n        relatorio.append('Liberada: %s (%s)' % (conta.name, '; '.join(linhas)))\n    restantes = [x[3] for x in fila if x[4] not in liberar]\n    relatorio.append('Na fila (%s): %s' % (len(restantes), ', '.join(restantes)))\nlog('\\n'.join(relatorio))\nif simular:\n    action = {'type': 'ir.actions.client', 'tag': 'display_notification',\n              'params': {'title': 'Fila ABM (simulação)', 'message': '\\n'.join(relatorio)}}\n"
+  }
+ ],
+ "cron": [
+  {
+   "id": 79,
+   "cron_name": "ABM · Fila de preparação",
+   "active": true,
+   "nextcall": "2026-10-05 10:00:00"
+  }
+ ],
+ "campos_sinal": [
+  {
+   "id": 28676,
+   "name": "create_date",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28675,
+   "name": "create_uid",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28674,
+   "name": "display_name",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28673,
+   "name": "id",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28678,
+   "name": "write_date",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28677,
+   "name": "write_uid",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28692,
+   "name": "x_ativo",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28680,
+   "name": "x_data",
+   "compute": "for r in self:\n    r['x_data'] = r.x_data or datetime.datetime.now()",
+   "depends": "x_tipo"
+  },
+  {
+   "id": 28694,
+   "name": "x_detalhe",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28682,
+   "name": "x_lead_id",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28672,
+   "name": "x_name",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28688,
+   "name": "x_origem",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28684,
+   "name": "x_partner_id",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28690,
+   "name": "x_pontos",
+   "compute": "PONTOS = {\n    'li_reacao_post': 15, 'li_conexao_aceita': 15,\n    'visita_dominio': 10, 'visita_alta_intencao': 15,\n    'formulario': 60,\n    'resposta_a_classificar': 0, 'resposta_automatica': 0, 'resposta_negativa': 0,\n    'resposta_neutra': 30, 'resposta_positiva': 60,\n    'ligacao_conversa': 30,\n    # antigos (mantidos só para histórico)\n    'email_resposta': 30, 'li_dm_resposta': 30,\n    'li_impressoes_semana': 0, 'li_cliques': 0,\n}\nVARIAVEIS = ('li_ads_relatorio', 'outro')\nfor r in self:\n    if r.x_tipo in VARIAVEIS:\n        r['x_pontos'] = r.x_pontos_custom or 0\n    else:\n        r['x_pontos'] = PONTOS.get(r.x_tipo, 0)",
+   "depends": "x_tipo,x_pontos_custom"
+  },
+  {
+   "id": 28859,
+   "name": "x_pontos_custom",
+   "compute": false,
+   "depends": false
+  },
+  {
+   "id": 28686,
+   "name": "x_tipo",
+   "compute": false,
+   "depends": false
+  }
+ ],
+ "selecao_sinal": [
+  {
+   "id": 4172,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "li_impressoes_semana",
+   "name": "Conta com 50+ impressões na semana (desativado: use relatório 30 dias)"
+  },
+  {
+   "id": 4183,
+   "field_id": [
+    28688,
+    "Origem (Sinal ABM)"
+   ],
+   "value": "linkedin_ads",
+   "name": "LinkedIn Ads"
+  },
+  {
+   "id": 4173,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "li_cliques",
+   "name": "Cliques da conta no demográfico (desativado: use relatório 30 dias)"
+  },
+  {
+   "id": 4184,
+   "field_id": [
+    28688,
+    "Origem (Sinal ABM)"
+   ],
+   "value": "linkedin_manual",
+   "name": "LinkedIn (manual)"
+  },
+  {
+   "id": 4174,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "li_reacao_post",
+   "name": "Reagiu ou comentou post do especialista"
+  },
+  {
+   "id": 4185,
+   "field_id": [
+    28688,
+    "Origem (Sinal ABM)"
+   ],
+   "value": "apollo_manual",
+   "name": "Apollo (manual)"
+  },
+  {
+   "id": 4175,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "li_conexao_aceita",
+   "name": "Conexão aceita"
+  },
+  {
+   "id": 4186,
+   "field_id": [
+    28688,
+    "Origem (Sinal ABM)"
+   ],
+   "value": "site",
+   "name": "Site"
+  },
+  {
+   "id": 4176,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "li_dm_resposta",
+   "name": "Respondeu DM (antigo: use Resposta …)"
+  },
+  {
+   "id": 4187,
+   "field_id": [
+    28688,
+    "Origem (Sinal ABM)"
+   ],
+   "value": "email",
+   "name": "E-mail"
+  },
+  {
+   "id": 4177,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "visita_dominio",
+   "name": "Visita ao site (Apollo)"
+  },
+  {
+   "id": 4188,
+   "field_id": [
+    28688,
+    "Origem (Sinal ABM)"
+   ],
+   "value": "whatsapp",
+   "name": "WhatsApp"
+  },
+  {
+   "id": 4178,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "visita_alta_intencao",
+   "name": "Visitou cases, lead magnet ou contato"
+  },
+  {
+   "id": 4189,
+   "field_id": [
+    28688,
+    "Origem (Sinal ABM)"
+   ],
+   "value": "formulario",
+   "name": "Formulário"
+  },
+  {
+   "id": 4179,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "email_resposta",
+   "name": "Respondeu e-mail (antigo: use Resposta …)"
+  },
+  {
+   "id": 4190,
+   "field_id": [
+    28688,
+    "Origem (Sinal ABM)"
+   ],
+   "value": "ligacao",
+   "name": "Ligação"
+  },
+  {
+   "id": 4180,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "formulario",
+   "name": "Cadastro: formulário da LP, Lead Gen ou lead magnet"
+  },
+  {
+   "id": 4181,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "ligacao_conversa",
+   "name": "Ligação com conversa"
+  },
+  {
+   "id": 4182,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "outro",
+   "name": "Outro (pontos no campo Pontos variáveis)"
+  },
+  {
+   "id": 4245,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "li_ads_relatorio",
+   "name": "LinkedIn Ads: relatório 30 dias (foto do engajamento da conta)"
+  },
+  {
+   "id": 4246,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "resposta_a_classificar",
+   "name": "Resposta recebida (a classificar)"
+  },
+  {
+   "id": 4247,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "resposta_automatica",
+   "name": "Resposta automática, ausência ou só “recebido”"
+  },
+  {
+   "id": 4248,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "resposta_negativa",
+   "name": "Resposta negativa / sem interesse"
+  },
+  {
+   "id": 4249,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "resposta_neutra",
+   "name": "Resposta genuína sem interesse claro (dúvida, encaminhou, “agora não”)"
+  },
+  {
+   "id": 4250,
+   "field_id": [
+    28686,
+    "Tipo (Sinal ABM)"
+   ],
+   "value": "resposta_positiva",
+   "name": "Braço erguido: quer saber mais, pediu material ou aceitou reunião"
+  }
+ ],
+ "tipos_atividade": [
+  {
+   "id": 32,
+   "name": "ABM · Agendar reunião",
+   "default_note": false,
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 23,
+   "name": "ABM · Preparar asset",
+   "default_note": "<p>Asset = conteúdo de <b>alto valor personalizado</b> para a conta (ex.: lead magnet adaptado à marca, estudo/benchmark do configurador dela, demo 3D de um produto da conta). Alinhar com o cliente/produção o que será enviado e colar a URL no campo Asset: isso gera a tarefa de envio para a SDR.</p>",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 31,
+   "name": "ABM · Classificar resposta",
+   "default_note": "<p><b>Classifique o sinal de resposta</b> (aba Sinais → altere o Tipo do sinal “Resposta recebida (a classificar)”):</p><ul><li><b>Resposta automática, ausência ou só “recebido”</b> → 0 pts. Nada a fazer.</li><li><b>Negativa / sem interesse</b> → 0 pts. Pediu para não receber? Marcar opt-out no contato.</li><li><b>Genuína sem interesse claro</b> → 30 pts. Ex.: fez uma pergunta, encaminhou para outra pessoa, “agora não, me procure em X”. Responder e seguir a cadência.</li><li><b>Braço erguido</b> → 60 pts (conta fica Quente). Ex.: gostou, quer saber mais, pediu material/proposta, aceitou ou sugeriu reunião. Responder no mesmo dia e mover para <b>Conversa</b>.</li></ul><p>Resposta por <b>DM no LinkedIn</b> ou <b>WhatsApp</b>: registrar você mesma um sinal na aba Sinais com o tipo de resposta acima e a origem correta.</p>",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 21,
+   "name": "ABM · Dossiê da conta",
+   "default_note": "<p>Rodar o dossiê de guerrilha, definir a trilha, colar a URL no campo Dossiê.</p>",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 28,
+   "name": "ABM · E-mail",
+   "default_note": "<p>Enviar pelo chatter da conta, da caixa do SDR, usando o modelo indicado. Trocar o destinatário para a pessoa da tarefa.</p>",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 24,
+   "name": "ABM · Iniciar cadência",
+   "default_note": "<p>Revisar a trilha (e dossiê/asset, se houver). Marcar “Na cadência” em até 3 pessoas e mover para <b>Em cadência</b>.</p><p><b>Atenção:</b> enquanto os e-mails E1–E4 estiverem em rascunho a cadência automática fica desligada. Não mover para Em cadência até o aviso de que os e-mails estão prontos.</p>",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 26,
+   "name": "ABM · LinkedIn – Conectar",
+   "default_note": "<p>Convite com nota curta citando o dossiê. Ao concluir, marcar Conexão = Enviado.</p>",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 25,
+   "name": "ABM · LinkedIn – Seguir/Interagir",
+   "default_note": "<p>Seguir e reagir a 1 post relevante. Sem convite.</p>",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 27,
+   "name": "ABM · LinkedIn – Mensagem",
+   "default_note": "<p>Mensagem com valor ou asset. Sem pitch na primeira.</p>",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 29,
+   "name": "ABM · Ligação",
+   "default_note": "<p>Roteiro de ligação e de voicemail.</p>",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 33,
+   "name": "ABM · Preparar reunião",
+   "default_note": false,
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 36,
+   "name": "ABM · Relatório LinkedIn Ads (Claude Code)",
+   "default_note": "<p><b>Toda segunda-feira</b></p><ol><li>LinkedIn Campaign Manager → Plano → <b>Empresas</b> → View <b>Engagement</b>, período <b>Last 30 days</b> → <b>Export</b> (CSV).</li><li>Enviar o CSV no Claude Code (repositório automa-es---S-tima) pedindo: <i>“atualizar os scores ABM com o relatório do LinkedIn Ads”</i>.</li><li>O Claude roda <code>atualizar_score_linkedin_ads.py</code>: simula, mostra quem muda de faixa e grava. O sinal é uma foto de 30 dias e substitui o da semana anterior (não acumula).</li><li>Revisar as empresas fora do ABM com engajamento alto que o relatório aponta (candidatas a conta-alvo).</li></ol>",
+   "default_user_id": [
+    22,
+    "Diego Rodrigues"
+   ]
+  },
+  {
+   "id": 34,
+   "name": "ABM · Rotina semanal",
+   "default_note": "<p><b>Segunda-feira, 15 minutos</b></p>\n<ol>\n<li><b>Apollo</b>, Visitantes do site, últimos 7 dias. Para cada domínio de conta ABM, registrar \"Visita ao site\". Se a visita foi em cases, lead magnet ou contato, registrar \"Visitou cases, lead magnet ou contato\".</li>\n<li><b>Posts do especialista.</b> Quem do comitê reagiu ou comentou? Registrar \"Reagiu ou comentou post\".</li>\n<li>Abrir o pipeline ABM e olhar quais contas mudaram de faixa.</li>\n</ol>\n<p>O LinkedIn Ads (impressões, cliques, engajamento) agora é atualizado pelo Diego via relatório semanal: não registrar à mão.</p>\n",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 35,
+   "name": "ABM · Definir trilha",
+   "default_note": "<p><b>Definir a trilha da conta</b> (campo Trilha):</p><ol><li><b>Configurador:</b> o site da conta tem configurador de produto/veículo? Testar: qualidade visual, 3D ou só fotos, velocidade, mobile.</li><li><b>3D na comunicação:</b> a marca usa 3D/CGI em lançamentos, site, redes e catálogos? Ou só foto/vídeo tradicional?</li><li>Escolher a trilha: <b>Configurador fraco</b> (existe, mas é pobre) ou <b>Sem configurador</b>.</li><li>Registrar na nota da conta os links e prints que justificam a escolha (vão virar a primeira linha personalizada do E1).</li></ol>",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 22,
+   "name": "ABM · Validar comitê",
+   "default_note": "<p>Confirmar o cargo atual no LinkedIn e ajustar papel e prioridade no comitê (botão Editar comitê).</p>",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  },
+  {
+   "id": 30,
+   "name": "ABM · WhatsApp",
+   "default_note": "<p>Só com conversa prévia ou número vindo de formulário. Enviar pelo DataCrazy.</p>",
+   "default_user_id": [
+    31,
+    "Amanda Fernandes Sijiani"
+   ]
+  }
+ ],
+ "parametros": [
+  {
+   "id": 82,
+   "key": "abm.feriados",
+   "value": "2026-01-01,2026-02-16,2026-02-17,2026-04-03,2026-04-21,2026-05-01,2026-06-04,2026-09-07,2026-10-12,2026-11-02,2026-11-15,2026-11-20,2026-12-25,2027-01-01,2027-02-08,2027-02-09,2027-03-26,2027-04-21,2027-05-01,2027-05-27,2027-09-07,2027-10-12,2027-11-02,2027-11-15,2027-11-20,2027-12-25"
+  },
+  {
+   "id": 87,
+   "key": "abm.gestor_user_id",
+   "value": "22"
+  },
+  {
+   "id": 91,
+   "key": "abm.inicio",
+   "value": "2026-10-05"
+  },
+  {
+   "id": 85,
+   "key": "abm.preparacao_contas_dia",
+   "value": "4"
+  },
+  {
+   "id": 86,
+   "key": "abm.preparacao_limite_pendentes",
+   "value": "10"
+  },
+  {
+   "id": 83,
+   "key": "abm.sdr_user_id",
+   "value": "31"
+  },
+  {
+   "id": 84,
+   "key": "abm.team_id",
+   "value": "20"
+  }
+ ]
+}
