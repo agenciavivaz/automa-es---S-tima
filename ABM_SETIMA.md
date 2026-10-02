@@ -19,6 +19,8 @@ Estado em 2026-10-02. Fotografia da configuração antes/depois em
 - Tarefas, **todas no dia da liberação**: Validar comitê · LinkedIn – seguir e
   interagir · Definir trilha (configurador + uso de 3D; só se a trilha estiver
   "a definir"). Dossiê não é pré-requisito.
+- Ao ser liberada, a conta vai de **Alvo para Aquecendo** (liga o relógio de 21
+  dias da A3: sem sinal suficiente, ela vai para Engajada com "Iniciar cadência").
 - Conta que fica Engajada antes de passar pela fila (A2/A3) recebe as mesmas
   tarefas de preparação junto com "Iniciar cadência".
 
