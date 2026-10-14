@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_abm_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard ABM</field>
+        <field name="tag">abm_setima_dashboard</field>
+    </record>
+
+    <!-- Logo abaixo de "Atividades ABM" (sequence 3) no menu CRM / ABM Setima. -->
+    <menuitem id="menu_abm_dashboard"
+              name="Dashboard"
+              parent="abm_setima.menu_pipeline"
+              action="action_abm_dashboard"
+              sequence="4"/>
+</odoo>

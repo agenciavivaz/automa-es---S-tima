@@ -1,0 +1,585 @@
+// Dashboard do ABM Sétima. Tudo sob .o_abm_dash: nenhuma outra tela muda.
+// Neutros vêm das variáveis do Odoo (funcionam no tema claro e escuro);
+// as cores de dado são fixas e repetem a legenda de cada gráfico.
+
+.o_abm_dash {
+    --abm-card: #{$o-view-background-color};
+    --abm-border: #{$border-color};
+    --abm-muted: #{$text-muted};
+    --abm-soft: #{rgba($primary, .06)};
+    --abm-track: #{rgba($body-color, .07)};
+    background-color: $o-webclient-background-color;
+    color: $body-color;
+    padding: 1.25rem 1.5rem 3rem;
+
+    @include media-breakpoint-down(md) {
+        padding: 1rem;
+    }
+
+    h1, h3 { margin: 0; }
+    .text-muted { color: var(--abm-muted) !important; }
+
+    // -------------------------------------------------------- cabeçalho
+    .o_abm_dash_header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+    .o_abm_dash_eyebrow {
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: $primary;
+    }
+    .o_abm_dash_title h1 {
+        font-size: 1.65rem;
+        font-weight: 700;
+        letter-spacing: -.01em;
+    }
+    .o_abm_dash_period {
+        color: var(--abm-muted);
+        font-size: .85rem;
+        margin-top: .15rem;
+    }
+    .o_abm_dash_controls {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: .5rem;
+
+        @include media-breakpoint-down(md) { align-items: stretch; width: 100%; }
+    }
+    .o_abm_dash_presets, .o_abm_dash_filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .35rem;
+        align-items: center;
+        justify-content: flex-end;
+    }
+    .o_abm_pill {
+        border: 1px solid var(--abm-border);
+        background: var(--abm-card);
+        color: $body-color;
+        border-radius: 999px;
+        padding: .3rem .85rem;
+        font-size: .8rem;
+        font-weight: 500;
+        line-height: 1.3;
+        transition: all .15s;
+
+        &:hover { border-color: $primary; color: $primary; }
+        &.active {
+            background: $primary;
+            border-color: $primary;
+            color: color-contrast($primary);
+        }
+    }
+    .o_abm_pill_sm { padding: .15rem .6rem; font-size: .75rem; }
+    .o_abm_date {
+        display: flex;
+        align-items: center;
+        gap: .3rem;
+        font-size: .8rem;
+        color: var(--abm-muted);
+        margin: 0;
+        input { width: 9.5rem; }
+    }
+    .o_abm_tier { width: auto; min-width: 9rem; }
+
+    .o_abm_dash_body { transition: opacity .2s; }
+    .o_abm_loading { opacity: .55; pointer-events: none; }
+
+    // -------------------------------------------------------------- KPIs
+    .o_abm_kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+        gap: .75rem;
+        margin-bottom: 1rem;
+    }
+    .o_abm_kpi {
+        position: relative;
+        background: var(--abm-card);
+        border: 1px solid var(--abm-border);
+        border-radius: .9rem;
+        padding: .9rem 1rem .85rem;
+        cursor: pointer;
+        overflow: hidden;
+        transition: transform .15s, box-shadow .15s;
+
+        &::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 4px;
+            background: var(--kpi);
+        }
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 .5rem 1.25rem rgba(0, 0, 0, .08);
+        }
+    }
+    .o_abm_kpi_danger {
+        background: linear-gradient(180deg, rgba(220, 38, 38, .08), var(--abm-card) 70%);
+    }
+    .o_abm_kpi_icon {
+        position: absolute;
+        top: .8rem;
+        right: .85rem;
+        width: 2rem;
+        height: 2rem;
+        border-radius: .6rem;
+        display: grid;
+        place-items: center;
+        color: var(--kpi);
+        overflow: hidden;
+        &::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: var(--kpi);
+            opacity: .14;
+        }
+    }
+    .o_abm_kpi_label {
+        font-size: .75rem;
+        font-weight: 600;
+        color: var(--abm-muted);
+        padding-right: 2.2rem;
+        line-height: 1.25;
+        min-height: 1.9em;
+    }
+    .o_abm_kpi_value {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-top: .3rem;
+        letter-spacing: -.02em;
+        display: flex;
+        align-items: baseline;
+        gap: .45rem;
+    }
+    .o_abm_kpi_sub { font-size: .75rem; color: var(--abm-muted); margin-top: .15rem; }
+    .o_abm_delta {
+        font-size: .72rem;
+        font-weight: 700;
+        padding: .1rem .4rem;
+        border-radius: 999px;
+        background: var(--abm-track);
+        color: var(--abm-muted);
+        letter-spacing: 0;
+        &.up { background: rgba(16, 185, 129, .14); color: #059669; }
+        &.down { background: rgba(239, 68, 68, .14); color: #dc2626; }
+    }
+
+    // ------------------------------------------------------------- cards
+    .o_abm_grid {
+        display: grid;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .o_abm_grid_2_1 { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+    .o_abm_grid_1_1 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @include media-breakpoint-down(lg) {
+        .o_abm_grid_2_1, .o_abm_grid_1_1 { grid-template-columns: minmax(0, 1fr); }
+    }
+    .o_abm_card {
+        background: var(--abm-card);
+        border: 1px solid var(--abm-border);
+        border-radius: .9rem;
+        padding: 1rem 1.1rem;
+        min-width: 0;
+        margin-bottom: 0;
+        > .table-responsive { margin: 0 -1.1rem -1rem; }
+    }
+    .o_abm_dash_body > .o_abm_card { margin-bottom: 1rem; }
+    .o_abm_card_head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: .5rem;
+        margin-bottom: .85rem;
+
+        h3 {
+            font-size: .95rem;
+            font-weight: 700;
+            .fa { color: $primary; margin-right: .3rem; }
+        }
+    }
+    .o_abm_card_hint { font-size: .75rem; color: var(--abm-muted); }
+    .o_abm_link {
+        font-size: .78rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .o_abm_empty {
+        color: var(--abm-muted);
+        font-size: .85rem;
+        padding: 1.5rem 0;
+        text-align: center;
+    }
+    .o_abm_empty_lg { padding: 5rem 0; font-size: 1rem; }
+    .o_abm_section_title {
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--abm-muted);
+        margin: 1.25rem 0 .6rem;
+        .fa { color: $primary; margin-right: .3rem; }
+    }
+
+    // ----------------------------------------------------- linha do tempo
+    .o_abm_timeline {
+        display: flex;
+        gap: .5rem;
+        height: 14rem;
+    }
+    .o_abm_timeline_axis {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        font-size: .68rem;
+        color: var(--abm-muted);
+        padding-bottom: 1.3rem;
+        text-align: right;
+        min-width: 1.4rem;
+    }
+    .o_abm_timeline_bars {
+        flex: 1;
+        display: flex;
+        align-items: stretch;
+        gap: 3px;
+        border-left: 1px solid var(--abm-border);
+        background-image: linear-gradient(var(--abm-track) 1px, transparent 1px);
+        background-size: 100% calc((100% - 1.3rem) / 2);
+        min-width: 0;
+    }
+    .o_abm_tbar {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+    .o_abm_tbar_stack {
+        flex: 1;
+        display: flex;
+        flex-direction: column-reverse;
+        position: relative;
+        border-radius: 4px 4px 0 0;
+        overflow: visible;
+    }
+    .o_abm_tbar_seg {
+        width: 100%;
+        min-height: 2px;
+        transition: height .3s;
+        &:last-child { border-radius: 4px 4px 0 0; }
+    }
+    .o_abm_tbar:hover .o_abm_tbar_seg { filter: brightness(1.1); }
+    .o_abm_tbar_total {
+        font-size: .65rem;
+        font-weight: 700;
+        color: var(--abm-muted);
+        text-align: center;
+        order: 99;
+    }
+    .o_abm_tbar_label {
+        height: 1.3rem;
+        font-size: .65rem;
+        color: var(--abm-muted);
+        text-align: center;
+        white-space: nowrap;
+        padding-top: .25rem;
+        overflow: visible;
+    }
+
+    // ------------------------------------------------------------- donut
+    .o_abm_donut_wrap {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .o_abm_donut {
+        width: 8.5rem;
+        height: 8.5rem;
+        flex: none;
+        transform: rotate(0deg);
+    }
+    .o_abm_donut_track { stroke: var(--abm-track); }
+    .o_abm_donut_value { font-size: .55rem; font-weight: 800; fill: $body-color; }
+    .o_abm_donut_label { font-size: .22rem; fill: $text-muted; text-transform: uppercase; letter-spacing: .03em; }
+    .o_abm_legend {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex: 1;
+        min-width: 9rem;
+        li {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+            font-size: .82rem;
+            padding: .22rem 0;
+            border-bottom: 1px dashed var(--abm-border);
+            &:last-child { border-bottom: 0; }
+        }
+    }
+    .o_abm_legend_label { flex: 1; }
+    .o_abm_clickable { cursor: pointer; &:hover { color: $primary; } }
+    .o_abm_dot {
+        width: .65rem;
+        height: .65rem;
+        border-radius: 50%;
+        display: inline-block;
+        flex: none;
+    }
+    .o_abm_dot_lg { width: .8rem; height: .8rem; }
+
+    .o_abm_minirow { margin-top: 1rem; }
+    .o_abm_minititle {
+        font-size: .7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--abm-muted);
+        margin-bottom: .35rem;
+    }
+    .o_abm_stackbar {
+        display: flex;
+        height: .55rem;
+        border-radius: 999px;
+        overflow: hidden;
+        gap: 2px;
+        background: var(--abm-track);
+        margin-bottom: .45rem;
+    }
+    .o_abm_chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+    .o_abm_chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        font-size: .75rem;
+        padding: .15rem .55rem;
+        border-radius: 999px;
+        border: 1px solid var(--abm-border);
+        white-space: nowrap;
+    }
+    .o_abm_chip_soft { background: var(--abm-soft); border-color: transparent; }
+    .o_abm_chip_xs { font-size: .7rem; padding: .05rem .45rem; }
+
+    // ------------------------------------------------------------- funil
+    .o_abm_funnel_row {
+        display: grid;
+        grid-template-columns: 9.5rem minmax(0, 1fr) 4.2rem;
+        align-items: center;
+        gap: .6rem;
+        padding: .28rem .3rem;
+        border-radius: .4rem;
+        cursor: pointer;
+        &:hover { background: var(--abm-soft); }
+    }
+    .o_abm_funnel_name { font-size: .83rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .o_abm_funnel_track {
+        height: 1.15rem;
+        background: var(--abm-track);
+        border-radius: .35rem;
+        overflow: hidden;
+    }
+    .o_abm_funnel_bar { height: 100%; border-radius: .35rem; transition: width .4s; }
+    .o_abm_funnel_val { text-align: right; font-size: .85rem; small { margin-left: .25rem; } }
+
+    // ------------------------------------------------------ barras horiz.
+    .o_abm_hbar_row {
+        display: grid;
+        grid-template-columns: 11rem minmax(0, 1fr) 4.8rem;
+        align-items: center;
+        gap: .6rem;
+        padding: .22rem 0;
+    }
+    .o_abm_hbar_name { font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .o_abm_hbar_track {
+        display: flex;
+        height: .85rem;
+        background: var(--abm-track);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+    .o_abm_hbar_seg {
+        height: 100%;
+        background: #0ea5e9;
+        &.o_abm_resp { background: #f59e0b; }
+    }
+    .o_abm_hbar_val { text-align: right; font-size: .8rem; font-weight: 600; white-space: nowrap; }
+    .o_abm_tag_resp {
+        display: inline-block;
+        padding: 0 .4rem;
+        border-radius: 999px;
+        background: rgba(245, 158, 11, .18);
+        color: #b45309;
+        font-weight: 600;
+    }
+
+    // ----------------------------------------------------------- alertas
+    .o_abm_alerts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+        gap: .75rem;
+        margin-bottom: 1rem;
+    }
+    .o_abm_alert {
+        background: var(--abm-card);
+        border: 1px solid var(--abm-border);
+        border-left: 4px solid var(--alert);
+        border-radius: .9rem;
+        padding: .8rem .9rem;
+
+        ul { list-style: none; padding: 0; margin: .5rem 0 0; }
+        li {
+            display: flex;
+            justify-content: space-between;
+            gap: .5rem;
+            font-size: .8rem;
+            padding: .22rem .3rem;
+            border-radius: .35rem;
+            cursor: pointer;
+            span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            small { white-space: nowrap; }
+            &:hover { background: var(--abm-soft); }
+        }
+        .o_abm_more { color: $primary; font-weight: 600; justify-content: flex-start; }
+    }
+    .o_abm_alert_head {
+        display: flex;
+        align-items: flex-start;
+        gap: .6rem;
+        cursor: pointer;
+        > .fa {
+            color: var(--alert);
+            font-size: 1.05rem;
+            margin-top: .1rem;
+        }
+        > div:nth-child(2) { flex: 1; min-width: 0; }
+    }
+    .o_abm_alert_title { font-size: .85rem; font-weight: 700; line-height: 1.25; }
+    .o_abm_alert_hint { font-size: .72rem; color: var(--abm-muted); }
+    .o_abm_alert_count {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--alert);
+        line-height: 1;
+    }
+    .o_abm_alert_ok { font-size: .8rem; color: #059669; margin-top: .5rem; }
+
+    // ------------------------------------------------------------- listas
+    .o_abm_list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        li {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            padding: .45rem .35rem;
+            border-bottom: 1px solid var(--abm-border);
+            cursor: pointer;
+            &:last-child { border-bottom: 0; }
+            &:hover { background: var(--abm-soft); }
+        }
+    }
+    .o_abm_list_main { flex: 1; min-width: 0; }
+    .o_abm_list_title { font-size: .84rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .o_abm_list_sub { font-size: .74rem; color: var(--abm-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .o_abm_badge {
+        display: inline-block;
+        font-size: .68rem;
+        font-weight: 700;
+        padding: .15rem .5rem;
+        border-radius: 999px;
+        white-space: nowrap;
+        min-width: 4.8rem;
+        text-align: center;
+    }
+    .o_abm_st_overdue { background: rgba(239, 68, 68, .15); color: #dc2626; min-width: 0; }
+    .o_abm_st_today { background: rgba(245, 158, 11, .18); color: #b45309; }
+    .o_abm_st_planned { background: rgba(59, 130, 246, .14); color: #2563eb; }
+    .o_abm_list .o_abm_st_overdue { min-width: 4.8rem; }
+    .o_abm_pts {
+        font-size: .78rem;
+        font-weight: 800;
+        color: #059669;
+        &.o_abm_pts_off { color: var(--abm-muted); text-decoration: line-through; }
+    }
+
+    // ------------------------------------------------------------ tabela
+    .o_abm_sort {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .3rem;
+        font-size: .75rem;
+        color: var(--abm-muted);
+    }
+    .o_abm_table {
+        margin: 0;
+        font-size: .82rem;
+        --bs-table-bg: transparent;
+        thead th {
+            font-size: .68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--abm-muted);
+            border-bottom-width: 1px;
+            padding: .55rem .6rem;
+            white-space: nowrap;
+            background: var(--abm-soft);
+        }
+        th:first-child, td:first-child { padding-left: 1.1rem; }
+        th:last-child, td:last-child { padding-right: 1.1rem; }
+        tbody tr { cursor: pointer; }
+        tbody tr:hover { background: var(--abm-soft); }
+        td { vertical-align: middle; padding: .5rem .6rem; white-space: nowrap; }
+    }
+    .o_abm_acc { display: flex; align-items: center; gap: .45rem; }
+    .o_abm_tier_badge {
+        font-size: .62rem;
+        font-weight: 800;
+        padding: .08rem .35rem;
+        border-radius: .3rem;
+        background: rgba($primary, .12);
+        color: $primary;
+    }
+    .o_abm_stage {
+        font-size: .74rem;
+        padding: .1rem .5rem;
+        border-radius: 999px;
+        background: var(--abm-track);
+    }
+    .o_abm_col_score { min-width: 9.5rem; }
+    td.o_abm_col_score { display: flex; align-items: center; gap: .5rem; }
+    .o_abm_scorebar {
+        position: relative;
+        flex: 1;
+        height: .55rem;
+        background: var(--abm-track);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+    .o_abm_scorebar_fill { height: 100%; border-radius: 999px; }
+    .o_abm_scorebar_mark {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: var(--abm-border);
+        &.o_abm_m30 { left: 33.33%; }
+        &.o_abm_m60 { left: 66.66%; }
+    }
+    .o_abm_score_num { font-weight: 800; min-width: 1.6rem; text-align: right; }
+}

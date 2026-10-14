@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="abm_setima_dashboard.Donut">
+        <svg viewBox="0 0 42 42" class="o_abm_donut">
+            <circle cx="21" cy="21" r="15.915" fill="transparent" class="o_abm_donut_track" stroke-width="6"/>
+            <t t-foreach="donut.segs" t-as="seg" t-key="seg.key">
+                <circle cx="21" cy="21" r="15.915" fill="transparent" t-att-stroke="seg.color" stroke-width="6"
+                        t-att-stroke-dasharray="seg.dash" t-att-stroke-dashoffset="seg.offset"/>
+            </t>
+            <text x="21" y="21" text-anchor="middle" class="o_abm_donut_value" t-esc="donut.total"/>
+            <text x="21" y="26.5" text-anchor="middle" class="o_abm_donut_label" t-esc="donutLabel"/>
+        </svg>
+    </t>
+
+    <t t-name="abm_setima_dashboard.Dashboard">
+        <div class="o_action o_abm_dash h-100 overflow-auto">
+            <!-- ============================================== cabeçalho -->
+            <div class="o_abm_dash_header">
+                <div class="o_abm_dash_title">
+                    <div class="o_abm_dash_eyebrow">CRM · ABM Sétima</div>
+                    <h1>Dashboard estratégico</h1>
+                    <div class="o_abm_dash_period">
+                        <i class="fa fa-calendar me-1"/>
+                        <t t-esc="periodLabel"/>
+                        <t t-if="state.raw"> · atualizado às <t t-esc="state.raw.loadedAt.toFormat('HH:mm')"/></t>
+                    </div>
+                </div>
+                <div class="o_abm_dash_controls">
+                    <div class="o_abm_dash_presets" role="group" aria-label="Período">
+                        <t t-foreach="presets" t-as="p" t-key="p.key">
+                            <button type="button" class="o_abm_pill"
+                                    t-att-class="{ 'active': state.preset === p.key }"
+                                    t-on-click="() => this.onPreset(p.key)" t-esc="p.label"/>
+                        </t>
+                    </div>
+                    <div class="o_abm_dash_filters">
+                        <t t-if="state.preset === 'custom'">
+                            <label class="o_abm_date">De
+                                <input type="date" class="form-control form-control-sm" t-att-value="state.from"
+                                       t-on-change="(ev) => this.onCustomDate('from', ev)"/>
+                            </label>
+                            <label class="o_abm_date">Até
+                                <input type="date" class="form-control form-control-sm" t-att-value="state.to"
+                                       t-on-change="(ev) => this.onCustomDate('to', ev)"/>
+                            </label>
+                        </t>
+                        <select class="form-select form-select-sm o_abm_tier" t-on-change="onTier" aria-label="Tier">
+                            <option value="all" t-att-selected="state.tier === 'all'">Todos os tiers</option>
+                            <option value="1" t-att-selected="state.tier === '1'">Tier 1</option>
+                            <option value="2" t-att-selected="state.tier === '2'">Tier 2</option>
+                            <option value="3" t-att-selected="state.tier === '3'">Tier 3</option>
+                        </select>
+                        <button type="button" class="btn btn-sm btn-light o_abm_refresh" title="Atualizar"
+                                t-on-click="() => this.load()">
+                            <i class="fa fa-refresh" t-att-class="{ 'fa-spin': state.loading }"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div t-if="state.error" class="alert alert-danger m-3">
+                Não foi possível carregar o painel: <t t-esc="state.error"/>
+            </div>
+
+            <t t-if="state.raw">
+                <t t-set="d" t-value="metrics"/>
+                <div class="o_abm_dash_body" t-att-class="{ 'o_abm_loading': state.loading }">
+
+                    <!-- ========================================== KPIs -->
+                    <div class="o_abm_kpis">
+                        <t t-foreach="d.kpis" t-as="k" t-key="k.key">
+                            <div class="o_abm_kpi" t-att-style="'--kpi:' + k.color" t-on-click="() => this.openKpi(k.click)"
+                                 t-att-class="{ 'o_abm_kpi_danger': k.danger and k.value }">
+                                <div class="o_abm_kpi_icon"><i t-attf-class="fa {{ k.icon }}"/></div>
+                                <div class="o_abm_kpi_label" t-esc="k.label"/>
+                                <div class="o_abm_kpi_value">
+                                    <t t-esc="k.value.toLocaleString('pt-BR')"/>
+                                    <span t-if="k.delta !== null and k.delta !== undefined" class="o_abm_delta"
+                                          t-att-class="{ 'up': k.delta > 0, 'down': k.delta &lt; 0 }"
+                                          title="vs. período anterior de mesma duração">
+                                        <i t-attf-class="fa {{ k.delta > 0 ? 'fa-arrow-up' : k.delta &lt; 0 ? 'fa-arrow-down' : 'fa-minus' }}"/>
+                                        <t t-esc="Math.abs(k.delta)"/>
+                                    </span>
+                                </div>
+                                <div class="o_abm_kpi_sub" t-esc="k.sub"/>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- ================================ sinais: tempo + origem -->
+                    <div class="o_abm_grid o_abm_grid_2_1">
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-line-chart"/> Sinais ao longo do tempo</h3>
+                                    <span class="o_abm_card_hint"><t t-esc="d.totalSinais"/> sinais <t t-esc="d.timeline.unit"/>, empilhados por origem</span>
+                                </div>
+                                <a class="o_abm_link" t-on-click="() => this.openKpi('sinais')">ver sinais <i class="fa fa-angle-right"/></a>
+                            </div>
+                            <div t-if="!d.totalSinais" class="o_abm_empty">Nenhum sinal no período selecionado.</div>
+                            <div t-else="" class="o_abm_timeline">
+                                <div class="o_abm_timeline_axis">
+                                    <span t-esc="d.timeline.max"/>
+                                    <span t-esc="Math.round(d.timeline.max / 2)"/>
+                                    <span>0</span>
+                                </div>
+                                <div class="o_abm_timeline_bars">
+                                    <t t-foreach="d.timeline.bars" t-as="b" t-key="b.key">
+                                        <div class="o_abm_tbar" t-att-title="b.title">
+                                            <div class="o_abm_tbar_stack">
+                                                <span t-if="b.total" class="o_abm_tbar_total" t-esc="b.total"/>
+                                                <t t-foreach="b.segs" t-as="s" t-key="s.key">
+                                                    <div class="o_abm_tbar_seg" t-att-style="'height:' + s.height + '%;background:' + s.color"/>
+                                                </t>
+                                            </div>
+                                            <div class="o_abm_tbar_label"><t t-if="b.showLabel" t-esc="b.label"/></div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-pie-chart"/> Origem dos sinais</h3>
+                                    <span class="o_abm_card_hint">de onde vem a atenção das contas</span>
+                                </div>
+                            </div>
+                            <div t-if="!d.totalSinais" class="o_abm_empty">Sem sinais.</div>
+                            <div t-else="" class="o_abm_donut_wrap">
+                                <t t-call="abm_setima_dashboard.Donut">
+                                    <t t-set="donut" t-value="d.donutOrigens"/>
+                                    <t t-set="donutLabel" t-value="'sinais'"/>
+                                </t>
+                                <ul class="o_abm_legend">
+                                    <t t-foreach="d.origens" t-as="o" t-key="o.key">
+                                        <li>
+                                            <span class="o_abm_dot" t-att-style="'background:' + o.color"/>
+                                            <span class="o_abm_legend_label" t-esc="o.label"/>
+                                            <strong t-esc="o.count"/>
+                                            <small class="text-muted"><t t-esc="o.pontos"/> pts</small>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================ funil + temperatura -->
+                    <div class="o_abm_grid o_abm_grid_2_1">
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-filter"/> Jornada das contas</h3>
+                                    <span class="o_abm_card_hint">posição atual das <t t-esc="d.totalLeads"/> contas no pipeline ABM</span>
+                                </div>
+                            </div>
+                            <div class="o_abm_funnel">
+                                <t t-foreach="d.funil" t-as="s" t-key="s.id">
+                                    <div class="o_abm_funnel_row" t-on-click="() => this.openStage(s.id)">
+                                        <div class="o_abm_funnel_name" t-esc="s.name"/>
+                                        <div class="o_abm_funnel_track">
+                                            <div class="o_abm_funnel_bar" t-att-style="'width:' + s.width + '%;background:' + s.color"/>
+                                        </div>
+                                        <div class="o_abm_funnel_val">
+                                            <strong t-esc="s.count"/>
+                                            <small class="text-muted"><t t-esc="s.share"/>%</small>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-thermometer-three-quarters"/> Temperatura</h3>
+                                    <span class="o_abm_card_hint">faixa pelo score dos sinais ativos</span>
+                                </div>
+                            </div>
+                            <div class="o_abm_donut_wrap">
+                                <t t-call="abm_setima_dashboard.Donut">
+                                    <t t-set="donut" t-value="d.donutFaixas"/>
+                                    <t t-set="donutLabel" t-value="'contas'"/>
+                                </t>
+                                <ul class="o_abm_legend">
+                                    <t t-foreach="d.faixas" t-as="f" t-key="f.key">
+                                        <li class="o_abm_clickable" t-on-click="() => this.openFaixa(f.key)">
+                                            <span class="o_abm_dot" t-att-style="'background:' + f.color"/>
+                                            <span class="o_abm_legend_label"><t t-esc="f.label"/> <small class="text-muted" t-esc="f.hint"/></span>
+                                            <strong t-esc="f.count"/>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+                            <div class="o_abm_minirow">
+                                <div class="o_abm_minititle">Cadência</div>
+                                <div class="o_abm_stackbar">
+                                    <t t-foreach="d.cadencia" t-as="c" t-key="c.key">
+                                        <div t-att-style="'flex:' + c.count + ';background:' + c.color" t-att-title="c.label + ': ' + c.count"/>
+                                    </t>
+                                </div>
+                                <div class="o_abm_chips">
+                                    <t t-foreach="d.cadencia" t-as="c" t-key="c.key">
+                                        <span class="o_abm_chip"><span class="o_abm_dot" t-att-style="'background:' + c.color"/><t t-esc="c.label"/> <strong t-esc="c.count"/></span>
+                                    </t>
+                                </div>
+                                <div class="o_abm_chips mt-1">
+                                    <t t-foreach="d.tiers" t-as="t" t-key="t.key">
+                                        <span class="o_abm_chip o_abm_chip_soft"><t t-esc="t.label"/> <strong t-esc="t.count"/></span>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===================================== alertas -->
+                    <div class="o_abm_section_title"><i class="fa fa-crosshairs"/> Onde agir agora</div>
+                    <div class="o_abm_alerts">
+                        <t t-foreach="d.alertas" t-as="a" t-key="a.key">
+                            <div class="o_abm_alert" t-att-style="'--alert:' + a.color">
+                                <div class="o_abm_alert_head" t-on-click="() => a.count and this.openAlert(a)">
+                                    <i t-attf-class="fa {{ a.icon }}"/>
+                                    <div>
+                                        <div class="o_abm_alert_title" t-esc="a.title"/>
+                                        <div class="o_abm_alert_hint" t-esc="a.hint"/>
+                                    </div>
+                                    <div class="o_abm_alert_count" t-esc="a.count"/>
+                                </div>
+                                <ul t-if="a.count">
+                                    <t t-foreach="a.top" t-as="l" t-key="l.id">
+                                        <li t-on-click="() => this.openLead(l.id)">
+                                            <span t-esc="l.name"/>
+                                            <small class="text-muted" t-esc="l.stage_id and l.stage_id[1]"/>
+                                        </li>
+                                    </t>
+                                    <li t-if="a.count > a.top.length" class="o_abm_more" t-on-click="() => this.openAlert(a)">
+                                        + <t t-esc="a.count - a.top.length"/> conta(s)
+                                    </li>
+                                </ul>
+                                <div t-else="" class="o_abm_alert_ok"><i class="fa fa-check"/> Nada pendente</div>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- ============================ atividades + tipos de sinal -->
+                    <div class="o_abm_grid o_abm_grid_1_1">
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-tasks"/> Execução das atividades</h3>
+                                    <span class="o_abm_card_hint">concluídas no período + carteira aberta hoje</span>
+                                </div>
+                            </div>
+                            <div class="o_abm_chips mb-2">
+                                <t t-foreach="d.statusTotals" t-as="s" t-key="s.key">
+                                    <span class="o_abm_chip"><span class="o_abm_dot" t-att-style="'background:' + s.color"/><t t-esc="s.label"/> <strong t-esc="s.count"/></span>
+                                </t>
+                            </div>
+                            <div t-if="!d.atividadesTipo.length" class="o_abm_empty">Nenhuma atividade ABM.</div>
+                            <div class="o_abm_hbars">
+                                <t t-foreach="d.atividadesTipo" t-as="r" t-key="r.name">
+                                    <div class="o_abm_hbar_row">
+                                        <div class="o_abm_hbar_name" t-esc="r.name" t-att-title="r.name"/>
+                                        <div class="o_abm_hbar_track">
+                                            <t t-foreach="r.segs" t-as="s" t-key="s.key">
+                                                <div class="o_abm_hbar_seg" t-att-style="'width:' + s.width + '%;background:' + s.color" t-att-title="s.n"/>
+                                            </t>
+                                        </div>
+                                        <div class="o_abm_hbar_val" t-esc="r.total"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-bolt"/> Tipos de sinal</h3>
+                                    <span class="o_abm_card_hint">o que as contas estão fazendo · <span class="o_abm_tag_resp">resposta</span></span>
+                                </div>
+                            </div>
+                            <div t-if="!d.tipos.length" class="o_abm_empty">Sem sinais no período.</div>
+                            <div class="o_abm_hbars">
+                                <t t-foreach="d.tipos" t-as="t" t-key="t.key">
+                                    <div class="o_abm_hbar_row">
+                                        <div class="o_abm_hbar_name" t-att-title="t.label">
+                                            <t t-esc="t.label"/>
+                                        </div>
+                                        <div class="o_abm_hbar_track">
+                                            <div class="o_abm_hbar_seg" t-att-class="{ 'o_abm_resp': t.resposta }" t-att-style="'width:' + t.width + '%'"/>
+                                        </div>
+                                        <div class="o_abm_hbar_val"><t t-esc="t.count"/> <small class="text-muted">· <t t-esc="t.pontos"/> pts</small></div>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================ agenda + feed -->
+                    <div class="o_abm_grid o_abm_grid_1_1">
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-calendar-check-o"/> Agenda ABM · próximos 7 dias</h3>
+                                    <span class="o_abm_card_hint">atrasadas primeiro</span>
+                                </div>
+                                <a class="o_abm_link" t-on-click="() => this.openKpi('atrasadas')">atrasadas <i class="fa fa-angle-right"/></a>
+                            </div>
+                            <div t-if="!d.agenda.length" class="o_abm_empty">Agenda limpa para os próximos dias.</div>
+                            <ul class="o_abm_list">
+                                <t t-foreach="d.agenda" t-as="a" t-key="a.id">
+                                    <li t-on-click="() => this.openActivity(a)">
+                                        <span class="o_abm_badge" t-attf-class="o_abm_st_{{ a.status }}" t-esc="a.quando"/>
+                                        <div class="o_abm_list_main">
+                                            <div class="o_abm_list_title" t-esc="a.res_name"/>
+                                            <div class="o_abm_list_sub"><t t-esc="a.tipo"/><t t-if="a.user_id"> · <t t-esc="a.user_id[1]"/></t></div>
+                                        </div>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-rss"/> Últimos sinais</h3>
+                                    <span class="o_abm_card_hint">mais recentes no período</span>
+                                </div>
+                            </div>
+                            <div t-if="!d.feed.length" class="o_abm_empty">Sem sinais no período.</div>
+                            <ul class="o_abm_list">
+                                <t t-foreach="d.feed" t-as="s" t-key="s.id">
+                                    <li t-on-click="() => this.openLead(s.x_lead_id[0])">
+                                        <span class="o_abm_dot o_abm_dot_lg" t-att-style="'background:' + s.origem.color" t-att-title="s.origem.label"/>
+                                        <div class="o_abm_list_main">
+                                            <div class="o_abm_list_title"><t t-esc="s.x_lead_id[1]"/></div>
+                                            <div class="o_abm_list_sub"><t t-esc="s.tipoLabel"/> · <t t-esc="s.quando"/></div>
+                                        </div>
+                                        <span class="o_abm_pts" t-att-class="{ 'o_abm_pts_off': !s.x_ativo }"
+                                              t-att-title="s.x_ativo ? 'conta no score' : 'expirado / fora do score'">+<t t-esc="s.x_pontos"/></span>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- ============================ visão por conta -->
+                    <div class="o_abm_card">
+                        <div class="o_abm_card_head">
+                            <div>
+                                <h3><i class="fa fa-th-list"/> Visão por conta</h3>
+                                <span class="o_abm_card_hint">sinais e atividades concluídas no período; score, comitê e pendências atuais</span>
+                            </div>
+                            <div class="o_abm_sort">
+                                Ordenar:
+                                <t t-foreach="[['score','Score'],['sinais','Pontos no período'],['exposicao','Exposição'],['atividades','Atrasos'],['nome','Nome']]" t-as="o" t-key="o[0]">
+                                    <button type="button" class="o_abm_pill o_abm_pill_sm" t-att-class="{ 'active': state.sort === o[0] }"
+                                            t-on-click="() => this.onSort(o[0])" t-esc="o[1]"/>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm o_abm_table">
+                                <thead>
+                                    <tr>
+                                        <th>Conta</th>
+                                        <th>Etapa</th>
+                                        <th class="o_abm_col_score">Score</th>
+                                        <th class="text-end">Sinais</th>
+                                        <th class="text-end">Pts</th>
+                                        <th>Último sinal</th>
+                                        <th>Cadência</th>
+                                        <th class="text-end" title="decisores / pessoas no comitê">Comitê</th>
+                                        <th class="text-end" title="impressões por pessoa do comitê (30d)">Exposição</th>
+                                        <th class="text-end" title="concluídas no período / abertas (atrasadas)">Atividades</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="d.contas" t-as="c" t-key="c.id">
+                                        <tr t-on-click="() => this.openLead(c.id)">
+                                            <td>
+                                                <div class="o_abm_acc">
+                                                    <span class="o_abm_tier_badge" t-if="c.lead.x_abm_tier">T<t t-esc="c.lead.x_abm_tier"/></span>
+                                                    <strong t-esc="c.lead.name"/>
+                                                </div>
+                                            </td>
+                                            <td><span class="o_abm_stage" t-esc="c.stage"/></td>
+                                            <td class="o_abm_col_score">
+                                                <div class="o_abm_scorebar" t-att-title="c.faixa.label">
+                                                    <div class="o_abm_scorebar_fill" t-att-style="'width:' + c.scorePct + '%;background:' + c.faixa.color"/>
+                                                    <span class="o_abm_scorebar_mark o_abm_m30"/>
+                                                    <span class="o_abm_scorebar_mark o_abm_m60"/>
+                                                </div>
+                                                <span class="o_abm_score_num" t-att-style="'color:' + c.faixa.color" t-esc="c.lead.x_abm_score or 0"/>
+                                            </td>
+                                            <td class="text-end" t-esc="c.sinais or '—'"/>
+                                            <td class="text-end"><strong t-if="c.pontos" t-esc="'+' + c.pontos"/><t t-else="">—</t></td>
+                                            <td t-esc="c.ultimoSinal"/>
+                                            <td><span class="o_abm_chip o_abm_chip_xs"><span class="o_abm_dot" t-att-style="'background:' + c.cadencia.color"/><t t-esc="c.cadencia.label"/></span></td>
+                                            <td class="text-end" t-esc="c.comite"/>
+                                            <td class="text-end" t-esc="c.exposicao"/>
+                                            <td class="text-end">
+                                                <t t-esc="c.concluidas"/> / <t t-esc="c.abertas"/>
+                                                <span t-if="c.atrasadas" class="o_abm_badge o_abm_st_overdue ms-1" t-esc="c.atrasadas"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <div t-elif="state.loading" class="o_abm_empty o_abm_empty_lg"><i class="fa fa-circle-o-notch fa-spin me-2"/>Carregando painel ABM…</div>
+        </div>
+    </t>
+</templates>
