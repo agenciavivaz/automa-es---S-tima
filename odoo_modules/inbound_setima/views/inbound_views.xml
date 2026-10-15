@@ -156,4 +156,10 @@
     <!-- CRM / Inbound Sétima, ao lado de ABM Setima (sequence 2). -->
     <menuitem id="menu_root" name="Inbound Sétima" parent="crm.crm_menu_root" sequence="3"/>
     <menuitem id="menu_pipeline" name="Pipeline" parent="menu_root" action="action_pipeline" sequence="1"/>
+
+    <record id="action_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard Inbound</field>
+        <field name="tag">inbound_setima_dashboard</field>
+    </record>
+    <menuitem id="menu_dashboard" name="Dashboard" parent="menu_root" action="action_dashboard" sequence="2"/>
 </odoo>

@@ -14,3 +14,20 @@ O card do kanban segue o desenho do ABM Sétima, adaptado ao inbound:
 
 Sem regras, sinais ou automações: a estrutura do inbound será construída em cima deste
 pipeline. Instalar/atualizar: zip da pasta e **Apps → Importar módulo** (com "Forçar init").
+
+## Dashboard (CRM → Inbound Sétima → Dashboard)
+
+Relatório de resultados e de trabalho para o cliente, lido ao vivo do CRM. Usa o visual do
+Dashboard ABM (depende de `abm_setima_dashboard`).
+
+- **Período:** padrão "Este mês"; também mês anterior, 7/30/90 dias, trimestre, ano, tudo e
+  datas personalizadas. Comparação com o período anterior (mês contra mês nos presets mensais).
+- **Base:** leads da equipe 16 (ativos e perdidos) que *entraram* no período: data de criação
+  no Pipedrive para os migrados, senão a criação no Odoo.
+- **Funil:** cada lead conta até a etapa mais avançada que atingiu (perdido fica na etapa em
+  que foi perdido; ganho conta em todas). Mostra % do total e % de conversão etapa a etapa.
+- **Quebras:** campanha, conjunto de anúncios, criativo, plataforma e etapa atual.
+- **O que estamos fazendo:** notas, e-mails e atividades concluídas nos leads, classificados
+  por palavra-chave (Reunião / agendamento, E-mail, WhatsApp / DataCrazy, Ligação, Pesquisa,
+  Outros), por pessoa e ao longo do tempo, com o registro completo e o tempo até o 1º registro.
+- **Resumo do período** em texto e botão **Exportar PDF** (impressão só do relatório).
