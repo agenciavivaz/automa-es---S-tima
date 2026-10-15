@@ -1,0 +1,82 @@
+<data><xpath expr="//kanban" position="attributes">
+                <attribute name="class" add="o_inbound_setima" separator=" "/>
+            </xpath>
+            <xpath expr="//templates" position="before">
+                <field name="contact_name"/>
+                <field name="partner_name"/>
+                <field name="email_from"/>
+                <field name="phone"/>
+                <field name="x_abm_dias_estagio"/>
+                <field name="activity_state"/>
+                <field name="activity_summary"/>
+                <field name="activity_type_id"/>
+                <field name="activity_type_icon"/>
+                <field name="activity_date_deadline"/>
+                <field name="campaign_id"/>
+                <field name="x_meta_conjunto"/>
+                <field name="x_meta_anuncio"/>
+            </xpath>
+            <xpath expr="//t[@t-name='card']" position="replace">
+                <t t-name="card">
+                    <widget name="web_ribbon" title="Perdido" bg_color="text-bg-danger" invisible="won_status != 'lost'"/>
+                    <widget name="web_ribbon" title="Ganho" bg_color="text-bg-success" invisible="won_status != 'won'"/>
+                    <div t-att-class="'border-start border-4 ps-2 d-flex flex-column gap-2 ' + (record.activity_state.raw_value == 'overdue' ? 'border-danger' : record.activity_state.raw_value == 'today' ? 'border-warning' : record.activity_state.raw_value == 'planned' ? 'border-success' : 'border-secondary')">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div class="text-truncate">
+                                <field name="name" class="fw-bold fs-6 d-block text-truncate"/>
+                                <span class="small text-muted text-truncate d-block">
+                                    <t t-out="record.partner_name.raw_value or record.contact_name.raw_value or ''"/>
+                                </span>
+                            </div>
+                            <field name="priority" widget="priority"/>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-1">
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                            <span t-if="record.expected_revenue.raw_value" class="badge rounded-pill text-bg-light border">
+                                <field name="expected_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/>
+                            </span>
+                        </div>
+
+                        <div t-if="record.x_meta_anuncio.raw_value or record.x_meta_conjunto.raw_value or record.campaign_id.raw_value" class="d-flex flex-column gap-1 rounded px-2 py-1 small border">
+                            <span t-if="record.x_meta_anuncio.raw_value" class="text-truncate" t-att-title="'Criativo: ' + record.x_meta_anuncio.raw_value">
+                                <i class="fa fa-picture-o me-1 text-primary"/><b>Criativo:</b> <t t-out="record.x_meta_anuncio.raw_value"/>
+                            </span>
+                            <span t-if="record.x_meta_conjunto.raw_value" class="text-truncate" t-att-title="'Conjunto: ' + record.x_meta_conjunto.raw_value">
+                                <i class="fa fa-users me-1 text-primary"/><b>Conjunto:</b> <t t-out="record.x_meta_conjunto.raw_value"/>
+                            </span>
+                            <span t-if="record.campaign_id.raw_value" class="text-truncate text-muted" t-att-title="'Campanha: ' + record.campaign_id.value">
+                                <i class="fa fa-bullhorn me-1"/><t t-out="record.campaign_id.value"/>
+                            </span>
+                        </div>
+
+                        <div class="d-flex flex-wrap column-gap-3 small text-muted">
+                            <span t-if="record.email_from.raw_value" class="text-truncate" t-att-title="record.email_from.raw_value">
+                                <i class="fa fa-envelope-o me-1"/><t t-out="record.email_from.raw_value"/>
+                            </span>
+                            <span t-if="record.phone.raw_value" t-att-title="record.phone.raw_value">
+                                <i class="fa fa-whatsapp me-1 text-success"/><t t-out="record.phone.raw_value"/>
+                            </span>
+                        </div>
+
+                        <div t-if="record.activity_date_deadline.raw_value" t-att-class="'d-flex align-items-center gap-2 rounded px-2 py-1 small bg-light ' + (record.activity_state.raw_value == 'overdue' ? 'text-danger' : '')">
+                            <i t-att-class="'fa ' + (record.activity_type_icon.raw_value or 'fa-tasks')"/>
+                            <span class="text-truncate"><t t-out="record.activity_summary.raw_value or record.activity_type_id.value"/></span>
+                            <field name="activity_date_deadline" widget="remaining_days" class="ms-auto text-nowrap"/>
+                        </div>
+                        <div t-else="" class="d-flex align-items-center gap-2 rounded px-2 py-1 small bg-light text-muted">
+                            <i class="fa fa-minus"/><span>Sem próximo contato agendado</span>
+                        </div>
+                    </div>
+                    <footer class="pt-1">
+                        <div class="d-flex align-items-center gap-2 w-100">
+                            <field name="user_id" widget="many2one_avatar_user" domain="[('share', '=', False)]"/>
+                            <field name="activity_ids" widget="kanban_activity"/>
+                            <span class="ms-auto small text-muted" title="Dias na etapa atual">
+                                <i class="fa fa-clock-o me-1"/><t t-out="record.x_abm_dias_estagio.raw_value"/> d na etapa
+                            </span>
+                        </div>
+                    </footer>
+                </t>
+            </xpath>
+        </data>

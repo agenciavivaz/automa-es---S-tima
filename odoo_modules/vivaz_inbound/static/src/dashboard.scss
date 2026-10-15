@@ -1,0 +1,304 @@
+// Relatório Inbound v2 — CSS puro (sem variáveis SCSS do Odoo, para o bundle nunca quebrar),
+// tudo escopado em .o_vin. Cards neutros; cor só com significado (§7.11).
+
+.o_vin {
+    --vin-bg: #f6f7f9;
+    --vin-card: #ffffff;
+    --vin-borda: #e3e6ea;
+    --vin-texto: #1f2328;
+    --vin-muted: #5f6b7a;
+    --vin-sutil: #9aa4b1;
+    --vin-trilho: #eef0f3;
+    --vin-bom: #047857;
+    --vin-bom-bg: #e7f6ef;
+    --vin-ruim: #b91c1c;
+    --vin-ruim-bg: #fdecec;
+    --vin-atencao: #b45309;
+    --vin-atencao-bg: #fdf3e2;
+    --vin-acento: #1d4ed8;
+    background: var(--vin-bg);
+    color: var(--vin-texto);
+    font-size: 14px;
+
+    .o_vin_wrap { max-width: 1440px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+
+    // ------------------------------------------------------------ cabeçalho
+    .o_vin_header {
+        display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+        padding-top: 20px; padding-bottom: 12px; flex-wrap: wrap;
+    }
+    .o_vin_eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--vin-muted); font-weight: 600; }
+    h1 { font-size: 26px; font-weight: 700; margin: 2px 0 4px; }
+    .o_vin_sub { color: var(--vin-muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .o_vin_sep { color: var(--vin-sutil); }
+    .o_vin_modo { margin-top: 8px; display: flex; align-items: center; gap: 4px; font-size: 13px; }
+    .o_vin_rotulo { color: var(--vin-muted); margin-right: 4px; }
+    .o_vin_modo button, .o_vin_toggle button, .o_vin_tabs button {
+        border: 1px solid var(--vin-borda); background: var(--vin-card); color: var(--vin-texto);
+        padding: 3px 10px; border-radius: 999px; font-size: 12.5px; line-height: 1.5; cursor: pointer;
+        &.active { background: var(--vin-texto); color: #fff; border-color: var(--vin-texto); }
+    }
+    .o_vin_controles { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; max-width: 100%; }
+    .o_vin_chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+    .o_vin_chip {
+        border: 1px solid var(--vin-borda); background: var(--vin-card); color: var(--vin-texto);
+        border-radius: 999px; padding: 4px 12px; font-size: 13px; cursor: pointer;
+        &:hover { border-color: var(--vin-sutil); }
+        &.active { background: var(--vin-acento); border-color: var(--vin-acento); color: #fff; }
+    }
+    .o_vin_acoes { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .o_vin_data { display: flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--vin-muted); margin: 0;
+        input { width: 140px; } }
+    .o_vin_pdf { position: relative; }
+    .o_vin_pdf_menu {
+        position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; background: var(--vin-card);
+        border: 1px solid var(--vin-borda); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); min-width: 260px; padding: 4px;
+        button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 8px 10px; border-radius: 8px; font-size: 13px;
+            small { display: block; color: var(--vin-muted); }
+            &:hover { background: var(--vin-trilho); } }
+    }
+
+    // ------------------------------------------------------------ barra de seções
+    .o_vin_nav {
+        position: sticky; top: 0; z-index: 10; background: rgba(246, 247, 249, .96);
+        border-bottom: 1px solid var(--vin-borda); backdrop-filter: blur(4px);
+    }
+    .o_vin_nav_in { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+    .o_vin_nav a {
+        padding: 10px 12px; color: var(--vin-muted); text-decoration: none; font-weight: 600; font-size: 13px;
+        border-bottom: 2px solid transparent; white-space: nowrap;
+        &:hover { color: var(--vin-texto); }
+        &.active { color: var(--vin-texto); border-bottom-color: var(--vin-acento); }
+    }
+
+    // ------------------------------------------------------------ estrutura
+    .o_vin_corpo { padding-top: 8px; padding-bottom: 32px; transition: opacity .2s; }
+    .o_vin_loading { opacity: .55; pointer-events: none; }
+    .o_vin_secao { margin-top: 24px; scroll-margin-top: 56px; }
+    .o_vin_secao_titulo { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vin-muted); margin-bottom: 8px; }
+    .o_vin_card {
+        background: var(--vin-card); border: 1px solid var(--vin-borda); border-radius: 12px; padding: 20px; min-width: 0;
+    }
+    .o_vin_secao > .o_vin_card + .o_vin_card { margin-top: 16px; }
+    .o_vin_card_head { margin-bottom: 12px;
+        h3 { font-size: 16px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; } }
+    .o_vin_head_split { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .o_vin_hint { font-size: 12.5px; color: var(--vin-muted); }
+    .o_vin_info { color: var(--vin-sutil); font-size: 12px; cursor: help; }
+    .o_vin_link { color: var(--vin-acento); font-size: 13px; text-decoration: none; &:hover { text-decoration: underline; } }
+    .o_vin_empty { color: var(--vin-muted); font-size: 13.5px; padding: 16px 0; }
+    .o_vin_empty_lg { padding: 64px 24px; text-align: center; }
+    .o_vin_dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; flex: none; }
+    .zero { color: var(--vin-sutil); }
+
+    // topo: KPIs + leitura (9 col) e acumulado (3 col) ocupando as duas linhas
+    .o_vin_topo {
+        display: grid; gap: 16px;
+        grid-template-columns: minmax(0, 9fr) minmax(0, 3fr);
+        grid-template-areas: "kpis acum" "leit acum";
+        align-items: stretch;
+    }
+    .o_vin_kpis { grid-area: kpis; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+    .o_vin_leitura { grid-area: leit; }
+    .o_vin_acum { grid-area: acum; }
+    .o_vin_par { display: grid; gap: 16px; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); align-items: stretch; }
+
+    // ------------------------------------------------------------ KPIs
+    .o_vin_kpi { padding: 16px; cursor: pointer; display: flex; flex-direction: column; gap: 4px;
+        &:hover { border-color: var(--vin-sutil); } }
+    .o_vin_kpi_label { font-size: 13px; color: var(--vin-muted); display: flex; align-items: center; gap: 6px; font-weight: 600;
+        > .fa:first-child { color: var(--vin-sutil); } }
+    .o_vin_kpi_valor { font-size: 34px; font-weight: 600; line-height: 1.1; letter-spacing: -.01em; }
+    .o_vin_kpi_rodape { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; }
+    .o_vin_kpi_sub { color: var(--vin-muted); }
+    .o_vin_delta {
+        display: inline-flex; align-items: center; gap: 3px; font-weight: 600; font-size: 12px; border-radius: 999px; padding: 1px 7px;
+        background: var(--vin-trilho); color: var(--vin-muted);
+        &.bom { background: var(--vin-bom-bg); color: var(--vin-bom); }
+        &.ruim { background: var(--vin-ruim-bg); color: var(--vin-ruim); }
+    }
+
+    // ------------------------------------------------------------ leitura do período
+    .o_vin_leitura_cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+    .o_vin_leitura.sem_comentario .o_vin_leitura_cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .o_vin_lcol {
+        h4 { font-size: 13px; font-weight: 700; margin: 0 0 6px; display: flex; gap: 6px; align-items: center;
+            &.bom { color: var(--vin-bom); } &.atencao { color: var(--vin-atencao); } }
+        ul { margin: 0; padding-left: 18px; }
+        li { font-size: 13.5px; line-height: 1.45; margin-bottom: 4px; }
+    }
+    .o_vin_analista { border-left: 1px solid var(--vin-borda); padding-left: 20px; }
+    .o_vin_comentario { font-size: 13.5px; line-height: 1.45; white-space: pre-line; margin-bottom: 4px; }
+    .o_vin_pendente { font-size: 13px; color: var(--vin-atencao); background: var(--vin-atencao-bg); border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; }
+
+    // ------------------------------------------------------------ acumulado fixo
+    .o_vin_acum { background: #f3faf6; border-left: 4px solid var(--vin-bom); display: flex; flex-direction: column; gap: 4px;
+        h3 { font-size: 15px; font-weight: 600; margin: 4px 0 0; } }
+    .o_vin_pin { font-size: 11px; font-weight: 700; letter-spacing: .08em; color: var(--vin-muted); cursor: help; }
+    .o_vin_acum_valor { font-size: 36px; font-weight: 700; color: var(--vin-bom); line-height: 1.1; margin-top: 8px; letter-spacing: -.01em; }
+    .o_vin_acum_apoio { font-size: 13px; color: var(--vin-muted); }
+    .o_vin_contratos { list-style: none; padding: 0; margin: 10px 0 4px;
+        li { padding: 8px 0; border-top: 1px solid var(--vin-borda); cursor: pointer; font-size: 12.5px; &:hover .o_vin_contrato_nome { color: var(--vin-acento); } } }
+    .o_vin_contrato_nome { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .o_vin_contrato_meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; color: var(--vin-muted); b { color: var(--vin-texto); white-space: nowrap; } }
+    .o_vin_badge_novo { white-space: nowrap; margin-left: 6px; font-size: 10.5px; background: var(--vin-bom-bg); color: var(--vin-bom); border-radius: 999px; padding: 0 6px; }
+    .o_vin_acum_periodo { margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--vin-borda); font-size: 13px; color: var(--vin-muted);
+        &.tem { color: var(--vin-bom); font-weight: 600; } }
+
+    // ------------------------------------------------------------ funil
+    .o_vin_funil { display: flex; flex-direction: column; }
+    .o_vin_frow {
+        display: grid; grid-template-columns: 150px minmax(0, 1fr) 44px 56px; align-items: center; gap: 10px;
+        height: 36px; padding: 0 6px; border-radius: 8px; cursor: pointer;
+        &:hover { background: var(--vin-trilho); }
+        &.zero { color: var(--vin-sutil); .o_vin_fbar { background: transparent; } }
+    }
+    .o_vin_fnome { font-weight: 600; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .o_vin_ftrack { height: 18px; background: var(--vin-trilho); border-radius: 6px; overflow: hidden; }
+    .o_vin_fbar { height: 100%; background: #3b6fd8; border-radius: 6px; transition: width .3s; }
+    .o_vin_fnum { text-align: right; font-weight: 700; }
+    .o_vin_fpct { text-align: right; font-size: 12.5px; color: var(--vin-muted); }
+    .o_vin_conv { display: flex; gap: 8px; align-items: center; padding: 1px 0 1px 166px; font-size: 12px; }
+    .o_vin_conv_chip {
+        background: var(--vin-trilho); color: var(--vin-muted); border-radius: 999px; padding: 0 8px; font-weight: 600;
+        &.bom { background: var(--vin-bom-bg); color: var(--vin-bom); }
+        &.ruim { background: var(--vin-ruim-bg); color: var(--vin-ruim); }
+    }
+    .o_vin_nota { margin-top: 10px; font-size: 12.5px; color: var(--vin-muted); }
+
+    // ------------------------------------------------------------ situação e saúde (A4)
+    .o_vin_saude { display: flex; flex-direction: column; }
+    .o_vin_donut_linha { display: flex; align-items: center; gap: 16px; }
+    .o_vin_donut { width: 120px; height: 120px; flex: none; transform: rotate(0deg); }
+    .o_vin_donut_num { font-size: 8px; font-weight: 700; fill: var(--vin-texto); }
+    .o_vin_legenda { list-style: none; margin: 0; padding: 0; flex: 1; min-width: 0;
+        li { display: flex; align-items: center; gap: 4px; font-size: 13px; padding: 2px 0; b { margin-left: auto; } } }
+    .o_vin_saude_lista { list-style: none; margin: 14px 0 0; padding: 0; flex: 1; display: flex; flex-direction: column; justify-content: space-between;
+        li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px;
+            border: 1px solid var(--vin-borda); margin-bottom: 6px; cursor: default;
+            > b { font-size: 18px; }
+            &[role="button"] { cursor: pointer; &:hover { border-color: var(--vin-sutil); } }
+            &.atencao > b { color: var(--vin-atencao); } } }
+    .o_vin_saude_label { font-weight: 600; font-size: 13px; }
+
+    // ------------------------------------------------------------ aquisição
+    .o_vin_legenda_camp { display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: flex-end; font-size: 12.5px; margin-bottom: 8px;
+        > span { display: inline-flex; align-items: center; } b { margin-left: 4px; } }
+    .o_vin_serie { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 6px; height: 200px; }
+    .o_vin_serie_eixo { display: flex; flex-direction: column; justify-content: space-between; font-size: 11px; color: var(--vin-sutil); text-align: right; padding-bottom: 18px; }
+    .o_vin_serie_barras { display: flex; align-items: stretch; gap: 2px; border-bottom: 1px solid var(--vin-borda); min-width: 0; }
+    .o_vin_sbar { flex: 1 1 0; display: flex; flex-direction: column; min-width: 0; }
+    .o_vin_sbar_pilha { flex: 1; display: flex; flex-direction: column-reverse; position: relative; }
+    .o_vin_sbar_seg { width: 100%; min-height: 1px; &:last-child { border-radius: 3px 3px 0 0; } }
+    .o_vin_sbar_total { position: absolute; left: 0; right: 0; text-align: center; font-size: 10.5px; color: var(--vin-muted); bottom: 100%; }
+    .o_vin_sbar_pilha:has(.o_vin_sbar_seg) .o_vin_sbar_total { position: static; order: 99; }
+    .o_vin_sbar_label { height: 18px; font-size: 10.5px; color: var(--vin-sutil); text-align: center; white-space: nowrap; overflow: visible; }
+    .o_vin_tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+    .o_vin_toggle { display: flex; gap: 4px; }
+    .o_vin_tabela_wrap { overflow-x: auto; }
+    .o_vin_tabela { width: 100%; border-collapse: collapse; font-size: 13px;
+        th { font-size: 12px; color: var(--vin-muted); font-weight: 600; text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--vin-borda); cursor: pointer; white-space: nowrap; user-select: none; }
+        td { padding: 7px 8px; border-bottom: 1px solid var(--vin-trilho); white-space: nowrap; }
+        tbody tr { cursor: pointer; &:hover { background: var(--vin-bg); } }
+        tfoot td { font-weight: 700; border-top: 2px solid var(--vin-borda); border-bottom: 0; }
+        .num { text-align: right; }
+    }
+    .o_vin_sort_off { opacity: .3; }
+    .o_vin_fase2 { display: none; }
+    .o_vin_dimcell { max-width: 360px; overflow: hidden; text-overflow: ellipsis; }
+    .o_vin_col_leads { min-width: 160px; }
+    .o_vin_lbar { position: relative; padding: 1px 6px; border-radius: 4px;
+        span { position: relative; } small { color: var(--vin-muted); margin-left: 4px; } }
+    .o_vin_lbar_fill { position: absolute; inset: 0 auto 0 0; background: rgba(29, 78, 216, .12); border-radius: 4px; }
+    .o_vin_tabela_sm { margin-bottom: 12px; tbody tr { cursor: pointer; } }
+    .o_vin_tipo_icon { width: 16px; text-align: center; }
+
+    // ------------------------------------------------------------ operação
+    .o_vin_minis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+    .o_vin_mini { padding: 14px 16px; }
+    .o_vin_mini_label { font-size: 12.5px; color: var(--vin-muted); font-weight: 600; margin-bottom: 4px; }
+    .o_vin_mini_valor { font-size: 17px; font-weight: 600; }
+    .o_vin_dist { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13.5px; font-weight: 500; b { margin-left: 3px; } }
+    .o_vin_minititulo { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vin-muted); margin: 8px 0 6px; }
+    .o_vin_hbar { display: grid; grid-template-columns: 130px minmax(0, 1fr) 32px; gap: 8px; align-items: center; font-size: 13px; padding: 2px 0;
+        b { text-align: right; } }
+    .o_vin_hbar_nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .o_vin_hbar_track { height: 8px; background: var(--vin-trilho); border-radius: 4px; overflow: hidden; }
+    .o_vin_hbar_fill { height: 100%; background: #64748b; }
+
+    // ------------------------------------------------------------ registro de atividades
+    .o_vin_log { list-style: none; margin: 0; padding: 0; }
+    .o_vin_log_dia { font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vin-muted); padding: 10px 0 4px; }
+    .o_vin_log_item { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--vin-trilho); }
+    .o_vin_log_icon { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 13px; }
+    .o_vin_log_main { min-width: 0; flex: 1; }
+    .o_vin_log_titulo { font-weight: 600; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+        a { color: var(--vin-texto); text-decoration: none; &:hover { color: var(--vin-acento); text-decoration: underline; } } }
+    .o_vin_etapa { font-size: 11px; font-weight: 600; background: var(--vin-trilho); color: var(--vin-muted); border-radius: 999px; padding: 0 8px; }
+    .o_vin_tentativa { background: var(--vin-atencao-bg); color: var(--vin-atencao); }
+    .o_vin_log_texto {
+        font-size: 13px; margin: 2px 0; overflow-wrap: anywhere;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        &.aberto { display: block; -webkit-line-clamp: unset; }
+    }
+    .o_vin_vermais { font-size: 12px; }
+    .o_vin_log_pe { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+
+    // ------------------------------------------------------------ rodapé e glossário
+    .o_vin_rodape { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--vin-borda); display: flex; justify-content: space-between;
+        gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--vin-muted); }
+    .o_vin_modal_fundo { position: fixed; inset: 0; background: rgba(15, 23, 42, .4); z-index: 1050; display: grid; place-items: center; padding: 16px; }
+    .o_vin_modal { background: var(--vin-card); border-radius: 12px; padding: 20px; max-width: 720px; width: 100%; max-height: 85vh; overflow: auto;
+        dt { font-size: 13.5px; margin-top: 10px; } dd { font-size: 13px; color: var(--vin-muted); margin: 2px 0 0; } }
+
+    // ------------------------------------------------------------ responsivo (§6)
+    @media (max-width: 1279.98px) {
+        .o_vin_topo { grid-template-columns: minmax(0, 1fr); grid-template-areas: "acum" "kpis" "leit"; }
+        .o_vin_kpis { grid-template-columns: repeat(6, minmax(0, 1fr));
+            > :nth-child(-n+3) { grid-column: span 2; } > :nth-child(n+4) { grid-column: span 3; } }
+        .o_vin_par { grid-template-columns: minmax(0, 1fr); }
+        .o_vin_minis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .o_vin_header { flex-direction: column; }
+        .o_vin_controles { align-items: flex-start; }
+        .o_vin_chips, .o_vin_acoes { justify-content: flex-start; }
+    }
+    @media (max-width: 767.98px) {
+        .o_vin_wrap { padding-left: 16px; padding-right: 16px; }
+        .o_vin_kpis { grid-template-columns: repeat(2, minmax(0, 1fr));
+            > :nth-child(n) { grid-column: span 1; } > :last-child { grid-column: span 2; } }
+        .o_vin_kpi_valor { font-size: 28px; }
+        .o_vin_leitura_cols, .o_vin_leitura.sem_comentario .o_vin_leitura_cols { grid-template-columns: minmax(0, 1fr); }
+        .o_vin_analista { border-left: 0; padding-left: 0; border-top: 1px solid var(--vin-borda); padding-top: 12px; }
+        .o_vin_frow { grid-template-columns: 96px minmax(0, 1fr) 36px 50px; gap: 6px; }
+        .o_vin_conv { padding-left: 108px; }
+        .o_vin_minis { grid-template-columns: minmax(0, 1fr); }
+        .o_vin_legenda_camp { justify-content: flex-start; }
+        h1 { font-size: 22px; }
+    }
+}
+
+// --------------------------------------------------------------- PDF (§7.10)
+// "Exportar PDF" usa a impressão do navegador: A4 paisagem, só o relatório.
+@media print {
+    @page { size: A4 landscape; margin: 10mm; }
+    body:has(.o_vin) {
+        .o_main_navbar, .o_control_panel, .o_vin_noprint, .o_vin_nav { display: none !important; }
+        &, .o_web_client, .o_action_manager, .o_action.o_vin {
+            height: auto !important; overflow: visible !important; display: block !important;
+        }
+        .o_vin { background: #fff; font-size: 12px; }
+        .o_vin .o_vin_wrap { max-width: none; padding: 0; }
+        .o_vin .o_vin_card { break-inside: avoid; box-shadow: none; }
+        .o_vin .o_vin_secao { break-inside: auto; margin-top: 12px; }
+        .o_vin .o_vin_secao_titulo { break-after: avoid; page-break-after: avoid; }
+        // sem comentário do analista: o PDF não mostra a coluna e as outras duas se expandem (§7.2)
+        .o_vin .o_vin_leitura.sem_texto .o_vin_analista { display: none; }
+        .o_vin .o_vin_leitura.sem_texto .o_vin_leitura_cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .o_vin .o_vin_topo { grid-template-columns: minmax(0, 9fr) minmax(0, 3fr); grid-template-areas: "kpis acum" "leit acum"; }
+        .o_vin .o_vin_kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); > :nth-child(n) { grid-column: auto; } }
+        .o_vin .o_vin_par { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
+        .o_vin .o_vin_minis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .o_vin .o_vin_header { flex-direction: row; }
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+}

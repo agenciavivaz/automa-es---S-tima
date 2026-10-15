@@ -1,0 +1,352 @@
+{
+  "modulo": "inbound_setima",
+  "gerado_em": "2026-10-15",
+  "registros": [
+    {
+      "xml_id": "inbound_setima.action_pipeline",
+      "model": "ir.actions.act_window",
+      "id": 1352,
+      "dados": {
+        "id": 1352,
+        "name": "Inbound Sétima",
+        "res_model": "crm.lead",
+        "view_mode": "kanban,list,form,calendar,pivot,graph,activity",
+        "domain": "[('type', '=', 'opportunity'), ('team_id', '=', 16)]",
+        "context": "{'default_type': 'opportunity', 'default_team_id': 16}",
+        "search_view_id": [
+          4680,
+          "crm.lead.search.inbound_setima"
+        ],
+        "view_id": false
+      }
+    },
+    {
+      "xml_id": "inbound_setima.action_pipeline_view_kanban",
+      "model": "ir.actions.act_window.view",
+      "id": 680,
+      "dados": {
+        "id": 680,
+        "sequence": 0,
+        "view_mode": "kanban",
+        "view_id": [
+          4679,
+          "crm.lead.kanban.inbound_setima"
+        ],
+        "act_window_id": [
+          1352,
+          "Inbound Sétima"
+        ]
+      }
+    },
+    {
+      "xml_id": "inbound_setima.action_pipeline_view_list",
+      "model": "ir.actions.act_window.view",
+      "id": 681,
+      "dados": {
+        "id": 681,
+        "sequence": 1,
+        "view_mode": "list",
+        "view_id": [
+          1472,
+          "crm.lead.list.opportunity"
+        ],
+        "act_window_id": [
+          1352,
+          "Inbound Sétima"
+        ]
+      }
+    },
+    {
+      "xml_id": "inbound_setima.action_dashboard",
+      "model": "ir.actions.client",
+      "id": 1353,
+      "dados": {
+        "id": 1353,
+        "name": "Dashboard Inbound",
+        "tag": "inbound_setima_dashboard",
+        "params": false,
+        "context": "{}",
+        "target": "current",
+        "res_model": false
+      }
+    },
+    {
+      "xml_id": "inbound_setima.web_assets_backend_/inbound_setima/static/src/inbound_dashboard_js",
+      "model": "ir.asset",
+      "id": 117,
+      "dados": {
+        "id": 117,
+        "name": "inbound_setima.web.assets_backend./inbound_setima/static/src/inbound_dashboard.js",
+        "bundle": "web.assets_backend",
+        "directive": "append",
+        "path": "/inbound_setima/static/src/inbound_dashboard.js",
+        "target": false,
+        "active": true,
+        "sequence": 16
+      }
+    },
+    {
+      "xml_id": "inbound_setima.web_assets_backend_/inbound_setima/static/src/inbound_dashboard_scss",
+      "model": "ir.asset",
+      "id": 115,
+      "dados": {
+        "id": 115,
+        "name": "inbound_setima.web.assets_backend./inbound_setima/static/src/inbound_dashboard.scss",
+        "bundle": "web.assets_backend",
+        "directive": "append",
+        "path": "/inbound_setima/static/src/inbound_dashboard.scss",
+        "target": false,
+        "active": true,
+        "sequence": 16
+      }
+    },
+    {
+      "xml_id": "inbound_setima.web_assets_backend_/inbound_setima/static/src/inbound_dashboard_xml",
+      "model": "ir.asset",
+      "id": 116,
+      "dados": {
+        "id": 116,
+        "name": "inbound_setima.web.assets_backend./inbound_setima/static/src/inbound_dashboard.xml",
+        "bundle": "web.assets_backend",
+        "directive": "append",
+        "path": "/inbound_setima/static/src/inbound_dashboard.xml",
+        "target": false,
+        "active": true,
+        "sequence": 16
+      }
+    },
+    {
+      "xml_id": "inbound_setima.attachment_/inbound_setima/static/src/inbound_dashboard_js",
+      "model": "ir.attachment",
+      "id": 7171,
+      "dados": {
+        "id": 7171,
+        "name": "inbound_dashboard.js",
+        "url": "/inbound_setima/static/src/inbound_dashboard.js",
+        "mimetype": "text/javascript",
+        "file_size": 33395,
+        "checksum": "bbf631336927163d67db1ba28391408507e7c07f",
+        "write_date": "2026-10-15 13:51:41"
+      }
+    },
+    {
+      "xml_id": "inbound_setima.attachment_/inbound_setima/static/src/inbound_dashboard_scss",
+      "model": "ir.attachment",
+      "id": 7169,
+      "dados": {
+        "id": 7169,
+        "name": "inbound_dashboard.scss",
+        "url": "/inbound_setima/static/src/inbound_dashboard.scss",
+        "mimetype": "text/plain",
+        "file_size": 4895,
+        "checksum": "6c2c81285af5d622655130d85b80ed2efb4ff850",
+        "write_date": "2026-10-15 13:51:41"
+      }
+    },
+    {
+      "xml_id": "inbound_setima.attachment_/inbound_setima/static/src/inbound_dashboard_xml",
+      "model": "ir.attachment",
+      "id": 7170,
+      "dados": {
+        "id": 7170,
+        "name": "inbound_dashboard.xml",
+        "url": "/inbound_setima/static/src/inbound_dashboard.xml",
+        "mimetype": "application/xml",
+        "file_size": 27194,
+        "checksum": "7ed9c942b68139d260b69a571ec3f7dc4f49ff5e",
+        "write_date": "2026-10-15 13:51:41"
+      }
+    },
+    {
+      "xml_id": "inbound_setima.field_meta_anuncio",
+      "model": "ir.model.fields",
+      "id": 28870,
+      "dados": {
+        "id": 28870,
+        "name": "x_meta_anuncio",
+        "model": "crm.lead",
+        "field_description": "Criativo (Meta)",
+        "ttype": "char",
+        "store": true,
+        "copied": false,
+        "tracking": 0,
+        "state": "manual"
+      }
+    },
+    {
+      "xml_id": "inbound_setima.field_meta_conjunto",
+      "model": "ir.model.fields",
+      "id": 28868,
+      "dados": {
+        "id": 28868,
+        "name": "x_meta_conjunto",
+        "model": "crm.lead",
+        "field_description": "Conjunto de anúncios (Meta)",
+        "ttype": "char",
+        "store": true,
+        "copied": false,
+        "tracking": 0,
+        "state": "manual"
+      }
+    },
+    {
+      "xml_id": "inbound_setima.field_origem_inbound",
+      "model": "ir.model.fields",
+      "id": 28872,
+      "dados": {
+        "id": 28872,
+        "name": "x_origem_inbound",
+        "model": "crm.lead",
+        "field_description": "Originado no Inbound",
+        "ttype": "boolean",
+        "store": true,
+        "copied": true,
+        "tracking": 1,
+        "state": "manual"
+      }
+    },
+    {
+      "xml_id": "inbound_setima.menu_dashboard",
+      "model": "ir.ui.menu",
+      "id": 840,
+      "dados": {
+        "id": 840,
+        "name": "Dashboard",
+        "parent_id": [
+          838,
+          "CRM/Inbound Sétima"
+        ],
+        "action": "ir.actions.client,1353",
+        "sequence": 2,
+        "group_ids": [],
+        "active": true
+      }
+    },
+    {
+      "xml_id": "inbound_setima.menu_pipeline",
+      "model": "ir.ui.menu",
+      "id": 839,
+      "dados": {
+        "id": 839,
+        "name": "Pipeline",
+        "parent_id": [
+          838,
+          "CRM/Inbound Sétima"
+        ],
+        "action": "ir.actions.act_window,1352",
+        "sequence": 1,
+        "group_ids": [],
+        "active": true
+      }
+    },
+    {
+      "xml_id": "inbound_setima.menu_root",
+      "model": "ir.ui.menu",
+      "id": 838,
+      "dados": {
+        "id": 838,
+        "name": "Inbound Sétima",
+        "parent_id": [
+          331,
+          "CRM"
+        ],
+        "action": false,
+        "sequence": 3,
+        "group_ids": [],
+        "active": true
+      }
+    },
+    {
+      "xml_id": "inbound_setima.view_form_origem",
+      "model": "ir.ui.view",
+      "id": 4681,
+      "dados": {
+        "id": 4681,
+        "name": "crm.lead.form.inbound_setima.origem",
+        "model": "crm.lead",
+        "type": "form",
+        "inherit_id": [
+          1463,
+          "crm.lead.form"
+        ],
+        "mode": "extension",
+        "priority": 16,
+        "arch_db": "<xpath expr=\"(//field[@name='tag_ids'])[1]\" position=\"after\">\n                <field name=\"x_origem_inbound\" widget=\"boolean_toggle\"/>\n                <field name=\"x_studio_data_de_ganho\" string=\"Data do contrato\" invisible=\"not x_origem_inbound\" help=\"Data de fechamento do contrato usada no Dashboard Inbound (se vazia, usa a data de ganho do CRM).\"/>\n            </xpath>",
+        "active": true
+      }
+    },
+    {
+      "xml_id": "inbound_setima.view_kanban",
+      "model": "ir.ui.view",
+      "id": 4679,
+      "dados": {
+        "id": 4679,
+        "name": "crm.lead.kanban.inbound_setima",
+        "model": "crm.lead",
+        "type": "kanban",
+        "inherit_id": [
+          1469,
+          "crm.lead.kanban.lead"
+        ],
+        "mode": "primary",
+        "priority": 99,
+        "arch_db": "<data><xpath expr=\"//kanban\" position=\"attributes\">\n                <attribute name=\"class\" add=\"o_inbound_setima\" separator=\" \"/>\n            </xpath>\n            <xpath expr=\"//templates\" position=\"before\">\n                <field name=\"contact_name\"/>\n                <field name=\"partner_name\"/>\n                <field name=\"email_from\"/>\n                <field name=\"phone\"/>\n                <field name=\"x_abm_dias_estagio\"/>\n                <field name=\"activity_state\"/>\n                <field name=\"activity_summary\"/>\n                <field name=\"activity_type_id\"/>\n                <field name=\"activity_type_icon\"/>\n                <field name=\"activity_date_deadline\"/>\n                <field name=\"campaign_id\"/>\n                <field name=\"x_meta_conjunto\"/>\n                <field name=\"x_meta_anuncio\"/>\n            </xpath>\n            <xpath expr=\"//t[@t-name='card']\" position=\"replace\">\n                <t t-name=\"card\">\n                    <widget name=\"web_ribbon\" title=\"Perdido\" bg_color=\"text-bg-danger\" invisible=\"won_status != 'lost'\"/>\n                    <widget name=\"web_ribbon\" title=\"Ganho\" bg_color=\"text-bg-success\" invisible=\"won_status != 'won'\"/>\n                    <div t-att-class=\"'border-start border-4 ps-2 d-flex flex-column gap-2 ' + (record.activity_state.raw_value == 'overdue' ? 'border-danger' : record.activity_state.raw_value == 'today' ? 'border-warning' : record.activity_state.raw_value == 'planned' ? 'border-success' : 'border-secondary')\">\n                        <div class=\"d-flex justify-content-between align-items-start gap-2\">\n                            <div class=\"text-truncate\">\n                                <field name=\"name\" class=\"fw-bold fs-6 d-block text-truncate\"/>\n                                <span class=\"small text-muted text-truncate d-block\">\n                                    <t t-out=\"record.partner_name.raw_value or record.contact_name.raw_value or ''\"/>\n                                </span>\n                            </div>\n                            <field name=\"priority\" widget=\"priority\"/>\n                        </div>\n\n                        <div class=\"d-flex flex-wrap gap-1\">\n                            <field name=\"tag_ids\" widget=\"many2many_tags\" options=\"{'color_field': 'color'}\"/>\n                            <span t-if=\"record.expected_revenue.raw_value\" class=\"badge rounded-pill text-bg-light border\">\n                                <field name=\"expected_revenue\" widget=\"monetary\" options=\"{'currency_field': 'company_currency'}\"/>\n                            </span>\n                        </div>\n\n                        <div t-if=\"record.x_meta_anuncio.raw_value or record.x_meta_conjunto.raw_value or record.campaign_id.raw_value\" class=\"d-flex flex-column gap-1 rounded px-2 py-1 small border\">\n                            <span t-if=\"record.x_meta_anuncio.raw_value\" class=\"text-truncate\" t-att-title=\"'Criativo: ' + record.x_meta_anuncio.raw_value\">\n                                <i class=\"fa fa-picture-o me-1 text-primary\"/><b>Criativo:</b> <t t-out=\"record.x_meta_anuncio.raw_value\"/>\n                            </span>\n                            <span t-if=\"record.x_meta_conjunto.raw_value\" class=\"text-truncate\" t-att-title=\"'Conjunto: ' + record.x_meta_conjunto.raw_value\">\n                                <i class=\"fa fa-users me-1 text-primary\"/><b>Conjunto:</b> <t t-out=\"record.x_meta_conjunto.raw_value\"/>\n                            </span>\n                            <span t-if=\"record.campaign_id.raw_value\" class=\"text-truncate text-muted\" t-att-title=\"'Campanha: ' + record.campaign_id.value\">\n                                <i class=\"fa fa-bullhorn me-1\"/><t t-out=\"record.campaign_id.value\"/>\n                            </span>\n                        </div>\n\n                        <div class=\"d-flex flex-wrap column-gap-3 small text-muted\">\n                            <span t-if=\"record.email_from.raw_value\" class=\"text-truncate\" t-att-title=\"record.email_from.raw_value\">\n                                <i class=\"fa fa-envelope-o me-1\"/><t t-out=\"record.email_from.raw_value\"/>\n                            </span>\n                            <span t-if=\"record.phone.raw_value\" t-att-title=\"record.phone.raw_value\">\n                                <i class=\"fa fa-whatsapp me-1 text-success\"/><t t-out=\"record.phone.raw_value\"/>\n                            </span>\n                        </div>\n\n                        <div t-if=\"record.activity_date_deadline.raw_value\" t-att-class=\"'d-flex align-items-center gap-2 rounded px-2 py-1 small bg-light ' + (record.activity_state.raw_value == 'overdue' ? 'text-danger' : '')\">\n                            <i t-att-class=\"'fa ' + (record.activity_type_icon.raw_value or 'fa-tasks')\"/>\n                            <span class=\"text-truncate\"><t t-out=\"record.activity_summary.raw_value or record.activity_type_id.value\"/></span>\n                            <field name=\"activity_date_deadline\" widget=\"remaining_days\" class=\"ms-auto text-nowrap\"/>\n                        </div>\n                        <div t-else=\"\" class=\"d-flex align-items-center gap-2 rounded px-2 py-1 small bg-light text-muted\">\n                            <i class=\"fa fa-minus\"/><span>Sem próximo contato agendado</span>\n                        </div>\n                    </div>\n                    <footer class=\"pt-1\">\n                        <div class=\"d-flex align-items-center gap-2 w-100\">\n                            <field name=\"user_id\" widget=\"many2one_avatar_user\" domain=\"[('share', '=', False)]\"/>\n                            <field name=\"activity_ids\" widget=\"kanban_activity\"/>\n                            <span class=\"ms-auto small text-muted\" title=\"Dias na etapa atual\">\n                                <i class=\"fa fa-clock-o me-1\"/><t t-out=\"record.x_abm_dias_estagio.raw_value\"/> d na etapa\n                            </span>\n                        </div>\n                    </footer>\n                </t>\n            </xpath>\n        </data>",
+        "active": true
+      }
+    },
+    {
+      "xml_id": "inbound_setima.view_search",
+      "model": "ir.ui.view",
+      "id": 4680,
+      "dados": {
+        "id": 4680,
+        "name": "crm.lead.search.inbound_setima",
+        "model": "crm.lead",
+        "type": "search",
+        "inherit_id": [
+          1480,
+          "crm.lead.search.opportunity"
+        ],
+        "mode": "primary",
+        "priority": 99,
+        "arch_db": "<xpath expr=\"//search\" position=\"inside\">\n                <field name=\"x_meta_anuncio\"/>\n                <field name=\"x_meta_conjunto\"/>\n                <field name=\"campaign_id\"/>\n                <group>\n                    <filter name=\"groupby_meta_anuncio\" string=\"Criativo\" context=\"{'group_by': 'x_meta_anuncio'}\"/>\n                    <filter name=\"groupby_meta_conjunto\" string=\"Conjunto de anúncios\" context=\"{'group_by': 'x_meta_conjunto'}\"/>\n                    <filter name=\"groupby_campaign\" string=\"Campanha\" context=\"{'group_by': 'campaign_id'}\"/>\n                </group>\n            </xpath>",
+        "active": true
+      }
+    },
+    {
+      "xml_id": "inbound_setima.view_search_origem",
+      "model": "ir.ui.view",
+      "id": 4682,
+      "dados": {
+        "id": 4682,
+        "name": "crm.lead.search.inbound_setima.origem",
+        "model": "crm.lead",
+        "type": "search",
+        "inherit_id": [
+          1480,
+          "crm.lead.search.opportunity"
+        ],
+        "mode": "extension",
+        "priority": 16,
+        "arch_db": "<xpath expr=\"//search\" position=\"inside\">\n                <filter name=\"origem_inbound\" string=\"Originado no Inbound\" domain=\"[('x_origem_inbound', '=', True)]\"/>\n            </xpath>",
+        "active": true
+      }
+    }
+  ],
+  "modulo_info": [
+    {
+      "id": 1508,
+      "name": "inbound_setima",
+      "installed_version": "19.0.1.4.0",
+      "imported": true,
+      "state": "installed",
+      "dependencies_id": [
+        3321,
+        3322,
+        3323,
+        3324
+      ],
+      "write_date": "2026-10-15 13:51:41"
+    }
+  ]
+}

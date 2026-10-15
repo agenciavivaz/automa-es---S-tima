@@ -1,0 +1,10 @@
+<xpath expr="//search" position="inside">
+                <field name="x_meta_anuncio"/>
+                <field name="x_meta_conjunto"/>
+                <field name="campaign_id"/>
+                <group>
+                    <filter name="groupby_meta_anuncio" string="Criativo" context="{'group_by': 'x_meta_anuncio'}"/>
+                    <filter name="groupby_meta_conjunto" string="Conjunto de anúncios" context="{'group_by': 'x_meta_conjunto'}"/>
+                    <filter name="groupby_campaign" string="Campanha" context="{'group_by': 'campaign_id'}"/>
+                </group>
+            </xpath>

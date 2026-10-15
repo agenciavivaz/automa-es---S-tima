@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Leitura para todo usuário interno (o painel lê as configurações com a sessão de quem vê).
+     Comentário do analista: edição por Gerentes de Vendas e administradores ("editores").
+     Apelidos, metas e ajustes: edição só por administradores. -->
+<odoo>
+    <record id="access_comentario_user" model="ir.model.access">
+        <field name="name">x_vivaz_inb_comentario usuário</field>
+        <field name="model_id" ref="model_comentario"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="access_comentario_editor" model="ir.model.access">
+        <field name="name">x_vivaz_inb_comentario editor</field>
+        <field name="model_id" ref="model_comentario"/>
+        <field name="group_id" ref="sales_team.group_sale_manager"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="access_campanha_user" model="ir.model.access">
+        <field name="name">x_vivaz_inb_campanha usuário</field>
+        <field name="model_id" ref="model_campanha"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="access_campanha_admin" model="ir.model.access">
+        <field name="name">x_vivaz_inb_campanha admin</field>
+        <field name="model_id" ref="model_campanha"/>
+        <field name="group_id" ref="base.group_system"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="access_meta_user" model="ir.model.access">
+        <field name="name">x_vivaz_inb_meta usuário</field>
+        <field name="model_id" ref="model_meta"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="access_meta_admin" model="ir.model.access">
+        <field name="name">x_vivaz_inb_meta admin</field>
+        <field name="model_id" ref="model_meta"/>
+        <field name="group_id" ref="base.group_system"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="access_ajuste_user" model="ir.model.access">
+        <field name="name">x_vivaz_inb_ajuste usuário</field>
+        <field name="model_id" ref="model_ajuste"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="access_ajuste_admin" model="ir.model.access">
+        <field name="name">x_vivaz_inb_ajuste admin</field>
+        <field name="model_id" ref="model_ajuste"/>
+        <field name="group_id" ref="base.group_system"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

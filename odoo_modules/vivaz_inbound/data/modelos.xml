@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Modelos leves de configuração do relatório (§9.4). Únicas escritas permitidas fora dos
+     registros técnicos: comentário do analista, apelidos de campanha, metas e ajustes. -->
+<odoo>
+    <!-- ======================================================= comentário do analista -->
+    <record id="model_comentario" model="ir.model">
+        <field name="name">Relatório Inbound · Comentário do analista</field>
+        <field name="model">x_vivaz_inb_comentario</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_comentario_name" model="ir.model.fields">
+        <field name="model_id" ref="model_comentario"/>
+        <field name="name">x_name</field>
+        <field name="field_description">Período (referência)</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_comentario_inicio" model="ir.model.fields">
+        <field name="model_id" ref="model_comentario"/>
+        <field name="name">x_data_inicio</field>
+        <field name="field_description">Início do período</field>
+        <field name="ttype">date</field>
+        <field name="required" eval="True"/>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_comentario_fim" model="ir.model.fields">
+        <field name="model_id" ref="model_comentario"/>
+        <field name="name">x_data_fim</field>
+        <field name="field_description">Fim do período</field>
+        <field name="ttype">date</field>
+        <field name="required" eval="True"/>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_comentario_texto" model="ir.model.fields">
+        <field name="model_id" ref="model_comentario"/>
+        <field name="name">x_texto</field>
+        <field name="field_description">Próximos passos · Vivaz</field>
+        <field name="ttype">text</field>
+        <field name="state">manual</field>
+    </record>
+
+    <!-- ======================================================= apelidos de campanha -->
+    <record id="model_campanha" model="ir.model">
+        <field name="name">Relatório Inbound · Apelido de campanha</field>
+        <field name="model">x_vivaz_inb_campanha</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_campanha_name" model="ir.model.fields">
+        <field name="model_id" ref="model_campanha"/>
+        <field name="name">x_name</field>
+        <field name="field_description">Nome original (UTM)</field>
+        <field name="ttype">char</field>
+        <field name="required" eval="True"/>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_campanha_apelido" model="ir.model.fields">
+        <field name="model_id" ref="model_campanha"/>
+        <field name="name">x_apelido</field>
+        <field name="field_description">Apelido</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_campanha_cor" model="ir.model.fields">
+        <field name="model_id" ref="model_campanha"/>
+        <field name="name">x_cor</field>
+        <field name="field_description">Cor (#hex)</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_campanha_active" model="ir.model.fields">
+        <field name="model_id" ref="model_campanha"/>
+        <field name="name">x_active</field>
+        <field name="field_description">Ativo</field>
+        <field name="ttype">boolean</field>
+        <field name="state">manual</field>
+    </record>
+
+    <!-- ======================================================= metas por etapa (D2) -->
+    <record id="model_meta" model="ir.model">
+        <field name="name">Relatório Inbound · Meta por etapa</field>
+        <field name="model">x_vivaz_inb_meta</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_meta_name" model="ir.model.fields">
+        <field name="model_id" ref="model_meta"/>
+        <field name="name">x_name</field>
+        <field name="field_description">Descrição</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_meta_etapa" model="ir.model.fields">
+        <field name="model_id" ref="model_meta"/>
+        <field name="name">x_etapa</field>
+        <field name="field_description">Etapa (nome, ex.: MQL)</field>
+        <field name="ttype">char</field>
+        <field name="required" eval="True"/>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_meta_taxa" model="ir.model.fields">
+        <field name="model_id" ref="model_meta"/>
+        <field name="name">x_taxa_alvo</field>
+        <field name="field_description">Taxa-alvo de conversão da etapa anterior (%)</field>
+        <field name="ttype">float</field>
+        <field name="state">manual</field>
+    </record>
+
+    <!-- ======================================================= ajustes (chave/valor) -->
+    <record id="model_ajuste" model="ir.model">
+        <field name="name">Relatório Inbound · Ajuste</field>
+        <field name="model">x_vivaz_inb_ajuste</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_ajuste_name" model="ir.model.fields">
+        <field name="model_id" ref="model_ajuste"/>
+        <field name="name">x_name</field>
+        <field name="field_description">Chave</field>
+        <field name="ttype">char</field>
+        <field name="required" eval="True"/>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_ajuste_valor" model="ir.model.fields">
+        <field name="model_id" ref="model_ajuste"/>
+        <field name="name">x_valor</field>
+        <field name="field_description">Valor</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="field_ajuste_descricao" model="ir.model.fields">
+        <field name="model_id" ref="model_ajuste"/>
+        <field name="name">x_descricao</field>
+        <field name="field_description">Para que serve</field>
+        <field name="ttype">text</field>
+        <field name="state">manual</field>
+    </record>
+
+    <!-- ordenação só depois que os campos existem -->
+    <record id="model_comentario" model="ir.model">
+        <field name="order">x_data_inicio desc, id desc</field>
+    </record>
+    <record id="model_campanha" model="ir.model">
+        <field name="order">x_apelido, id</field>
+    </record>
+
+    <record id="default_campanha_active" model="ir.default">
+        <field name="field_id" ref="field_campanha_active"/>
+        <field name="json_value">true</field>
+    </record>
+</odoo>

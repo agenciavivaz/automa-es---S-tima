@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Barras empilhadas (CSS puro, aparecem no PDF sem JS de gráfico) -->
+    <t t-name="vivaz_inbound.Serie">
+        <div t-if="!tl.hasData" class="o_vin_empty" t-esc="vazio"/>
+        <div t-else="" class="o_vin_serie">
+            <div class="o_vin_serie_eixo">
+                <span t-esc="tl.max"/>
+                <span t-esc="Math.round(tl.max / 2)"/>
+                <span>0</span>
+            </div>
+            <div class="o_vin_serie_barras">
+                <t t-foreach="tl.bars" t-as="b" t-key="b.key">
+                    <div class="o_vin_sbar" t-att-title="b.title">
+                        <div class="o_vin_sbar_pilha">
+                            <span t-if="b.total" class="o_vin_sbar_total" t-esc="b.total"/>
+                            <t t-foreach="b.segs" t-as="s" t-key="s.key">
+                                <div class="o_vin_sbar_seg" t-att-style="'height:' + s.height + '%;background:' + s.color"/>
+                            </t>
+                        </div>
+                        <div class="o_vin_sbar_label"><t t-if="b.showLabel" t-esc="b.label"/></div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="vivaz_inbound.Dashboard">
+        <div class="o_action o_vin h-100 overflow-auto" t-ref="root"
+             t-att-class="{ 'o_vin_board': board, 'o_vin_printing': state.imprimindo }">
+
+            <!-- ================================================= cabeçalho -->
+            <header class="o_vin_wrap o_vin_header">
+                <div class="o_vin_titulo">
+                    <div class="o_vin_eyebrow">CRM · Inbound Sétima</div>
+                    <h1>Relatório de resultados</h1>
+                    <div class="o_vin_sub" t-if="state.per">
+                        <span><i class="fa fa-calendar me-1"/><t t-esc="state.per.label"/></span>
+                        <t t-if="state.per.prevLabel"><span class="o_vin_sep">·</span><span>comparado com <t t-esc="state.per.prevLabel"/></span></t>
+                        <t t-if="state.raw"><span class="o_vin_sep">·</span><span>atualizado às <t t-esc="atualizado"/></span></t>
+                    </div>
+                    <div class="o_vin_modo o_vin_noprint" role="radiogroup" aria-label="Visualização">
+                        <span class="o_vin_rotulo">Visualização:</span>
+                        <button type="button" role="radio" t-att-aria-checked="!board ? 'true' : 'false'" t-att-class="{ 'active': !board }" t-on-click="() => this.setView('completo')">Completo</button>
+                        <button type="button" role="radio" t-att-aria-checked="board ? 'true' : 'false'" t-att-class="{ 'active': board }" t-on-click="() => this.setView('board')">Board</button>
+                    </div>
+                </div>
+                <div class="o_vin_controles o_vin_noprint">
+                    <div class="o_vin_chips" role="group" aria-label="Período">
+                        <t t-foreach="presets" t-as="p" t-key="p.key">
+                            <button type="button" class="o_vin_chip" t-att-class="{ 'active': state.preset === p.key }"
+                                    t-on-click="() => this.onPreset(p.key)" t-esc="p.label"/>
+                        </t>
+                    </div>
+                    <div class="o_vin_acoes">
+                        <t t-if="state.preset === 'custom'">
+                            <label class="o_vin_data">De <input type="date" class="form-control form-control-sm" t-att-value="state.from" t-on-change="(ev) => this.onCustomDate('from', ev)"/></label>
+                            <label class="o_vin_data">Até <input type="date" class="form-control form-control-sm" t-att-value="state.to" t-on-change="(ev) => this.onCustomDate('to', ev)"/></label>
+                        </t>
+                        <div class="o_vin_pdf">
+                            <button type="button" class="btn btn-sm btn-primary" t-on-click="() => this.state.pdfMenu = !this.state.pdfMenu">
+                                <i class="fa fa-file-pdf-o me-1"/>Exportar PDF <i class="fa fa-caret-down ms-1"/>
+                            </button>
+                            <div t-if="state.pdfMenu" class="o_vin_pdf_menu">
+                                <button type="button" t-on-click="() => this.exportarPdf('board')"><b>Board</b> (recomendado)<small>KPIs, leitura, acumulado, funil e aquisição</small></button>
+                                <button type="button" t-on-click="() => this.exportarPdf('completo')"><b>Completo</b><small>inclui a operação</small></button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-light" title="Atualizar" t-on-click="() => this.load()">
+                            <i class="fa fa-refresh" t-att-class="{ 'fa-spin': state.loading }"/>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ================================================= barra de seções (sticky) -->
+            <nav class="o_vin_nav o_vin_noprint" aria-label="Seções do relatório">
+                <div class="o_vin_wrap o_vin_nav_in">
+                    <t t-foreach="secoes" t-as="s" t-key="s.key">
+                        <a href="#" t-att-class="{ 'active': state.secao === s.key }" t-on-click.prevent="() => this.irPara(s.key)" t-esc="s.label"/>
+                    </t>
+                </div>
+            </nav>
+
+            <div t-if="state.error" class="o_vin_wrap"><div class="alert alert-danger">Não foi possível carregar o relatório: <t t-esc="state.error"/></div></div>
+
+            <t t-if="state.raw">
+                <t t-set="r" t-value="relatorio"/>
+                <main class="o_vin_wrap o_vin_corpo" t-att-class="{ 'o_vin_loading': state.loading }">
+
+                    <!-- ============================================ RESULTADO -->
+                    <section id="vin_resumo" class="o_vin_secao">
+                        <div class="o_vin_secao_titulo">Resultado</div>
+                        <div class="o_vin_topo">
+                            <!-- KPIs (respeitam o filtro) -->
+                            <div class="o_vin_kpis">
+                                <t t-foreach="r.kpis" t-as="k" t-key="k.key">
+                                    <div class="o_vin_card o_vin_kpi" t-on-click="() => this.abrirKpi(k.key)" role="button">
+                                        <div class="o_vin_kpi_label">
+                                            <i t-attf-class="fa {{ k.icon }}"/>
+                                            <span t-esc="k.label"/>
+                                            <i class="fa fa-info-circle o_vin_info" t-att-title="k.info" aria-label="Definição"/>
+                                        </div>
+                                        <div class="o_vin_kpi_valor" t-esc="k.value"/>
+                                        <div class="o_vin_kpi_rodape">
+                                            <span t-if="k.delta" class="o_vin_delta" t-att-class="k.delta.classe" t-att-title="k.delta.tooltip">
+                                                <i t-attf-class="fa {{ k.delta.seta }}"/> <t t-esc="k.delta.texto"/>
+                                            </span>
+                                            <span class="o_vin_kpi_sub" t-esc="k.sub"/>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- Leitura do período (A3) -->
+                            <div class="o_vin_card o_vin_leitura" t-att-class="{ 'sem_comentario': !mostrarComentario, 'sem_texto': !(state.comentario and state.comentario.x_texto) }">
+                                <div class="o_vin_card_head"><h3>Leitura do período</h3><span class="o_vin_hint">gerada por regras a partir do CRM · comentário do analista Vivaz</span></div>
+                                <div class="o_vin_leitura_cols">
+                                    <div class="o_vin_lcol">
+                                        <h4 class="bom"><i class="fa fa-line-chart"/> Destaques</h4>
+                                        <ul><t t-foreach="r.leitura.destaques" t-as="t" t-key="t_index"><li t-esc="t"/></t></ul>
+                                    </div>
+                                    <div class="o_vin_lcol">
+                                        <h4 class="atencao"><i class="fa fa-exclamation-triangle"/> Pontos de atenção</h4>
+                                        <ul><t t-foreach="r.leitura.atencao" t-as="t" t-key="t_index"><li t-esc="t"/></t></ul>
+                                    </div>
+                                    <div t-if="mostrarComentario" class="o_vin_lcol o_vin_analista">
+                                        <h4><i class="fa fa-user-circle-o"/> Próximos passos · Vivaz</h4>
+                                        <t t-if="state.comentario and state.comentario.x_texto">
+                                            <div class="o_vin_comentario" t-esc="state.comentario.x_texto"/>
+                                            <div class="o_vin_hint"><t t-esc="comentarioAutor"/></div>
+                                        </t>
+                                        <div t-else="" class="o_vin_pendente">Comentário do analista pendente</div>
+                                        <a t-if="state.podeEditar and state.per.start" href="#" class="o_vin_link o_vin_noprint" t-on-click.prevent="editarComentario">
+                                            <i class="fa fa-pencil"/> Editar comentário
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Acumulado do processo inbound (fixo, A2 + A5) -->
+                            <aside class="o_vin_card o_vin_acum" aria-label="Receita acumulada do processo inbound">
+                                <div class="o_vin_pin" title="Não muda com o filtro de período"><i class="fa fa-thumb-tack"/> ACUMULADO DO PROCESSO</div>
+                                <h3>Receita acumulada do processo inbound</h3>
+                                <div class="o_vin_hint">
+                                    <t t-if="r.acumulado.desde">desde <t t-esc="r.acumulado.desde"/> · </t>negócios originados no inbound, em qualquer pipeline
+                                </div>
+                                <div class="o_vin_acum_valor" t-esc="r.acumulado.valor"/>
+                                <div class="o_vin_acum_apoio" t-esc="r.acumulado.apoio"/>
+                                <ul class="o_vin_contratos">
+                                    <t t-foreach="r.acumulado.lista" t-as="c" t-key="c.id">
+                                        <li t-on-click="() => this.abrirLead(c.id)" role="button" t-att-title="c.nome">
+                                            <div class="o_vin_contrato_nome" t-esc="c.nome"/>
+                                            <div class="o_vin_contrato_meta"><span><t t-esc="c.conta"/> · <t t-esc="c.data"/><span t-if="c.novo" class="o_vin_badge_novo">novo no período</span></span><b t-esc="c.valor"/></div>
+                                        </li>
+                                    </t>
+                                </ul>
+                                <a t-if="r.acumulado.nContratos > 3" href="#" class="o_vin_link" t-on-click.prevent="() => this.abrirContratos(r.acumulado.todosIds)">ver todos (<t t-esc="r.acumulado.nContratos"/>)</a>
+                                <div class="o_vin_acum_periodo" t-att-class="{ 'tem': r.acumulado.periodoValorRaw > 0 }" t-esc="r.acumulado.periodoTexto"/>
+                            </aside>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ FUNIL + SAÚDE (A4) -->
+                    <section id="vin_funil" class="o_vin_secao">
+                        <div class="o_vin_secao_titulo">Funil</div>
+                        <div class="o_vin_par">
+                            <div class="o_vin_card o_vin_funil_card">
+                                <div class="o_vin_card_head">
+                                    <h3>Funil de conversão <i class="fa fa-info-circle o_vin_info" title="Coorte: leads que entraram no período e a etapa mais avançada que alcançaram (etapa atual; ganho conta em todas)."/></h3>
+                                    <span class="o_vin_hint">leads do período · etapa mais avançada alcançada · % do total</span>
+                                </div>
+                                <div t-if="!r.total" class="o_vin_empty">Nenhum lead entrou neste período.</div>
+                                <div t-else="" class="o_vin_funil">
+                                    <t t-foreach="r.funil" t-as="s" t-key="s.key">
+                                        <div t-if="s.conv" class="o_vin_conv">
+                                            <span class="o_vin_conv_chip" t-att-class="s.convClasse" t-att-title="s.convTitulo">→ <t t-esc="s.conv"/></span>
+                                            <span t-if="r.funil[s_index - 1].perdidosAqui" class="o_vin_hint"><t t-esc="r.funil[s_index - 1].perdidosAqui"/> perdido(s) em <t t-esc="r.funil[s_index - 1].name"/></span>
+                                        </div>
+                                        <div class="o_vin_frow" t-att-class="{ 'zero': s.zero }" t-on-click="() => this.abrirStep(s_index)" role="button">
+                                            <div class="o_vin_fnome" t-esc="s.name"/>
+                                            <div class="o_vin_ftrack"><div class="o_vin_fbar" t-att-style="'width:' + s.width + '%'"/></div>
+                                            <div class="o_vin_fnum" t-esc="s.count"/>
+                                            <div class="o_vin_fpct" t-esc="s.pctTotal"/>
+                                        </div>
+                                    </t>
+                                    <div t-if="r.funilNota" class="o_vin_nota"><i class="fa fa-hourglass-half"/> <t t-esc="r.funilNota"/></div>
+                                </div>
+                            </div>
+                            <div class="o_vin_card o_vin_saude">
+                                <div class="o_vin_card_head">
+                                    <h3>Situação e saúde da base</h3>
+                                    <span class="o_vin_hint">hoje, entre os <t t-esc="r.total"/> leads do período</span>
+                                </div>
+                                <div t-if="!r.total" class="o_vin_empty">Sem leads no período para avaliar.</div>
+                                <t t-else="">
+                                    <div class="o_vin_donut_linha">
+                                        <svg viewBox="0 0 42 42" class="o_vin_donut" role="img" aria-label="Situação atual dos leads do período">
+                                            <circle cx="21" cy="21" r="15.915" fill="none" stroke="#eef0f3" stroke-width="6"/>
+                                            <t t-foreach="r.donut.segs" t-as="sg" t-key="sg.key">
+                                                <circle cx="21" cy="21" r="15.915" fill="none" t-att-stroke="sg.color" stroke-width="6" t-att-stroke-dasharray="sg.dash" t-att-stroke-dashoffset="sg.offset"/>
+                                            </t>
+                                            <text x="21" y="22.5" text-anchor="middle" class="o_vin_donut_num" t-esc="r.donut.total"/>
+                                        </svg>
+                                        <ul class="o_vin_legenda">
+                                            <t t-foreach="r.situacao" t-as="o" t-key="o.key">
+                                                <li><span class="o_vin_dot" t-att-style="'background:' + o.color"/><span t-esc="o.label"/><b t-esc="o.count"/></li>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                    <ul class="o_vin_saude_lista">
+                                        <t t-foreach="r.saude" t-as="h" t-key="h.key">
+                                            <li t-att-class="h.classe" t-on-click="() => h.count and this.abrirLeads(h.label + ' · ' + state.per.label, h.ids)"
+                                                t-att-title="h.nomes" t-att-role="h.count ? 'button' : null">
+                                                <div><div class="o_vin_saude_label" t-esc="h.label"/><div class="o_vin_hint" t-esc="h.hint"/></div>
+                                                <b t-esc="h.count"/>
+                                            </li>
+                                        </t>
+                                    </ul>
+                                </t>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ AQUISIÇÃO -->
+                    <section id="vin_aquisicao" class="o_vin_secao">
+                        <div class="o_vin_secao_titulo">Aquisição</div>
+                        <div class="o_vin_card">
+                            <div class="o_vin_card_head o_vin_head_split">
+                                <div>
+                                    <h3>Entrada de leads</h3>
+                                    <span class="o_vin_hint"><t t-esc="r.timeline.unit"/>, por campanha</span>
+                                </div>
+                                <div class="o_vin_toggle o_vin_noprint" role="group">
+                                    <button type="button" t-att-class="{ 'active': state.serie === 'leads' }" t-on-click="() => this.state.serie = 'leads'">Leads</button>
+                                    <button type="button" t-att-class="{ 'active': state.serie === 'mql' }" t-on-click="() => this.state.serie = 'mql'">MQLs</button>
+                                </div>
+                            </div>
+                            <div class="o_vin_legenda_camp">
+                                <t t-foreach="r.legendaCamp" t-as="c" t-key="c.key">
+                                    <span t-att-title="c.nomeCompleto"><span class="o_vin_dot" t-att-style="'background:' + c.color"/><t t-esc="c.label"/> <b t-esc="c.count"/></span>
+                                </t>
+                            </div>
+                            <t t-call="vivaz_inbound.Serie">
+                                <t t-set="tl" t-value="r.timeline"/>
+                                <t t-set="vazio" t-value="state.serie === 'mql' ? 'Nenhum MQL entre os leads do período.' : 'Nenhum lead entrou neste período.'"/>
+                            </t>
+                        </div>
+
+                        <div class="o_vin_card">
+                            <div class="o_vin_card_head o_vin_head_split">
+                                <div>
+                                    <h3>Resultado por <t t-esc="dimensoes.find((d) => d.key === state.dim).label.toLowerCase()"/></h3>
+                                    <span class="o_vin_hint">leads do período e até onde chegaram</span>
+                                </div>
+                                <div class="o_vin_tabs o_vin_noprint" role="tablist">
+                                    <t t-foreach="dimensoes" t-as="o" t-key="o.key">
+                                        <button type="button" role="tab" t-att-class="{ 'active': state.dim === o.key }" t-on-click="() => this.onDim(o.key)" t-esc="o.label"/>
+                                    </t>
+                                </div>
+                            </div>
+                            <div t-if="!r.linhas.length" class="o_vin_empty">Nenhum lead entrou neste período.</div>
+                            <div t-else="" class="o_vin_tabela_wrap">
+                                <table class="o_vin_tabela">
+                                    <thead>
+                                        <tr>
+                                            <th t-on-click="() => this.onSort('key')"><t t-esc="dimensoes.find((d) => d.key === state.dim).label"/> <i t-attf-class="fa {{ sortIcon('key') }}"/></th>
+                                            <th class="o_vin_col_leads" t-on-click="() => this.onSort('leads')">Leads <i t-attf-class="fa {{ sortIcon('leads') }}"/></th>
+                                            <th class="num" t-on-click="() => this.onSort('mql')">MQL <i t-attf-class="fa {{ sortIcon('mql') }}"/></th>
+                                            <th class="num" t-on-click="() => this.onSort('pctMql')">% MQL <i t-attf-class="fa {{ sortIcon('pctMql') }}"/></th>
+                                            <th class="num" t-on-click="() => this.onSort('sql')">SQL+ <i t-attf-class="fa {{ sortIcon('sql') }}"/></th>
+                                            <th class="num" t-on-click="() => this.onSort('ganhos')">Ganhos <i t-attf-class="fa {{ sortIcon('ganhos') }}"/></th>
+                                            <th class="num" t-on-click="() => this.onSort('perdidos')">Perdidos <i t-attf-class="fa {{ sortIcon('perdidos') }}"/></th>
+                                            <!-- fase 2 (D3): Investimento · CPL · Custo/MQL -->
+                                            <th class="num o_vin_fase2">Investimento</th><th class="num o_vin_fase2">CPL</th><th class="num o_vin_fase2">Custo/MQL</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="r.linhas" t-as="b" t-key="b.key">
+                                            <tr t-on-click="() => this.abrirLinha(b)">
+                                                <td class="o_vin_dimcell" t-att-title="b.titulo"><span t-if="b.cor" class="o_vin_dot" t-att-style="'background:' + b.cor"/><t t-esc="b.key"/></td>
+                                                <td class="o_vin_col_leads">
+                                                    <div class="o_vin_lbar"><div class="o_vin_lbar_fill" t-att-style="'width:' + b.width + '%'"/><span><b t-esc="b.leads"/> <small t-esc="b.share"/></span></div>
+                                                </td>
+                                                <td class="num" t-att-class="{ 'zero': !b.mql }" t-esc="b.mql"/>
+                                                <td class="num" t-att-class="{ 'zero': !b.mql }" t-esc="b.pctMql"/>
+                                                <td class="num" t-att-class="{ 'zero': !b.sql }" t-esc="b.sql"/>
+                                                <td class="num" t-att-class="{ 'zero': !b.ganhos }" t-esc="b.ganhos"/>
+                                                <td class="num" t-att-class="{ 'zero': !b.perdidos }" t-esc="b.perdidos"/>
+                                                <td class="num o_vin_fase2">—</td><td class="num o_vin_fase2">—</td><td class="num o_vin_fase2">—</td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td>Total</td>
+                                            <td class="o_vin_col_leads"><b t-esc="r.totalLinha.leads"/></td>
+                                            <td class="num" t-esc="r.totalLinha.mql"/>
+                                            <td class="num" t-esc="r.totalLinha.pctMql"/>
+                                            <td class="num" t-esc="r.totalLinha.sql"/>
+                                            <td class="num" t-esc="r.totalLinha.ganhos"/>
+                                            <td class="num" t-esc="r.totalLinha.perdidos"/>
+                                            <td class="num o_vin_fase2">—</td><td class="num o_vin_fase2">—</td><td class="num o_vin_fase2">—</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ OPERAÇÃO (só Completo) -->
+                    <section t-if="!board" id="vin_operacao" class="o_vin_secao">
+                        <div class="o_vin_secao_titulo">Operação</div>
+                        <div class="o_vin_minis">
+                            <div class="o_vin_card o_vin_mini">
+                                <div class="o_vin_mini_label">Leads tocados no período <i class="fa fa-info-circle o_vin_info" title="Leads inbound com pelo menos uma ação no período, de qualquer data de entrada (B7)."/></div>
+                                <div class="o_vin_mini_valor" t-esc="r.operacao.tocadosTexto"/>
+                            </div>
+                            <div class="o_vin_card o_vin_mini">
+                                <div class="o_vin_mini_label">Toques por lead (média)</div>
+                                <div class="o_vin_mini_valor" t-esc="r.operacao.toquesPorLead"/>
+                            </div>
+                            <div class="o_vin_card o_vin_mini">
+                                <div class="o_vin_mini_label">Cobertura da automação <i class="fa fa-info-circle o_vin_info" title="Leads do período com a tag DataCrazy (enviados ao WhatsApp pela integração)."/></div>
+                                <div class="o_vin_mini_valor" t-esc="r.operacao.cobertura"/>
+                            </div>
+                            <div class="o_vin_card o_vin_mini">
+                                <div class="o_vin_mini_label">Distribuição do 1º contato</div>
+                                <div class="o_vin_mini_valor o_vin_dist">
+                                    <span title="até 1 hora">≤1 h <b t-esc="r.operacao.dist.ate1"/></span>
+                                    <span title="de 1 a 24 horas">1–24 h <b t-esc="r.operacao.dist.de1a24"/></span>
+                                    <span title="mais de 24 horas">&gt;24 h <b t-esc="r.operacao.dist.mais24"/></span>
+                                    <span title="leads do período sem contato registrado" class="text-muted">sem contato <b t-esc="r.operacao.dist.semContato"/></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="o_vin_par">
+                            <div class="o_vin_card">
+                                <div class="o_vin_card_head">
+                                    <h3>Ações do time
+                                        <span t-if="r.operacao.deltaAcoes" class="o_vin_delta neutro" t-att-title="r.operacao.deltaAcoes.tooltip"><i t-attf-class="fa {{ r.operacao.deltaAcoes.seta }}"/> <t t-esc="r.operacao.deltaAcoes.texto"/></span>
+                                    </h3>
+                                    <span class="o_vin_hint"><t t-esc="r.operacao.totalAcoes"/> registros (notas, e-mails, atividades e agenda) <t t-esc="r.timelineAcoes.unit"/></span>
+                                </div>
+                                <div class="o_vin_legenda_camp">
+                                    <t t-foreach="r.porTipo" t-as="t" t-key="t.key">
+                                        <span t-if="t.total"><span class="o_vin_dot" t-att-style="'background:' + t.color"/><t t-esc="t.label"/></span>
+                                    </t>
+                                </div>
+                                <t t-call="vivaz_inbound.Serie">
+                                    <t t-set="tl" t-value="r.timelineAcoes"/>
+                                    <t t-set="vazio" t-value="'Nenhuma ação registrada neste período.'"/>
+                                </t>
+                            </div>
+                            <div class="o_vin_card">
+                                <div class="o_vin_card_head"><h3>Por tipo</h3></div>
+                                <table class="o_vin_tabela o_vin_tabela_sm">
+                                    <thead><tr><th>Tipo</th><th class="num">Total</th><th class="num" title="tentativas registradas sem resposta (critério da v1)">Sem sucesso</th></tr></thead>
+                                    <tbody>
+                                        <t t-foreach="r.porTipo" t-as="t" t-key="t.key">
+                                            <tr t-on-click="() => this.onLogTipo(t.key)">
+                                                <td><i t-attf-class="fa {{ t.icon }} o_vin_tipo_icon" t-att-style="'color:' + t.color"/> <t t-esc="t.label"/></td>
+                                                <td class="num" t-att-class="{ 'zero': !t.total }" t-esc="t.total"/>
+                                                <td class="num" t-att-class="{ 'zero': !t.semSucesso }" t-esc="t.semSucesso"/>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                                <div class="o_vin_minititulo">Por pessoa</div>
+                                <div t-if="!r.porPessoa.length" class="o_vin_empty">Ninguém registrou ações neste período.</div>
+                                <t t-foreach="r.porPessoa" t-as="p" t-key="p.key">
+                                    <div class="o_vin_hbar">
+                                        <div class="o_vin_hbar_nome" t-esc="p.key"/>
+                                        <div class="o_vin_hbar_track"><div class="o_vin_hbar_fill" t-att-style="'width:' + p.width + '%'"/></div>
+                                        <b t-esc="p.count"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ REGISTRO DE ATIVIDADES (A1) -->
+                    <section t-if="!board" id="vin_atividades" class="o_vin_secao o_vin_noprint">
+                        <div class="o_vin_secao_titulo">Atividades</div>
+                        <div class="o_vin_card">
+                            <div class="o_vin_card_head o_vin_head_split">
+                                <div>
+                                    <h3>Registro de atividades</h3>
+                                    <span class="o_vin_hint">mostrando <t t-esc="Math.min(state.logVisiveis, r.log.length)"/> de <t t-esc="r.logTotal"/> · do mais recente ao mais antigo</span>
+                                </div>
+                                <div class="o_vin_tabs" role="tablist">
+                                    <button type="button" t-att-class="{ 'active': state.logTipo === 'all' }" t-on-click="() => this.onLogTipo('all')">Todos</button>
+                                    <t t-foreach="r.porTipo" t-as="t" t-key="t.key">
+                                        <button t-if="t.total" type="button" t-att-class="{ 'active': state.logTipo === t.key }" t-on-click="() => this.onLogTipo(t.key)" t-esc="t.label"/>
+                                    </t>
+                                </div>
+                            </div>
+                            <div t-if="!r.log.length" class="o_vin_empty">Nenhuma ação registrada neste período.</div>
+                            <ul class="o_vin_log">
+                                <t t-foreach="logVisivel(r)" t-as="a" t-key="a.key">
+                                    <li t-if="a.novoDia" class="o_vin_log_dia" t-esc="a.dia"/>
+                                    <li class="o_vin_log_item">
+                                        <span class="o_vin_log_icon" t-att-style="'background:' + a.tipo.color" t-att-title="a.tipo.label"><i t-attf-class="fa {{ a.tipo.icon }}"/></span>
+                                        <div class="o_vin_log_main">
+                                            <div class="o_vin_log_titulo">
+                                                <a href="#" t-on-click.prevent="() => this.abrirLead(a.leadId)" t-esc="a.titulo"/>
+                                                <span t-if="a.etapa" class="o_vin_etapa" t-esc="a.etapa"/>
+                                                <span t-if="a.semSucesso" class="o_vin_etapa o_vin_tentativa">sem sucesso</span>
+                                            </div>
+                                            <div class="o_vin_log_texto" t-att-class="{ 'aberto': state.abertos[a.key] }">
+                                                <t t-if="state.abertos[a.key]" t-esc="a.completo"/>
+                                                <t t-else="" t-esc="a.resumo"/>
+                                            </div>
+                                            <a t-if="a.longo" href="#" class="o_vin_link o_vin_vermais" t-on-click.prevent="() => this.toggleTexto(a.key)">
+                                                <t t-esc="state.abertos[a.key] ? 'ver menos' : 'ver mais'"/>
+                                            </a>
+                                            <div class="o_vin_hint"><t t-esc="a.quando"/> · <t t-esc="a.autor"/> · <t t-esc="a.tipo.label"/></div>
+                                        </div>
+                                    </li>
+                                </t>
+                            </ul>
+                            <div class="o_vin_log_pe">
+                                <button t-if="state.logVisiveis &lt; r.log.length" type="button" class="btn btn-sm btn-light" t-on-click="carregarMais">
+                                    Carregar mais (+<t t-esc="Math.min(10, r.log.length - state.logVisiveis)"/>)
+                                </button>
+                                <a href="#" class="o_vin_link" t-on-click.prevent="verTodasNoOdoo">
+                                    <t t-if="r.logTotal > r.logLimite and state.logVisiveis >= r.log.length">Ver as <t t-esc="r.logTotal"/> no Odoo</t>
+                                    <t t-else="">Ver todas no Odoo</t>
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ rodapé (L10) -->
+                    <footer class="o_vin_rodape">
+                        <div>Relatório preparado pela <b>Vivaz</b> para a <b>Sétima</b> · fonte: CRM Odoo · atualizado às <t t-esc="atualizado"/></div>
+                        <a href="#" class="o_vin_link o_vin_noprint" t-on-click.prevent="() => this.state.glossarioAberto = true"><i class="fa fa-book"/> Glossário de métricas</a>
+                    </footer>
+                </main>
+            </t>
+            <div t-elif="state.loading" class="o_vin_wrap o_vin_empty o_vin_empty_lg"><i class="fa fa-circle-o-notch fa-spin me-2"/>Carregando relatório…</div>
+
+            <!-- ============================================ glossário (modal) -->
+            <div t-if="state.glossarioAberto" class="o_vin_modal_fundo o_vin_noprint" t-on-click.self="() => this.state.glossarioAberto = false">
+                <div class="o_vin_modal" role="dialog" aria-label="Glossário de métricas">
+                    <div class="o_vin_card_head o_vin_head_split">
+                        <h3>Glossário de métricas</h3>
+                        <button type="button" class="btn btn-sm btn-light" t-on-click="() => this.state.glossarioAberto = false" aria-label="Fechar"><i class="fa fa-times"/></button>
+                    </div>
+                    <dl>
+                        <t t-foreach="glossario" t-as="g" t-key="g_index">
+                            <dt t-esc="g[0]"/><dd t-esc="g[1]"/>
+                        </t>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

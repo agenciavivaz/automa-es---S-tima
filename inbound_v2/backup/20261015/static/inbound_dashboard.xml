@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Usa o visual do Dashboard ABM (classes .o_abm_*, módulo abm_setima_dashboard). -->
+    <t t-name="inbound_setima.Timeline">
+        <div t-if="!tl.hasData" class="o_abm_empty" t-esc="emptyText"/>
+        <div t-else="" class="o_abm_timeline">
+            <div class="o_abm_timeline_axis">
+                <span t-esc="tl.max"/>
+                <span t-esc="Math.round(tl.max / 2)"/>
+                <span>0</span>
+            </div>
+            <div class="o_abm_timeline_bars">
+                <t t-foreach="tl.bars" t-as="b" t-key="b.key">
+                    <div class="o_abm_tbar" t-att-title="b.title">
+                        <div class="o_abm_tbar_stack">
+                            <span t-if="b.total" class="o_abm_tbar_total" t-esc="b.total"/>
+                            <t t-foreach="b.segs" t-as="s" t-key="s.key">
+                                <div class="o_abm_tbar_seg" t-att-style="'height:' + s.height + '%;background:' + s.color"/>
+                            </t>
+                        </div>
+                        <div class="o_abm_tbar_label"><t t-if="b.showLabel" t-esc="b.label"/></div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="inbound_setima.Dashboard">
+        <div class="o_action o_abm_dash o_inb_dash h-100 overflow-auto">
+            <!-- ============================================== cabeçalho -->
+            <div class="o_abm_dash_header">
+                <div class="o_abm_dash_title">
+                    <div class="o_abm_dash_eyebrow">CRM · Inbound Sétima</div>
+                    <h1>Relatório de resultados</h1>
+                    <div class="o_abm_dash_period">
+                        <i class="fa fa-calendar me-1"/>
+                        <t t-esc="periodLabel"/>
+                        <t t-if="state.raw"> · atualizado às <t t-esc="state.raw.loadedAt.toFormat('HH:mm')"/></t>
+                    </div>
+                </div>
+                <div class="o_abm_dash_controls o_inb_noprint">
+                    <div class="o_abm_dash_presets" role="group" aria-label="Período">
+                        <t t-foreach="presets" t-as="p" t-key="p.key">
+                            <button type="button" class="o_abm_pill"
+                                    t-att-class="{ 'active': state.preset === p.key }"
+                                    t-on-click="() => this.onPreset(p.key)" t-esc="p.label"/>
+                        </t>
+                    </div>
+                    <div class="o_abm_dash_filters">
+                        <t t-if="state.preset === 'custom'">
+                            <label class="o_abm_date">De
+                                <input type="date" class="form-control form-control-sm" t-att-value="state.from"
+                                       t-on-change="(ev) => this.onCustomDate('from', ev)"/>
+                            </label>
+                            <label class="o_abm_date">Até
+                                <input type="date" class="form-control form-control-sm" t-att-value="state.to"
+                                       t-on-change="(ev) => this.onCustomDate('to', ev)"/>
+                            </label>
+                        </t>
+                        <button type="button" class="btn btn-sm btn-primary" t-on-click="printReport">
+                            <i class="fa fa-file-pdf-o me-1"/>Exportar PDF
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light o_abm_refresh" title="Atualizar"
+                                t-on-click="() => this.load()">
+                            <i class="fa fa-refresh" t-att-class="{ 'fa-spin': state.loading }"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div t-if="state.error" class="alert alert-danger m-3">
+                Não foi possível carregar o painel: <t t-esc="state.error"/>
+            </div>
+
+            <t t-if="state.raw">
+                <t t-set="d" t-value="metrics"/>
+                <div class="o_abm_dash_body" t-att-class="{ 'o_abm_loading': state.loading }">
+
+                    <!-- ================================== resumo executivo -->
+                    <div class="o_abm_card o_inb_resumo">
+                        <div class="o_abm_card_head">
+                            <div>
+                                <h3><i class="fa fa-file-text-o"/> Resumo do período</h3>
+                                <span class="o_abm_card_hint">gerado a partir dos dados do CRM</span>
+                            </div>
+                        </div>
+                        <ul class="o_inb_resumo_list">
+                            <t t-foreach="d.resumo" t-as="r" t-key="r_index">
+                                <li><t t-out="markup(r)"/></li>
+                            </t>
+                        </ul>
+                    </div>
+
+                    <!-- ========================================== KPIs -->
+                    <div class="o_abm_kpis">
+                        <t t-foreach="d.kpis" t-as="k" t-key="k.key">
+                            <div class="o_abm_kpi" t-att-style="'--kpi:' + k.color"
+                                 t-on-click="() => k.click and this.openKpi(k.click)">
+                                <div class="o_abm_kpi_icon"><i t-attf-class="fa {{ k.icon }}"/></div>
+                                <div class="o_abm_kpi_label" t-esc="k.label"/>
+                                <div class="o_abm_kpi_value">
+                                    <t t-esc="k.raw ? k.value : k.value.toLocaleString('pt-BR')"/>
+                                    <span t-if="k.delta !== null and k.delta !== undefined" class="o_abm_delta"
+                                          t-att-class="{ 'up': k.delta > 0, 'down': k.delta &lt; 0 }"
+                                          title="vs. período anterior">
+                                        <i t-attf-class="fa {{ k.delta > 0 ? 'fa-arrow-up' : k.delta &lt; 0 ? 'fa-arrow-down' : 'fa-minus' }}"/>
+                                        <t t-esc="Math.abs(k.delta)"/>
+                                    </span>
+                                </div>
+                                <div class="o_abm_kpi_sub" t-esc="k.sub"/>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- ============================ resultado comercial -->
+                    <div t-if="d.comercial.contratos.length" class="o_abm_grid o_abm_grid_1_1">
+                        <div class="o_abm_card o_inb_receita">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-trophy"/> Receita gerada pelo inbound</h3>
+                                    <span class="o_abm_card_hint">negócios marcados como "Originado no Inbound", de qualquer pipeline</span>
+                                </div>
+                            </div>
+                            <div class="o_inb_receita_valor" t-esc="d.comercial.receitaTotal"/>
+                            <div class="o_abm_card_hint mb-2">
+                                <t t-if="d.comercial.noPeriodo">no período selecionado: <b t-esc="d.comercial.receitaPeriodo"/></t>
+                                <t t-else="">nenhum contrato fechado no período selecionado</t>
+                            </div>
+                            <ul class="o_abm_list">
+                                <t t-foreach="d.comercial.contratos" t-as="c" t-key="c.id">
+                                    <li t-on-click="() => this.openLead(c.id)">
+                                        <span class="o_inb_log_icon" style="background:#10b981"><i class="fa fa-check"/></span>
+                                        <div class="o_abm_list_main">
+                                            <div class="o_abm_list_title" t-esc="c.name"/>
+                                            <div class="o_abm_list_sub"><b t-esc="c.conta"/> · fechado em <t t-esc="c.fechado"/> · <t t-esc="c.pipeline"/></div>
+                                        </div>
+                                        <strong class="text-nowrap" t-esc="c.valor"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-folder-open-o"/> Oportunidades em aberto</h3>
+                                    <span class="o_abm_card_hint">originadas no inbound ou expansão das contas conquistadas · total estimado <t t-esc="d.comercial.abertasValor"/></span>
+                                </div>
+                            </div>
+                            <div t-if="!d.comercial.abertas.length" class="o_abm_empty">Nenhuma oportunidade em aberto.</div>
+                            <ul class="o_abm_list">
+                                <t t-foreach="d.comercial.abertas" t-as="o" t-key="o.id">
+                                    <li t-on-click="() => this.openLead(o.id)">
+                                        <span class="o_inb_log_icon" style="background:#3b82f6"><i class="fa fa-briefcase"/></span>
+                                        <div class="o_abm_list_main">
+                                            <div class="o_abm_list_title" t-esc="o.name"/>
+                                            <div class="o_abm_list_sub"><t t-esc="o.etapa"/> · <t t-esc="o.pipeline"/><t t-if="!o.inbound"> · expansão de conta</t></div>
+                                        </div>
+                                        <span class="text-nowrap small" t-esc="o.valor"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- ============================ funil + situação -->
+                    <div class="o_abm_grid o_abm_grid_2_1">
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-filter"/> Funil de conversão</h3>
+                                    <span class="o_abm_card_hint">leads do período que chegaram a cada etapa · % do total e % da etapa anterior</span>
+                                    <div t-if="d.funilNota" class="o_abm_card_hint"><i class="fa fa-info-circle me-1"/><t t-esc="d.funilNota"/></div>
+                                </div>
+                            </div>
+                            <div t-if="!d.total" class="o_abm_empty">Nenhum lead no período.</div>
+                            <div t-else="" class="o_inb_funnel">
+                                <t t-foreach="d.funil" t-as="s" t-key="s.key">
+                                    <div t-if="s.pctStep !== null" class="o_inb_step_conv">
+                                        <i class="fa fa-long-arrow-down"/>
+                                        <span class="o_inb_conv_chip" t-att-class="{ 'low': s.pctStep &lt; 20, 'high': s.pctStep >= 50 }">
+                                            <t t-esc="s.pctStep.toLocaleString('pt-BR')"/>% de conversão
+                                        </span>
+                                        <span t-if="d.funil[s_index - 1].lostHere" class="o_inb_lost_note">
+                                            <t t-esc="d.funil[s_index - 1].lostHere"/> perdido(s) em <t t-esc="d.funil[s_index - 1].name"/>
+                                        </span>
+                                    </div>
+                                    <div class="o_inb_funnel_row" t-on-click="() => this.openStep(s_index)">
+                                        <div class="o_inb_funnel_name" t-esc="s.name"/>
+                                        <div class="o_inb_funnel_track">
+                                            <div class="o_inb_funnel_bar" t-att-style="'width:' + s.width + '%;background:' + s.color">
+                                                <span t-esc="s.count"/>
+                                            </div>
+                                        </div>
+                                        <div class="o_inb_funnel_pct">
+                                            <strong><t t-esc="s.pctTotal.toLocaleString('pt-BR')"/>%</strong>
+                                            <small class="text-muted">do total</small>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-pie-chart"/> Situação atual</h3>
+                                    <span class="o_abm_card_hint">onde estão hoje os leads do período</span>
+                                </div>
+                            </div>
+                            <div t-if="!d.total" class="o_abm_empty">Sem leads.</div>
+                            <div t-else="" class="o_abm_donut_wrap">
+                                <t t-call="abm_setima_dashboard.Donut">
+                                    <t t-set="donut" t-value="d.donutSituacao"/>
+                                    <t t-set="donutLabel" t-value="'leads'"/>
+                                </t>
+                                <ul class="o_abm_legend">
+                                    <t t-foreach="d.situacao" t-as="o" t-key="o.key">
+                                        <li class="o_abm_clickable" t-on-click="() => { this.state.dim = 'etapa'; this.openDim(o.key); }">
+                                            <span class="o_abm_dot" t-att-style="'background:' + o.color"/>
+                                            <span class="o_abm_legend_label" t-esc="o.label"/>
+                                            <strong t-esc="o.count"/>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+                            <div t-if="d.motivos.length" class="o_abm_minirow">
+                                <div class="o_abm_minititle">Motivos de perda</div>
+                                <t t-foreach="d.motivos" t-as="m" t-key="m.key">
+                                    <div class="o_abm_hbar_row o_inb_hbar_sm">
+                                        <div class="o_abm_hbar_name" t-esc="m.key" t-att-title="m.key"/>
+                                        <div class="o_abm_hbar_track">
+                                            <div class="o_abm_hbar_seg" t-att-style="'width:' + m.width + '%;background:#ef4444'"/>
+                                        </div>
+                                        <div class="o_abm_hbar_val" t-esc="m.count"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================ entrada de leads -->
+                    <div class="o_abm_card mb-3">
+                        <div class="o_abm_card_head">
+                            <div>
+                                <h3><i class="fa fa-line-chart"/> Entrada de leads</h3>
+                                <span class="o_abm_card_hint"><t t-esc="d.total"/> leads <t t-esc="d.timeline.unit"/>, por campanha</span>
+                            </div>
+                        </div>
+                        <t t-call="inbound_setima.Timeline">
+                            <t t-set="tl" t-value="d.timeline"/>
+                            <t t-set="emptyText" t-value="'Nenhum lead no período.'"/>
+                        </t>
+                        <div class="o_abm_chips mt-2">
+                            <t t-foreach="d.legendCamp" t-as="c" t-key="c.key">
+                                <span class="o_abm_chip"><span class="o_abm_dot" t-att-style="'background:' + c.color"/><t t-esc="c.label"/> <strong t-esc="c.count"/></span>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- ============================ quebra por dimensão -->
+                    <div class="o_abm_card mb-3">
+                        <div class="o_abm_card_head">
+                            <div>
+                                <h3><i class="fa fa-th-list"/> Resultado por <t t-esc="d.dimLabel.toLowerCase()"/></h3>
+                                <span class="o_abm_card_hint">leads do período e quantos chegaram a cada etapa (% sobre os leads da linha)</span>
+                            </div>
+                            <div class="o_abm_sort o_inb_noprint">
+                                <t t-foreach="dimensoes" t-as="o" t-key="o.key">
+                                    <button type="button" class="o_abm_pill o_abm_pill_sm" t-att-class="{ 'active': state.dim === o.key }"
+                                            t-on-click="() => this.onDim(o.key)"><i t-attf-class="fa {{ o.icon }} me-1"/><t t-esc="o.label"/></button>
+                                </t>
+                            </div>
+                        </div>
+                        <div t-if="!d.breakdown.length" class="o_abm_empty">Nenhum lead no período.</div>
+                        <div t-else="" class="table-responsive">
+                            <table class="table table-sm o_abm_table o_inb_table">
+                                <thead>
+                                    <tr>
+                                        <th t-esc="d.dimLabel"/>
+                                        <th class="o_inb_col_leads">Leads</th>
+                                        <t t-foreach="d.stepHeads" t-as="h" t-key="h_index">
+                                            <th class="text-end" t-esc="h"/>
+                                        </t>
+                                        <th class="text-end">Perdidos</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="d.breakdown" t-as="b" t-key="b.key">
+                                        <tr t-on-click="() => this.openDim(b.key)">
+                                            <td class="o_inb_dimcell" t-att-title="b.key"><strong t-esc="b.key"/></td>
+                                            <td class="o_inb_col_leads">
+                                                <div class="o_inb_leadsbar">
+                                                    <div class="o_inb_leadsbar_fill" t-att-style="'width:' + b.width + '%'"/>
+                                                    <span><t t-esc="b.leads"/> <small class="text-muted">· <t t-esc="b.share.toLocaleString('pt-BR')"/>%</small></span>
+                                                </div>
+                                            </td>
+                                            <t t-foreach="b.steps" t-as="s" t-key="s.key">
+                                                <td class="text-end">
+                                                    <t t-if="s.count">
+                                                        <strong t-esc="s.count"/>
+                                                        <span class="o_inb_pct" t-att-class="{ 'high': s.pct >= 30 }"><t t-esc="s.pct.toLocaleString('pt-BR')"/>%</span>
+                                                    </t>
+                                                    <span t-else="" class="text-muted">—</span>
+                                                </td>
+                                            </t>
+                                            <td class="text-end">
+                                                <t t-if="b.perdidos"><t t-esc="b.perdidos"/> <span class="o_inb_pct o_inb_pct_lost"><t t-esc="b.pctPerdidos.toLocaleString('pt-BR')"/>%</span></t>
+                                                <span t-else="" class="text-muted">—</span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ============================ o que estamos fazendo -->
+                    <div class="o_abm_section_title"><i class="fa fa-briefcase"/> O que estamos fazendo</div>
+                    <div class="o_abm_grid o_abm_grid_2_1">
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-bar-chart"/> Ações do time</h3>
+                                    <span class="o_abm_card_hint"><t t-esc="d.totalAcoes"/> registros (notas, e-mails e atividades) <t t-esc="d.timelineAcoes.unit"/></span>
+                                </div>
+                            </div>
+                            <t t-call="inbound_setima.Timeline">
+                                <t t-set="tl" t-value="d.timelineAcoes"/>
+                                <t t-set="emptyText" t-value="'Nenhuma ação registrada no período.'"/>
+                            </t>
+                        </div>
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-tags"/> Por tipo</h3>
+                                    <span class="o_abm_card_hint">tentativas sem sucesso entre parênteses</span>
+                                </div>
+                            </div>
+                            <div t-if="!d.porTipo.length" class="o_abm_empty">Sem ações.</div>
+                            <ul class="o_abm_legend">
+                                <t t-foreach="d.porTipo" t-as="t" t-key="t.key">
+                                    <li class="o_abm_clickable" t-on-click="() => this.onLogTipo(t.key)">
+                                        <i t-attf-class="fa {{ t.icon }} o_inb_tipo_icon" t-att-style="'color:' + t.color"/>
+                                        <span class="o_abm_legend_label" t-esc="t.label"/>
+                                        <strong t-esc="t.count"/>
+                                        <small t-if="t.tentativas" class="text-muted">(<t t-esc="t.tentativas"/>)</small>
+                                    </li>
+                                </t>
+                            </ul>
+                            <div t-if="d.porPessoa.length" class="o_abm_minirow">
+                                <div class="o_abm_minititle">Por pessoa</div>
+                                <t t-foreach="d.porPessoa" t-as="p" t-key="p.key">
+                                    <div class="o_abm_hbar_row o_inb_hbar_sm">
+                                        <div class="o_abm_hbar_name" t-esc="p.key"/>
+                                        <div class="o_abm_hbar_track"><div class="o_abm_hbar_seg" t-att-style="'width:' + p.width + '%;background:#10b981'"/></div>
+                                        <div class="o_abm_hbar_val" t-esc="p.count"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================ registro de atividades -->
+                    <div class="o_abm_card">
+                        <div class="o_abm_card_head">
+                            <div>
+                                <h3><i class="fa fa-list-alt"/> Registro de atividades</h3>
+                                <span class="o_abm_card_hint">tudo o que foi registrado nos leads no período, do mais recente ao mais antigo</span>
+                            </div>
+                            <div class="o_abm_sort o_inb_noprint">
+                                <button type="button" class="o_abm_pill o_abm_pill_sm" t-att-class="{ 'active': state.logTipo === 'all' }"
+                                        t-on-click="() => this.onLogTipo('all')">Todos</button>
+                                <t t-foreach="d.porTipo" t-as="t" t-key="t.key">
+                                    <button type="button" class="o_abm_pill o_abm_pill_sm" t-att-class="{ 'active': state.logTipo === t.key }"
+                                            t-on-click="() => this.onLogTipo(t.key)" t-esc="t.label"/>
+                                </t>
+                            </div>
+                        </div>
+                        <div t-if="!d.log.length" class="o_abm_empty">Nenhum registro no período.</div>
+                        <ul class="o_abm_list o_inb_log">
+                            <t t-foreach="d.log" t-as="a" t-key="a.key">
+                                <li t-on-click="() => this.openLead(a.leadId)">
+                                    <span class="o_inb_log_icon" t-att-style="'background:' + a.tipo.color" t-att-title="a.tipo.label">
+                                        <i t-attf-class="fa {{ a.tipo.icon }}"/>
+                                    </span>
+                                    <div class="o_abm_list_main">
+                                        <div class="o_abm_list_title">
+                                            <t t-esc="a.lead"/>
+                                            <span class="o_abm_stage ms-1" t-esc="a.etapa"/>
+                                            <span t-if="a.tentativa" class="o_abm_badge o_abm_st_today ms-1">tentativa</span>
+                                        </div>
+                                        <div class="o_inb_log_text" t-esc="a.resumo"/>
+                                        <div class="o_abm_list_sub"><t t-esc="a.quando"/> · <t t-esc="a.autor"/> · <t t-esc="a.origem"/></div>
+                                    </div>
+                                </li>
+                            </t>
+                        </ul>
+                        <div t-if="d.logTotal > d.log.length" class="text-center mt-2 o_inb_noprint">
+                            <button type="button" class="btn btn-sm btn-light" t-on-click="() => this.state.logLimit += 60">
+                                Ver mais (<t t-esc="d.logTotal - d.log.length"/> restantes)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <div t-elif="state.loading" class="o_abm_empty o_abm_empty_lg"><i class="fa fa-circle-o-notch fa-spin me-2"/>Carregando relatório…</div>
+        </div>
+    </t>
+</templates>

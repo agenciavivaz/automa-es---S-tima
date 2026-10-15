@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================================================= telas de configuração -->
+    <record id="view_comentario_list" model="ir.ui.view">
+        <field name="name">x_vivaz_inb_comentario.list</field>
+        <field name="model">x_vivaz_inb_comentario</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="x_data_inicio"/>
+                <field name="x_data_fim"/>
+                <field name="x_name"/>
+                <field name="x_texto"/>
+                <field name="write_uid" string="Autor"/>
+                <field name="write_date" string="Atualizado em"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_comentario_form" model="ir.ui.view">
+        <field name="name">x_vivaz_inb_comentario.form</field>
+        <field name="model">x_vivaz_inb_comentario</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="x_data_inicio"/>
+                            <field name="x_data_fim"/>
+                        </group>
+                        <group>
+                            <field name="x_name"/>
+                            <field name="write_uid" string="Autor" readonly="1"/>
+                            <field name="write_date" string="Atualizado em" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="x_texto" placeholder="Recomendação da Vivaz para o próximo ciclo (até 3 itens curtos)…"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_comentario" model="ir.actions.act_window">
+        <field name="name">Comentários do analista</field>
+        <field name="res_model">x_vivaz_inb_comentario</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_campanha_list" model="ir.ui.view">
+        <field name="name">x_vivaz_inb_campanha.list</field>
+        <field name="model">x_vivaz_inb_campanha</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="x_name"/>
+                <field name="x_apelido"/>
+                <field name="x_cor" widget="color"/>
+                <field name="x_active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_campanha" model="ir.actions.act_window">
+        <field name="name">Apelidos de campanha</field>
+        <field name="res_model">x_vivaz_inb_campanha</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <record id="view_meta_list" model="ir.ui.view">
+        <field name="name">x_vivaz_inb_meta.list</field>
+        <field name="model">x_vivaz_inb_meta</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="x_etapa"/>
+                <field name="x_taxa_alvo"/>
+                <field name="x_name"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_meta" model="ir.actions.act_window">
+        <field name="name">Metas por etapa</field>
+        <field name="res_model">x_vivaz_inb_meta</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="view_ajuste_list" model="ir.ui.view">
+        <field name="name">x_vivaz_inb_ajuste.list</field>
+        <field name="model">x_vivaz_inb_ajuste</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" create="0" delete="0">
+                <field name="x_name" readonly="1"/>
+                <field name="x_valor"/>
+                <field name="x_descricao" readonly="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_ajuste" model="ir.actions.act_window">
+        <field name="name">Ajustes do relatório</field>
+        <field name="res_model">x_vivaz_inb_ajuste</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- ======================================================= dashboard v2 -->
+    <record id="action_dashboard_v2" model="ir.actions.client">
+        <field name="name">Relatório Inbound (v2)</field>
+        <field name="tag">vivaz_inbound_dashboard_v2</field>
+    </record>
+
+    <!-- Visível só para administradores até a aprovação (F5 não executada). A v1 segue intacta. -->
+    <menuitem id="menu_dashboard_v2" name="Dashboard v2" parent="inbound_setima.menu_root"
+              action="action_dashboard_v2" sequence="3" groups="base.group_system"/>
+    <menuitem id="menu_config" name="Configurações do relatório" parent="inbound_setima.menu_root"
+              sequence="90" groups="base.group_system"/>
+    <menuitem id="menu_config_comentario" name="Comentários do analista" parent="menu_config" action="action_comentario" sequence="1"/>
+    <menuitem id="menu_config_campanha" name="Apelidos de campanha" parent="menu_config" action="action_campanha" sequence="2"/>
+    <menuitem id="menu_config_meta" name="Metas por etapa" parent="menu_config" action="action_meta" sequence="3"/>
+    <menuitem id="menu_config_ajuste" name="Ajustes" parent="menu_config" action="action_ajuste" sequence="4"/>
+</odoo>
