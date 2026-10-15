@@ -31,8 +31,14 @@ Dashboard ABM (depende de `abm_setima_dashboard`).
   por palavra-chave (Reunião / agendamento, E-mail, WhatsApp / DataCrazy, Ligação, Pesquisa,
   Outros), por pessoa e ao longo do tempo, com o registro completo e o tempo até o 1º registro.
 - **Resumo do período** em texto e botão **Exportar PDF** (impressão só do relatório).
-- **Receita gerada:** contratos listados em `CONTRATOS` (topo do `inbound_dashboard.js`)
-  somam receita, independente do pipeline, na data de fechamento informada. Hoje:
-  25/0172 Hyundai (R$ 650.000, fechado em 16/03/2026). Contam como "Ganho" no funil e no KPI
-  quando a data cai no período. Ao lado, as oportunidades em aberto das empresas em
-  `EMPRESAS_RELACIONADAS`, em qualquer pipeline.
+- **Receita gerada:** soma os negócios **ganhos** de qualquer pipeline marcados com o campo
+  **"Originado no Inbound"** (`x_origem_inbound`, na ficha do negócio, ao lado das etiquetas;
+  filtro de mesmo nome na busca). A data do contrato é "Data de Ganho"
+  (`x_studio_data_de_ganho`, aparece como "Data do contrato" quando o negócio é marcado); se
+  vazia, usa a data de ganho do CRM. Esses contratos entram em todas as etapas do funil e no
+  KPI de oportunidades quando a data cai no período.
+- **Oportunidades em aberto:** negócios em aberto marcados como "Originado no Inbound" e os
+  em aberto das contas que já fecharam pelo inbound (conta = 2º trecho do nome
+  "NN/NNNN - Conta - Projeto", ou a empresa do contato), em qualquer pipeline.
+- Marcados hoje: 25/0172 Hyundai – Experiência Interativa 3D (R$ 650.000, 16/03/2026) e
+  26/0085 Hyundai – Filme Copa do Mundo Nacionalização (R$ 312.800, 17/08/2026).

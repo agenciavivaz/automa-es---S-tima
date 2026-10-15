@@ -11,13 +11,18 @@ const { DateTime } = luxon;
 
 const TEAM_ID = 16; // crm.team "Inbound Sétima"
 
-// Resultado comercial atribuído ao inbound, independente do pipeline onde o negócio está.
-// Só os contratos listados aqui somam receita; a data é a do fechamento do contrato.
-const CONTRATOS = [
-    { id: 15317, fechado: "2026-03-16" }, // 25/0172 - Hyundai - Experiência Interativa 3D (Pipeline Sétima)
+// Resultado comercial: negócios de qualquer pipeline marcados com "Originado no Inbound"
+// (x_origem_inbound). A data do contrato é "Data de Ganho" (x_studio_data_de_ganho) ou,
+// se vazia, a data de ganho do CRM. A conta é o 2º trecho do nome "NN/NNNN - Conta - Projeto"
+// ou a empresa do contato; oportunidades em aberto dessas contas entram como expansão.
+const DEAL_FIELDS = [
+    "name", "partner_id", "team_id", "stage_id", "expected_revenue", "user_id", "probability",
+    "won_status", "date_closed", "x_studio_data_de_ganho", "x_origem_inbound",
 ];
-// Oportunidades em aberto relacionadas às empresas desses contratos.
-const EMPRESAS_RELACIONADAS = ["hyundai"];
+const contaDoNegocio = (d) => {
+    const m = /^\s*\d+\/\d+\s*-\s*([^-]+?)\s*-/.exec(d.name || "");
+    return (m ? m[1] : (d.partner_id ? d.partner_id[1] : d.name || "")).trim();
+};
 
 const PRESETS = [
     { key: "month", label: "Este mês" },
@@ -203,18 +208,18 @@ export class InboundSetimaDashboard extends Component {
                     { context: { active_test: false } }
                 ),
             ]);
-            const relDomain = ["&", ["active", "=", true], ["probability", "<", 100]];
-            // várias empresas: OR entre os blocos de cada uma
-            for (let i = 1; i < EMPRESAS_RELACIONADAS.length; i++) relDomain.push("|");
-            const relOr = EMPRESAS_RELACIONADAS.flatMap((n) => [
-                "|", "|", ["name", "ilike", n], ["partner_name", "ilike", n],
-                ["partner_id.commercial_partner_id.name", "ilike", n],
-            ]);
-            const DEAL_FIELDS = ["name", "partner_id", "team_id", "stage_id", "expected_revenue", "company_currency", "user_id", "probability", "won_status"];
-            const [contratos, relacionadas] = await Promise.all([
-                this.orm.searchRead("crm.lead", [["id", "in", CONTRATOS.map((c) => c.id)]], DEAL_FIELDS, { context: { active_test: false } }),
-                this.orm.searchRead("crm.lead", [...relDomain, ...relOr], DEAL_FIELDS, { order: "expected_revenue desc" }),
-            ]);
+            const contratos = await this.orm.searchRead(
+                "crm.lead", [["x_origem_inbound", "=", true], ["won_status", "=", "won"]], DEAL_FIELDS,
+                { context: { active_test: false } }
+            );
+            const contas = [...new Set(contratos.map(contaDoNegocio).filter((c) => c.length >= 3))];
+            // em aberto: marcadas como inbound OU de uma conta que já fechou pelo inbound
+            const ou = [["x_origem_inbound", "=", true]];
+            for (const c of contas) {
+                ou.push(["name", "ilike", c], ["partner_name", "ilike", c], ["partner_id.commercial_partner_id.name", "ilike", c]);
+            }
+            const relDomain = [["active", "=", true], ["probability", "<", 100], ...Array(ou.length - 1).fill("|"), ...ou];
+            const relacionadas = await this.orm.searchRead("crm.lead", relDomain, DEAL_FIELDS, { order: "expected_revenue desc" });
             this.state.raw = {
                 leads, stages, mensagens, atividades, contratos, relacionadas,
                 tagDataCrazy: new Set(tags.map((t) => t.id)),
@@ -263,25 +268,28 @@ export class InboundSetimaDashboard extends Component {
 
         // ---------- resultado comercial (contratos atribuídos ao inbound)
         const brl = (v) => (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
-        const contratos = CONTRATOS.map((c) => {
-            const r = (raw.contratos || []).find((x) => x.id === c.id);
-            return r && { ...r, fechado: fromDate(c.fechado), valor: r.expected_revenue || 0 };
-        }).filter(Boolean);
+        const contratos = (raw.contratos || []).map((r) => ({
+            ...r,
+            fechado: fromDate(r.x_studio_data_de_ganho) || fromUtcSql(r.date_closed),
+            valor: r.expected_revenue || 0,
+        })).filter((c) => c.fechado).sort((a, b) => a.fechado - b.fechado);
         const contratosNoPeriodo = contratos.filter((c) => inRange(c.fechado, start, end));
         const receitaTotal = contratos.reduce((t, c) => t + c.valor, 0);
         const receitaPeriodo = contratosNoPeriodo.reduce((t, c) => t + c.valor, 0);
-        const relacionadas = (raw.relacionadas || []).filter((r) => !CONTRATOS.some((c) => c.id === r.id));
+        const relacionadas = (raw.relacionadas || []).filter((r) => r.won_status !== "won" && !contratos.some((c) => c.id === r.id));
         const comercial = {
             receitaTotal: brl(receitaTotal),
             receitaPeriodo: brl(receitaPeriodo),
             noPeriodo: contratosNoPeriodo.length,
             contratos: contratos.map((c) => ({
+                conta: contaDoNegocio(c),
                 id: c.id, name: c.name, valor: brl(c.valor),
                 fechado: c.fechado.toFormat("dd/MM/yyyy"),
                 pipeline: c.team_id ? c.team_id[1] : "",
                 empresa: c.partner_id ? c.partner_id[1] : "",
             })),
             abertas: relacionadas.map((r) => ({
+                inbound: r.x_origem_inbound,
                 id: r.id, name: r.name, etapa: r.stage_id ? r.stage_id[1] : "",
                 pipeline: r.team_id ? r.team_id[1] : "",
                 valor: r.expected_revenue ? brl(r.expected_revenue) : "sem valor estimado",
@@ -289,23 +297,28 @@ export class InboundSetimaDashboard extends Component {
             abertasValor: brl(relacionadas.reduce((t, r) => t + (r.expected_revenue || 0), 0)),
         };
         // ---------- funil: quantos chegaram a cada etapa (≥) + ganho
-        const funnelOf = (arr, extraGanhos = 0) => {
+        // extra = contratos atribuídos ao inbound fechados no período (outros pipelines):
+        // percorreram o funil inteiro, então entram em todas as etapas.
+        const funnelOf = (arr, extra = 0) => {
             const steps = stages.map((s, i) => ({
-                key: s.id, name: s.name, count: arr.filter((l) => l.reached >= i).length,
+                key: s.id, name: s.name, count: arr.filter((l) => l.reached >= i).length + extra,
             }));
-            steps.push({ key: "won", name: "Ganho", count: arr.filter((l) => l.won).length + extraGanhos });
+            steps.push({ key: "won", name: "Ganho", count: arr.filter((l) => l.won).length + extra });
             return steps;
         };
-        // contratos fechados no período contam como ganho, mesmo fora deste pipeline
         const fSteps = funnelOf(leads, contratosNoPeriodo.length);
         const total = leads.length;
+        const totalFunil = fSteps[0].count;
+        const funilNota = contratosNoPeriodo.length
+            ? `inclui ${contratosNoPeriodo.length} contrato(s) "Originado no Inbound" fechado(s) em outro pipeline`
+            : "";
         const funil = fSteps.map((s, i) => {
             const prev = i ? fSteps[i - 1].count : null;
             return {
                 ...s,
                 color: s.key === "won" ? "#10b981" : STAGE_COLORS[i % STAGE_COLORS.length],
-                width: total ? Math.max(1.5, (s.count * 100) / total) : 0,
-                pctTotal: pct(s.count, total),
+                width: totalFunil ? Math.max(1.5, (s.count * 100) / totalFunil) : 0,
+                pctTotal: pct(s.count, totalFunil),
                 pctStep: prev === null ? null : pct(s.count, prev),
                 lostHere: s.key === "won" ? 0 : leads.filter((l) => l.lost && l.reached === i).length,
             };
@@ -365,7 +378,7 @@ export class InboundSetimaDashboard extends Component {
         const perdidos = leads.filter((l) => l.lost).length;
         const mql = countReached(leads, iMql);
         const sql = countReached(leads, iSql);
-        const opp = countReached(leads, iOpp);
+        const opp = countReached(leads, iOpp) + contratosNoPeriodo.length;
         const ganhos = leads.filter((l) => l.won).length + contratosNoPeriodo.length;
         const kpis = [
             { key: "leads", icon: "fa-user-plus", label: "Leads gerados", value: total,
@@ -469,8 +482,7 @@ export class InboundSetimaDashboard extends Component {
             resumo.push(`O time registrou <b>${acoes.length} ações</b> em ${leadsTrabalhados.size} leads${partes.length ? ` (${partes.join(", ")})` : ""}${mediana !== null ? `; o primeiro contato saiu em ${fmtHoras(mediana)} (mediana)` : ""}.`);
         }
         if (contratos.length) {
-            const c = contratos[0];
-            resumo.unshift(`Receita gerada pelo inbound: <b>${brl(receitaTotal)}</b> (${contratos.map((x) => `${esc(x.name)}, fechado em ${x.fechado.toFormat("dd/MM/yyyy")}`).join("; ")})${relacionadas.length ? `; ${relacionadas.length} oportunidade(s) em aberto com a mesma empresa` : ""}.`);
+            resumo.unshift(`Receita gerada pelo inbound: <b>${brl(receitaTotal)}</b> em ${contratos.length} contrato(s) (${contratos.map((x) => `${esc(x.name)}, ${brl(x.valor)}, fechado em ${x.fechado.toFormat("dd/MM/yyyy")}`).join("; ")})${relacionadas.length ? `; ${relacionadas.length} oportunidade(s) em aberto ligadas ao inbound (${brl(relacionadas.reduce((t, r) => t + (r.expected_revenue || 0), 0))} estimados)` : ""}.`);
         }
 
         if (perdidos && motivos.length) {
@@ -478,7 +490,7 @@ export class InboundSetimaDashboard extends Component {
         }
 
         return {
-            kpis, funil, timeline, legendCamp, breakdown, situacao, total, resumo, comercial,
+            kpis, funil, funilNota, timeline, legendCamp, breakdown, situacao, total, resumo, comercial,
             stepHeads: fSteps.slice(1).map((s) => s.name),
             donutSituacao: this._donut(situacao),
             motivos: motivos.map(([k, n]) => ({ key: k, count: n, width: (n * 100) / maxMotivo })),

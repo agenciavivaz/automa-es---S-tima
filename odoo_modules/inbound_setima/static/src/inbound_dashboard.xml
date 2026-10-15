@@ -119,7 +119,7 @@
                             <div class="o_abm_card_head">
                                 <div>
                                     <h3><i class="fa fa-trophy"/> Receita gerada pelo inbound</h3>
-                                    <span class="o_abm_card_hint">contratos fechados, independente do pipeline</span>
+                                    <span class="o_abm_card_hint">negócios marcados como "Originado no Inbound", de qualquer pipeline</span>
                                 </div>
                             </div>
                             <div class="o_inb_receita_valor" t-esc="d.comercial.receitaTotal"/>
@@ -133,7 +133,7 @@
                                         <span class="o_inb_log_icon" style="background:#10b981"><i class="fa fa-check"/></span>
                                         <div class="o_abm_list_main">
                                             <div class="o_abm_list_title" t-esc="c.name"/>
-                                            <div class="o_abm_list_sub">fechado em <t t-esc="c.fechado"/> · <t t-esc="c.pipeline"/></div>
+                                            <div class="o_abm_list_sub"><b t-esc="c.conta"/> · fechado em <t t-esc="c.fechado"/> · <t t-esc="c.pipeline"/></div>
                                         </div>
                                         <strong class="text-nowrap" t-esc="c.valor"/>
                                     </li>
@@ -143,8 +143,8 @@
                         <div class="o_abm_card">
                             <div class="o_abm_card_head">
                                 <div>
-                                    <h3><i class="fa fa-folder-open-o"/> Oportunidades em aberto na mesma empresa</h3>
-                                    <span class="o_abm_card_hint">expansão da conta conquistada · total estimado <t t-esc="d.comercial.abertasValor"/></span>
+                                    <h3><i class="fa fa-folder-open-o"/> Oportunidades em aberto</h3>
+                                    <span class="o_abm_card_hint">originadas no inbound ou expansão das contas conquistadas · total estimado <t t-esc="d.comercial.abertasValor"/></span>
                                 </div>
                             </div>
                             <div t-if="!d.comercial.abertas.length" class="o_abm_empty">Nenhuma oportunidade em aberto.</div>
@@ -154,7 +154,7 @@
                                         <span class="o_inb_log_icon" style="background:#3b82f6"><i class="fa fa-briefcase"/></span>
                                         <div class="o_abm_list_main">
                                             <div class="o_abm_list_title" t-esc="o.name"/>
-                                            <div class="o_abm_list_sub"><t t-esc="o.etapa"/> · <t t-esc="o.pipeline"/></div>
+                                            <div class="o_abm_list_sub"><t t-esc="o.etapa"/> · <t t-esc="o.pipeline"/><t t-if="!o.inbound"> · expansão de conta</t></div>
                                         </div>
                                         <span class="text-nowrap small" t-esc="o.valor"/>
                                     </li>
@@ -170,6 +170,7 @@
                                 <div>
                                     <h3><i class="fa fa-filter"/> Funil de conversão</h3>
                                     <span class="o_abm_card_hint">leads do período que chegaram a cada etapa · % do total e % da etapa anterior</span>
+                                    <div t-if="d.funilNota" class="o_abm_card_hint"><i class="fa fa-info-circle me-1"/><t t-esc="d.funilNota"/></div>
                                 </div>
                             </div>
                             <div t-if="!d.total" class="o_abm_empty">Nenhum lead no período.</div>
