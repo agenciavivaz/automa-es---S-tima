@@ -1,0 +1,327 @@
+// Resultado comercial · Sétima — mesmo desenho do Relatório Inbound v2 (CSS puro, sem variáveis
+// SCSS do Odoo, para o bundle nunca quebrar), escopado em .o_vst. Cor só com significado.
+
+.o_vst {
+    --vst-bg: #f6f7f9;
+    --vst-card: #ffffff;
+    --vst-borda: #e3e6ea;
+    --vst-texto: #1f2328;
+    --vst-muted: #5f6b7a;
+    --vst-sutil: #9aa4b1;
+    --vst-trilho: #eef0f3;
+    --vst-bom: #047857;
+    --vst-bom-bg: #e7f6ef;
+    --vst-ruim: #b91c1c;
+    --vst-ruim-bg: #fdecec;
+    --vst-atencao: #b45309;
+    --vst-atencao-bg: #fdf3e2;
+    --vst-acento: #1d4ed8;
+    background: var(--vst-bg);
+    color: var(--vst-texto);
+    font-size: 14px;
+
+    // largura total da tela, como no Relatório Inbound
+    .o_vst_wrap { max-width: none; margin: 0; padding-left: 24px; padding-right: 24px; }
+
+    // ------------------------------------------------------------ cabeçalho
+    .o_vst_header {
+        display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+        padding-top: 20px; padding-bottom: 12px; flex-wrap: wrap;
+    }
+    .o_vst_eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--vst-muted); font-weight: 600; }
+    h1 { font-size: 26px; font-weight: 700; margin: 2px 0 4px; }
+    .o_vst_sub { color: var(--vst-muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .o_vst_sep { color: var(--vst-sutil); }
+    .o_vst_modo { margin-top: 8px; display: flex; align-items: center; gap: 4px; font-size: 13px; }
+    .o_vst_rotulo { color: var(--vst-muted); margin-right: 4px; }
+    .o_vst_modo button, .o_vst_toggle button, .o_vst_tabs button {
+        border: 1px solid var(--vst-borda); background: var(--vst-card); color: var(--vst-texto);
+        padding: 3px 10px; border-radius: 999px; font-size: 12.5px; line-height: 1.5; cursor: pointer;
+        &.active { background: var(--vst-texto); color: #fff; border-color: var(--vst-texto); }
+    }
+    .o_vst_controles { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; max-width: 100%; }
+    .o_vst_chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+    .o_vst_chip {
+        border: 1px solid var(--vst-borda); background: var(--vst-card); color: var(--vst-texto);
+        border-radius: 999px; padding: 4px 12px; font-size: 13px; cursor: pointer;
+        &:hover { border-color: var(--vst-sutil); }
+        &.active { background: var(--vst-acento); border-color: var(--vst-acento); color: #fff; }
+    }
+    .o_vst_acoes { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .o_vst_data { display: flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--vst-muted); margin: 0;
+        input { width: 140px; } }
+    .o_vst_pdf { position: relative; }
+    .o_vst_pdf_menu {
+        position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; background: var(--vst-card);
+        border: 1px solid var(--vst-borda); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); min-width: 260px; padding: 4px;
+        button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 8px 10px; border-radius: 8px; font-size: 13px;
+            small { display: block; color: var(--vst-muted); }
+            &:hover { background: var(--vst-trilho); } }
+    }
+
+    // ------------------------------------------------------------ barra de seções
+    .o_vst_nav {
+        position: sticky; top: 0; z-index: 10; background: rgba(246, 247, 249, .96);
+        border-bottom: 1px solid var(--vst-borda); backdrop-filter: blur(4px);
+    }
+    .o_vst_nav_in { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+    .o_vst_nav a {
+        padding: 10px 12px; color: var(--vst-muted); text-decoration: none; font-weight: 600; font-size: 13px;
+        border-bottom: 2px solid transparent; white-space: nowrap;
+        &:hover { color: var(--vst-texto); }
+        &.active { color: var(--vst-texto); border-bottom-color: var(--vst-acento); }
+    }
+
+    // ------------------------------------------------------------ estrutura
+    .o_vst_corpo { padding-top: 8px; padding-bottom: 32px; transition: opacity .2s; }
+    .o_vst_loading { opacity: .55; pointer-events: none; }
+    .o_vst_secao { margin-top: 24px; scroll-margin-top: 56px; }
+    .o_vst_secao_titulo { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vst-muted); margin-bottom: 8px; }
+    .o_vst_card {
+        background: var(--vst-card); border: 1px solid var(--vst-borda); border-radius: 12px; padding: 20px; min-width: 0;
+    }
+    .o_vst_secao > .o_vst_card + .o_vst_card { margin-top: 16px; }
+    .o_vst_card_head { margin-bottom: 12px;
+        h3 { font-size: 16px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; } }
+    .o_vst_head_split { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .o_vst_hint { font-size: 12.5px; color: var(--vst-muted); }
+    .o_vst_info { color: var(--vst-sutil); font-size: 12px; cursor: help; }
+    .o_vst_link { color: var(--vst-acento); font-size: 13px; text-decoration: none; &:hover { text-decoration: underline; } }
+    .o_vst_empty { color: var(--vst-muted); font-size: 13.5px; padding: 16px 0; }
+    .o_vst_empty_lg { padding: 64px 24px; text-align: center; }
+    .o_vst_dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; flex: none; }
+    .zero { color: var(--vst-sutil); }
+
+    // topo: KPIs + leitura (9 col) e acumulado (3 col) ocupando as duas linhas
+    .o_vst_topo {
+        display: grid; gap: 16px;
+        grid-template-columns: minmax(0, 9fr) minmax(0, 3fr);
+        grid-template-areas: "kpis acum" "leit acum";
+        align-items: stretch;
+    }
+    .o_vst_kpis { grid-area: kpis; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .o_vst_leitura { grid-area: leit; }
+    .o_vst_acum { grid-area: acum; }
+    .o_vst_par { display: grid; gap: 16px; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); align-items: stretch; }
+
+    // ------------------------------------------------------------ KPIs
+    .o_vst_kpi { padding: 16px; cursor: pointer; display: flex; flex-direction: column; gap: 4px;
+        &:hover { border-color: var(--vst-sutil); } }
+    .o_vst_kpi_label { font-size: 13px; color: var(--vst-muted); display: flex; align-items: center; gap: 6px; font-weight: 600;
+        > .fa:first-child { color: var(--vst-sutil); } }
+    .o_vst_kpi_valor { font-size: 34px; font-weight: 600; line-height: 1.1; letter-spacing: -.01em; }
+    .o_vst_kpi_rodape { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; }
+    .o_vst_kpi_sub { color: var(--vst-muted); }
+    .o_vst_delta {
+        display: inline-flex; align-items: center; gap: 3px; font-weight: 600; font-size: 12px; border-radius: 999px; padding: 1px 7px;
+        background: var(--vst-trilho); color: var(--vst-muted);
+        &.bom { background: var(--vst-bom-bg); color: var(--vst-bom); }
+        &.ruim { background: var(--vst-ruim-bg); color: var(--vst-ruim); }
+    }
+
+    // ------------------------------------------------------------ leitura do período
+    .o_vst_leitura_cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .o_vst_lcol {
+        h4 { font-size: 13px; font-weight: 700; margin: 0 0 6px; display: flex; gap: 6px; align-items: center;
+            &.bom { color: var(--vst-bom); } &.atencao { color: var(--vst-atencao); } }
+        ul { margin: 0; padding-left: 18px; }
+        li { font-size: 13.5px; line-height: 1.45; margin-bottom: 4px; }
+    }
+
+    // ------------------------------------------------------------ acumulado fixo
+    .o_vst_acum { background: #f3faf6; border-left: 4px solid var(--vst-bom); display: flex; flex-direction: column; gap: 4px;
+        h3 { font-size: 15px; font-weight: 600; margin: 4px 0 0; } }
+    .o_vst_pin { font-size: 11px; font-weight: 700; letter-spacing: .08em; color: var(--vst-muted); cursor: help; }
+    .o_vst_acum_valor { font-size: 36px; font-weight: 700; color: var(--vst-bom); line-height: 1.1; margin-top: 8px; letter-spacing: -.01em; }
+    .o_vst_acum_apoio { font-size: 13px; color: var(--vst-muted); }
+    .o_vst_contratos { list-style: none; padding: 0; margin: 10px 0 4px;
+        li { padding: 8px 0; border-top: 1px solid var(--vst-borda); cursor: pointer; font-size: 12.5px; &:hover .o_vst_contrato_nome { color: var(--vst-acento); } } }
+    .o_vst_contrato_nome { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .o_vst_contrato_meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; color: var(--vst-muted); b { color: var(--vst-texto); white-space: nowrap; } }
+    .o_vst_badge_novo { white-space: nowrap; margin-left: 6px; font-size: 10.5px; background: var(--vst-bom-bg); color: var(--vst-bom); border-radius: 999px; padding: 0 6px; }
+    .o_vst_acum_periodo { margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--vst-borda); font-size: 13px; color: var(--vst-muted);
+        &.tem { color: var(--vst-bom); font-weight: 600; } }
+
+    // ------------------------------------------------------------ funil
+    .o_vst_funil { display: flex; flex-direction: column; }
+    .o_vst_frow {
+        display: grid; grid-template-columns: 150px minmax(0, 1fr) 44px 56px; align-items: center; gap: 10px;
+        height: 36px; padding: 0 6px; border-radius: 8px; cursor: pointer;
+        &:hover { background: var(--vst-trilho); }
+        &.zero { color: var(--vst-sutil); .o_vst_fbar { background: transparent; } }
+    }
+    .o_vst_fnome { font-weight: 600; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .o_vst_ftrack { height: 18px; background: var(--vst-trilho); border-radius: 6px; overflow: hidden; }
+    .o_vst_fbar { height: 100%; background: #3b6fd8; border-radius: 6px; transition: width .3s; }
+    .o_vst_fnum { text-align: right; font-weight: 700; }
+    .o_vst_fpct { text-align: right; font-size: 12.5px; color: var(--vst-muted); }
+    .o_vst_conv { display: flex; gap: 8px; align-items: center; padding: 1px 0 1px 166px; font-size: 12px; }
+    .o_vst_conv_chip {
+        background: var(--vst-trilho); color: var(--vst-muted); border-radius: 999px; padding: 0 8px; font-weight: 600;
+        &.bom { background: var(--vst-bom-bg); color: var(--vst-bom); }
+        &.ruim { background: var(--vst-ruim-bg); color: var(--vst-ruim); }
+    }
+    .o_vst_nota { margin-top: 10px; font-size: 12.5px; color: var(--vst-muted); }
+
+    // ------------------------------------------------------------ situação e saúde (A4)
+    .o_vst_saude { display: flex; flex-direction: column; }
+    .o_vst_donut_linha { display: flex; align-items: center; gap: 16px; }
+    .o_vst_donut { width: 120px; height: 120px; flex: none; transform: rotate(0deg); }
+    .o_vst_donut_num { font-size: 8px; font-weight: 700; fill: var(--vst-texto); }
+    .o_vst_legenda { list-style: none; margin: 0; padding: 0; flex: 1; min-width: 0;
+        li { display: flex; align-items: center; gap: 4px; font-size: 13px; padding: 2px 0; b { margin-left: auto; } } }
+    .o_vst_saude_lista { list-style: none; margin: 14px 0 0; padding: 0; flex: 1; display: flex; flex-direction: column; justify-content: space-between;
+        li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px;
+            border: 1px solid var(--vst-borda); margin-bottom: 6px; cursor: default;
+            > b { font-size: 18px; }
+            &[role="button"] { cursor: pointer; &:hover { border-color: var(--vst-sutil); } }
+            &.atencao > b { color: var(--vst-atencao); } } }
+    .o_vst_saude_label { font-weight: 600; font-size: 13px; }
+
+    // ------------------------------------------------------------ aquisição
+    .o_vst_legenda_camp { display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: flex-end; font-size: 12.5px; margin-bottom: 8px;
+        > span { display: inline-flex; align-items: center; } b { margin-left: 4px; } }
+    .o_vst_serie { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 6px; height: 200px; }
+    .o_vst_serie_eixo { display: flex; flex-direction: column; justify-content: space-between; font-size: 11px; color: var(--vst-sutil); text-align: right; padding-bottom: 18px; }
+    .o_vst_serie_barras { display: flex; align-items: stretch; gap: 2px; border-bottom: 1px solid var(--vst-borda); min-width: 0; }
+    .o_vst_sbar { flex: 1 1 0; display: flex; flex-direction: column; min-width: 0; }
+    .o_vst_sbar_pilha { flex: 1; display: flex; flex-direction: column-reverse; position: relative; }
+    .o_vst_sbar_seg { width: 100%; min-height: 1px; &:last-child { border-radius: 3px 3px 0 0; } }
+    .o_vst_sbar_total { position: absolute; left: 0; right: 0; text-align: center; font-size: 10.5px; color: var(--vst-muted); bottom: 100%; }
+    .o_vst_sbar_pilha:has(.o_vst_sbar_seg) .o_vst_sbar_total { position: static; order: 99; }
+    .o_vst_sbar_label { height: 18px; font-size: 10.5px; color: var(--vst-sutil); text-align: center; white-space: nowrap; overflow: visible; }
+    .o_vst_tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+    .o_vst_toggle { display: flex; gap: 4px; }
+    .o_vst_tabela_wrap { overflow-x: auto; }
+    .o_vst_tabela { width: 100%; border-collapse: collapse; font-size: 13px;
+        th { font-size: 12px; color: var(--vst-muted); font-weight: 600; text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--vst-borda); cursor: pointer; white-space: nowrap; user-select: none; }
+        td { padding: 7px 8px; border-bottom: 1px solid var(--vst-trilho); white-space: nowrap; }
+        tbody tr { cursor: pointer; &:hover { background: var(--vst-bg); } }
+        tfoot td { font-weight: 700; border-top: 2px solid var(--vst-borda); border-bottom: 0; }
+        .num { text-align: right; }
+    }
+    .o_vst_sort_off { opacity: .3; }
+    .o_vst_fase2 { display: none; }
+    .o_vst_dimcell { max-width: 360px; overflow: hidden; text-overflow: ellipsis; }
+    .o_vst_col_leads { min-width: 160px; }
+    .o_vst_lbar { position: relative; padding: 1px 6px; border-radius: 4px;
+        span { position: relative; } small { color: var(--vst-muted); margin-left: 4px; } }
+    .o_vst_lbar_fill { position: absolute; inset: 0 auto 0 0; background: rgba(29, 78, 216, .12); border-radius: 4px; }
+    .o_vst_tabela_sm { margin-bottom: 12px; tbody tr { cursor: pointer; } }
+    .o_vst_tipo_icon { width: 16px; text-align: center; }
+
+    // ------------------------------------------------------------ operação
+    .o_vst_minis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+    .o_vst_mini { padding: 14px 16px; }
+    .o_vst_mini_label { font-size: 12.5px; color: var(--vst-muted); font-weight: 600; margin-bottom: 4px; }
+    .o_vst_mini_valor { font-size: 17px; font-weight: 600; }
+    .o_vst_dist { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13.5px; font-weight: 500; b { margin-left: 3px; } }
+    .o_vst_minititulo { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vst-muted); margin: 8px 0 6px; }
+    .o_vst_hbar { display: grid; grid-template-columns: 130px minmax(0, 1fr) 32px; gap: 8px; align-items: center; font-size: 13px; padding: 2px 0;
+        b { text-align: right; } }
+    .o_vst_hbar_nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .o_vst_hbar_track { height: 8px; background: var(--vst-trilho); border-radius: 4px; overflow: hidden; }
+    .o_vst_hbar_fill { height: 100%; background: #64748b; }
+
+    // ------------------------------------------------------------ rodapé e glossário
+    .o_vst_rodape { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--vst-borda); display: flex; justify-content: space-between;
+        gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--vst-muted); }
+    .o_vst_modal_fundo { position: fixed; inset: 0; background: rgba(15, 23, 42, .4); z-index: 1050; display: grid; place-items: center; padding: 16px; }
+    .o_vst_modal { background: var(--vst-card); border-radius: 12px; padding: 20px; max-width: 720px; width: 100%; max-height: 85vh; overflow: auto;
+        dt { font-size: 13.5px; margin-top: 10px; } dd { font-size: 13px; color: var(--vst-muted); margin: 2px 0 0; } }
+
+    // ------------------------------------------------------------ responsivo (§6)
+    @media (max-width: 1279.98px) {
+        .o_vst_topo { grid-template-columns: minmax(0, 1fr); grid-template-areas: "acum" "kpis" "leit"; }
+        .o_vst_kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .o_vst_par { grid-template-columns: minmax(0, 1fr); }
+        .o_vst_minis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .o_vst_header { flex-direction: column; }
+        .o_vst_controles { align-items: flex-start; }
+        .o_vst_chips, .o_vst_acoes { justify-content: flex-start; }
+    }
+    @media (max-width: 767.98px) {
+        .o_vst_wrap { padding-left: 16px; padding-right: 16px; }
+        .o_vst_kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .o_vst_kpi_valor { font-size: 28px; }
+        .o_vst_leitura_cols { grid-template-columns: minmax(0, 1fr); }
+        .o_vst_frow { grid-template-columns: 96px minmax(0, 1fr) 36px 50px; gap: 6px; }
+        .o_vst_conv { padding-left: 108px; }
+        .o_vst_minis { grid-template-columns: minmax(0, 1fr); }
+        .o_vst_legenda_camp { justify-content: flex-start; }
+        h1 { font-size: 22px; }
+    }
+}
+
+// --------------------------------------------------------------- blocos próprios do Resultado Sétima
+.o_vst {
+    .o_vst_kpi_valor[title] { cursor: pointer; }
+    .o_vst_acum_delta { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--vst-muted); }
+    .o_vst_acum_gerado { font-size: 12.5px; color: var(--vst-muted); margin-top: 2px; }
+
+    // evolução mensal: barra do ano (cor) ao lado do mesmo mês do ano anterior (cinza)
+    .o_vst_meses { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 8px; height: 220px; align-items: stretch;
+        border-bottom: 1px solid var(--vst-borda); padding-top: 18px; }
+    .o_vst_mes { display: flex; flex-direction: column; min-width: 0; cursor: default;
+        &.fora { opacity: .45; } }
+    .o_vst_mes_barras { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 3px; position: relative; }
+    .o_vst_mes_bar { width: 42%; border-radius: 3px 3px 0 0; min-height: 0; }
+    .o_vst_mes_bar.ant { background: #cbd5e1; }
+    .o_vst_mes_bar.cur { background: #1d4ed8; position: relative; }
+    .o_vst_mes_rot { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); font-size: 10.5px; color: var(--vst-muted); white-space: nowrap; padding-bottom: 2px; }
+    .o_vst_meses_eixo { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 8px; font-size: 11px; color: var(--vst-sutil); text-align: center; padding-top: 4px; }
+    .o_vst_legenda_mes { display: flex; gap: 14px; font-size: 12.5px; color: var(--vst-muted); align-items: center; flex-wrap: wrap; }
+    .o_vst_sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+    // tabelas com barra de participação
+    .o_vst_sharecell { min-width: 180px; }
+    .o_vst_novo { font-size: 10.5px; background: var(--vst-bom-bg); color: var(--vst-bom); border-radius: 999px; padding: 0 6px; margin-left: 6px; font-weight: 600; }
+    .o_vst_rank { color: var(--vst-sutil); width: 28px; }
+    .o_vst_conc { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .o_vst_conc > div { border: 1px solid var(--vst-borda); border-radius: 10px; padding: 8px 12px; min-width: 140px;
+        b { display: block; font-size: 18px; } span { font-size: 12px; color: var(--vst-muted); }
+        &.atencao b { color: var(--vst-atencao); } }
+    .o_vst_proj_nome { max-width: 420px; overflow: hidden; text-overflow: ellipsis; }
+    .o_vst_tipo_chip { display: inline-flex; align-items: center; font-size: 12px; color: var(--vst-muted); }
+    .o_vst_hist_bar { min-width: 120px; }
+
+    // pipeline
+    .o_vst_pipe_nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+    .o_vst_frow { grid-template-columns: 130px minmax(0, 1fr) 44px 90px; }
+    .o_vst_fval { text-align: right; font-weight: 700; white-space: nowrap; }
+    .o_vst_motivos li { cursor: pointer; }
+    .o_vst_nota_tipo { margin-top: 10px; font-size: 12.5px; color: var(--vst-muted); }
+
+    @media (max-width: 1279.98px) {
+        .o_vst_pipe_nums { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 767.98px) {
+        .o_vst_meses, .o_vst_meses_eixo { gap: 3px; }
+        .o_vst_mes_rot { display: none; }
+        .o_vst_pipe_nums { grid-template-columns: minmax(0, 1fr); }
+        .o_vst_frow { grid-template-columns: 96px minmax(0, 1fr) 36px 70px; }
+    }
+}
+
+// --------------------------------------------------------------- PDF (§7.10)
+// "Exportar PDF" usa a impressão do navegador: A4 paisagem, só o relatório.
+@media print {
+    @page { size: A4 landscape; margin: 10mm; }
+    body:has(.o_vst) {
+        .o_main_navbar, .o_control_panel, .o_vst_noprint, .o_vst_nav { display: none !important; }
+        &, .o_web_client, .o_action_manager, .o_action.o_vst {
+            height: auto !important; overflow: visible !important; display: block !important;
+        }
+        .o_vst { background: #fff; font-size: 12px; }
+        .o_vst .o_vst_wrap { max-width: none; padding: 0; }
+        .o_vst .o_vst_card { break-inside: avoid; box-shadow: none; }
+        .o_vst .o_vst_secao { break-inside: auto; margin-top: 12px; }
+        .o_vst .o_vst_secao_titulo { break-after: avoid; page-break-after: avoid; }
+        .o_vst .o_vst_topo { grid-template-columns: minmax(0, 9fr) minmax(0, 3fr); grid-template-areas: "kpis acum" "leit acum"; }
+        .o_vst .o_vst_kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .o_vst .o_vst_par { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
+        .o_vst .o_vst_minis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .o_vst .o_vst_header { flex-direction: row; }
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+}

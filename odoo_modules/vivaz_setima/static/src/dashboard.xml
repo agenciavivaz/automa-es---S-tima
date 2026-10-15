@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vivaz_setima.Dashboard">
+        <div class="o_action o_vst h-100 overflow-auto" t-ref="root">
+
+            <!-- ================================================= cabeçalho -->
+            <header class="o_vst_wrap o_vst_header">
+                <div class="o_vst_titulo">
+                    <div class="o_vst_eyebrow">CRM · Sétima</div>
+                    <h1>Resultado comercial</h1>
+                    <div class="o_vst_sub" t-if="state.per">
+                        <span><i class="fa fa-calendar me-1"/><t t-esc="state.per.label"/></span>
+                        <t t-if="state.per.prevLabel"><span class="o_vst_sep">·</span><span>comparado com <t t-esc="state.per.prevLabel"/></span></t>
+                        <t t-if="state.raw"><span class="o_vst_sep">·</span><span>atualizado às <t t-esc="atualizado"/></span></t>
+                    </div>
+                </div>
+                <div class="o_vst_controles o_vst_noprint">
+                    <div class="o_vst_chips" role="group" aria-label="Período">
+                        <t t-foreach="presets" t-as="p" t-key="p.key">
+                            <button type="button" class="o_vst_chip" t-att-class="{ 'active': state.preset === p.key }"
+                                    t-on-click="() => this.onPreset(p.key)" t-esc="p.label"/>
+                        </t>
+                    </div>
+                    <div class="o_vst_acoes">
+                        <t t-if="state.preset === 'custom'">
+                            <label class="o_vst_data">De <input type="date" class="form-control form-control-sm" t-att-value="state.from" t-on-change="(ev) => this.onCustomDate('from', ev)"/></label>
+                            <label class="o_vst_data">Até <input type="date" class="form-control form-control-sm" t-att-value="state.to" t-on-change="(ev) => this.onCustomDate('to', ev)"/></label>
+                        </t>
+                        <button type="button" class="btn btn-sm btn-primary" t-on-click="exportarPdf"><i class="fa fa-file-pdf-o me-1"/>Exportar PDF</button>
+                        <button type="button" class="btn btn-sm btn-light" title="Atualizar" t-on-click="() => this.load()">
+                            <i class="fa fa-refresh" t-att-class="{ 'fa-spin': state.loading }"/>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ================================================= barra de seções (sticky) -->
+            <nav class="o_vst_nav o_vst_noprint" aria-label="Seções do relatório">
+                <div class="o_vst_wrap o_vst_nav_in">
+                    <t t-foreach="secoes" t-as="s" t-key="s.key">
+                        <a href="#" t-att-class="{ 'active': state.secao === s.key }" t-on-click.prevent="() => this.irPara(s.key)" t-esc="s.label"/>
+                    </t>
+                </div>
+            </nav>
+
+            <div t-if="state.error" class="o_vst_wrap"><div class="alert alert-danger">Não foi possível carregar o relatório: <t t-esc="state.error"/></div></div>
+
+            <t t-if="state.raw">
+                <t t-set="r" t-value="relatorio"/>
+                <main class="o_vst_wrap o_vst_corpo" t-att-class="{ 'o_vst_loading': state.loading }">
+
+                    <!-- ============================================ RESULTADO -->
+                    <section id="vst_resumo" class="o_vst_secao">
+                        <div class="o_vst_secao_titulo">Resultado</div>
+                        <div class="o_vst_topo">
+                            <div class="o_vst_kpis">
+                                <t t-foreach="r.kpis" t-as="k" t-key="k.key">
+                                    <div class="o_vst_card o_vst_kpi" t-on-click="() => this.abrirKpi(k)" role="button">
+                                        <div class="o_vst_kpi_label">
+                                            <i t-attf-class="fa {{ k.icon }}"/>
+                                            <span t-esc="k.label"/>
+                                            <i class="fa fa-info-circle o_vst_info" t-att-title="k.info" aria-label="Definição"/>
+                                        </div>
+                                        <div class="o_vst_kpi_valor" t-att-title="k.titulo" t-esc="k.value"/>
+                                        <div class="o_vst_kpi_rodape">
+                                            <span t-if="k.delta" class="o_vst_delta" t-att-class="k.delta.classe" t-att-title="k.delta.tooltip">
+                                                <i t-attf-class="fa {{ k.delta.seta }}"/> <t t-esc="k.delta.texto"/>
+                                            </span>
+                                            <span class="o_vst_kpi_sub" t-esc="k.sub"/>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <div class="o_vst_card o_vst_leitura">
+                                <div class="o_vst_card_head"><h3>Leitura do período</h3><span class="o_vst_hint">gerada por regras a partir do CRM</span></div>
+                                <div class="o_vst_leitura_cols">
+                                    <div class="o_vst_lcol">
+                                        <h4 class="bom"><i class="fa fa-line-chart"/> Destaques</h4>
+                                        <ul><t t-foreach="r.leitura.destaques" t-as="t" t-key="t_index"><li t-esc="t"/></t></ul>
+                                    </div>
+                                    <div class="o_vst_lcol">
+                                        <h4 class="atencao"><i class="fa fa-exclamation-triangle"/> Pontos de atenção</h4>
+                                        <ul><t t-foreach="r.leitura.atencao" t-as="t" t-key="t_index"><li t-esc="t"/></t></ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Acumulado do ano (fixo, não muda com o filtro) -->
+                            <aside class="o_vst_card o_vst_acum" aria-label="Receita acumulada no ano">
+                                <div class="o_vst_pin" title="Não muda com o filtro de período"><i class="fa fa-thumb-tack"/> ACUMULADO DO ANO</div>
+                                <h3>Receita acumulada em <t t-esc="r.acumulado.ano"/></h3>
+                                <div class="o_vst_hint">01/01 a <t t-esc="r.acumulado.ate"/> · negócios ganhos no Pipeline Sétima</div>
+                                <div class="o_vst_acum_valor" t-esc="r.acumulado.valor"/>
+                                <div class="o_vst_acum_delta" t-if="r.acumulado.delta">
+                                    <span class="o_vst_delta" t-att-class="r.acumulado.delta.classe" t-att-title="r.acumulado.delta.tooltip">
+                                        <i t-attf-class="fa {{ r.acumulado.delta.seta }}"/> <t t-esc="r.acumulado.delta.texto"/>
+                                    </span>
+                                    <span>vs. mesmo período de <t t-esc="r.acumulado.ano - 1"/></span>
+                                </div>
+                                <div class="o_vst_acum_apoio" t-esc="r.acumulado.apoio"/>
+                                <div class="o_vst_acum_gerado"><i class="fa fa-filter me-1"/><t t-esc="r.acumulado.gerado"/></div>
+                                <ul class="o_vst_contratos">
+                                    <t t-foreach="r.acumulado.lista" t-as="c" t-key="c.id">
+                                        <li t-on-click="() => this.abrirNegocio(c.id)" role="button" t-att-title="c.nome">
+                                            <div class="o_vst_contrato_nome" t-esc="c.nome"/>
+                                            <div class="o_vst_contrato_meta"><span><t t-esc="c.conta"/> · <t t-esc="c.data"/></span><b t-esc="c.valor"/></div>
+                                        </li>
+                                    </t>
+                                </ul>
+                                <a t-if="r.acumulado.nProjetos > 3" href="#" class="o_vst_link" t-on-click.prevent="() => this.abrirNegocios('Ganhos de ' + r.acumulado.ano, r.acumulado.todosIds)">ver todos (<t t-esc="r.acumulado.nProjetos"/>)</a>
+                                <div class="o_vst_acum_periodo" t-att-class="{ 'tem': r.acumulado.periodoTem }" t-esc="r.acumulado.periodoTexto"/>
+                            </aside>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ EVOLUÇÃO -->
+                    <section id="vst_evolucao" class="o_vst_secao">
+                        <div class="o_vst_secao_titulo">Evolução</div>
+                        <div class="o_vst_par">
+                            <div class="o_vst_card">
+                                <div class="o_vst_card_head o_vst_head_split">
+                                    <div>
+                                        <h3><t t-esc="state.serie === 'pipeline' ? 'Pipeline gerado' : 'Receita'"/> mês a mês · <t t-esc="r.evolucao.anoRef"/></h3>
+                                        <span class="o_vst_hint">
+                                            <t t-esc="r.evolucao.totalAtual"/> em <t t-esc="r.evolucao.anoRef"/> · <t t-esc="r.evolucao.totalAnterior"/> no mesmo intervalo de <t t-esc="r.evolucao.anoRef - 1"/>
+                                        </span>
+                                    </div>
+                                    <div class="o_vst_toggle o_vst_noprint" role="group">
+                                        <button type="button" t-att-class="{ 'active': state.serie === 'receita' }" t-on-click="() => this.state.serie = 'receita'">Receita</button>
+                                        <button type="button" t-att-class="{ 'active': state.serie === 'pipeline' }" t-on-click="() => this.state.serie = 'pipeline'">Pipeline gerado</button>
+                                    </div>
+                                </div>
+                                <div class="o_vst_legenda_mes">
+                                    <span><span class="o_vst_sw" style="background:#1d4ed8"/><t t-esc="r.evolucao.anoRef"/></span>
+                                    <span><span class="o_vst_sw" style="background:#cbd5e1"/><t t-esc="r.evolucao.anoRef - 1"/></span>
+                                    <span class="o_vst_hint">meses fora do filtro ficam esmaecidos</span>
+                                </div>
+                                <div t-if="!r.evolucao.hasData" class="o_vst_empty">Sem valores nestes dois anos.</div>
+                                <t t-else="">
+                                    <div class="o_vst_meses">
+                                        <t t-foreach="r.evolucao.meses" t-as="m" t-key="m.key">
+                                            <div class="o_vst_mes" t-att-class="{ 'fora': !m.noPeriodo }" t-att-title="m.title">
+                                                <div class="o_vst_mes_barras">
+                                                    <div class="o_vst_mes_bar ant" t-att-style="'height:' + m.hAnterior + '%'"/>
+                                                    <div class="o_vst_mes_bar cur" t-att-style="'height:' + m.hAtual + '%'">
+                                                        <span t-if="m.rotulo" class="o_vst_mes_rot" t-esc="m.rotulo"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </div>
+                                    <div class="o_vst_meses_eixo"><t t-foreach="r.evolucao.meses" t-as="m" t-key="m.key"><span t-esc="m.label"/></t></div>
+                                </t>
+                            </div>
+                            <div class="o_vst_card">
+                                <div class="o_vst_card_head">
+                                    <h3>Histórico anual</h3>
+                                    <span class="o_vst_hint">receita ganha por ano · ano corrente comparado com o mesmo período do anterior</span>
+                                </div>
+                                <div class="o_vst_tabela_wrap">
+                                <table class="o_vst_tabela o_vst_tabela_sm">
+                                    <thead><tr><th>Ano</th><th class="o_vst_hist_bar">Receita</th><th class="num">Projetos</th><th class="num">Ticket</th><th class="num">Var.</th></tr></thead>
+                                    <tbody>
+                                        <t t-foreach="r.historico" t-as="h" t-key="h.key">
+                                            <tr t-on-click="() => this.abrirNegocios('Ganhos de ' + h.key, h.ids)" t-att-title="h.clientes + ' clientes · pipeline gerado ' + h.gerado">
+                                                <td t-esc="h.ano"/>
+                                                <td class="o_vst_hist_bar"><div class="o_vst_lbar"><div class="o_vst_lbar_fill" t-att-style="'width:' + h.width + '%'"/><span><b t-esc="h.receita"/></span></div></td>
+                                                <td class="num" t-esc="h.n"/>
+                                                <td class="num" t-esc="h.ticket"/>
+                                                <td class="num"><span t-if="h.delta" class="o_vst_delta" t-att-class="h.delta.classe" t-att-title="h.delta.tooltip" t-esc="h.delta.texto"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ CLIENTES E PROJETOS -->
+                    <section id="vst_clientes" class="o_vst_secao">
+                        <div class="o_vst_secao_titulo">Clientes e projetos</div>
+                        <div class="o_vst_card">
+                            <div class="o_vst_card_head o_vst_head_split">
+                                <div>
+                                    <h3>Principais clientes</h3>
+                                    <span class="o_vst_hint">receita ganha no período por cliente (empresa do contato)</span>
+                                </div>
+                            </div>
+                            <div t-if="!r.clientes.length" class="o_vst_empty">Nenhum projeto ganho neste período.</div>
+                            <t t-else="">
+                                <div class="o_vst_conc">
+                                    <div t-att-class="{ 'atencao': r.concentracao.top1Raw >= 40 }"><b t-esc="r.concentracao.top1"/><span>da receita no maior cliente (<t t-esc="r.concentracao.top1Nome"/>)</span></div>
+                                    <div><b t-esc="r.concentracao.top5"/><span>da receita nos 5 maiores</span></div>
+                                    <div><b t-esc="r.concentracao.novos"/><span>cliente(s) novo(s) · <t t-esc="r.concentracao.novosReceita"/></span></div>
+                                </div>
+                                <div class="o_vst_tabela_wrap">
+                                    <table class="o_vst_tabela">
+                                        <thead><tr>
+                                            <th class="o_vst_rank">#</th><th>Cliente</th><th class="o_vst_sharecell">Receita</th><th class="num">% receita</th>
+                                            <th class="num">Projetos</th><th class="num">Ticket</th><th>Tipo principal</th><th class="num">Último ganho</th>
+                                        </tr></thead>
+                                        <tbody>
+                                            <t t-foreach="r.clientes" t-as="c" t-key="c.key">
+                                                <tr t-on-click="() => this.abrirNegocios(c.key + ' · ' + state.per.label, c.ids)">
+                                                    <td class="o_vst_rank" t-esc="c.pos"/>
+                                                    <td class="o_vst_dimcell"><t t-esc="c.key"/><span t-if="c.novo" class="o_vst_novo">novo</span></td>
+                                                    <td class="o_vst_sharecell"><div class="o_vst_lbar"><div class="o_vst_lbar_fill" t-att-style="'width:' + c.width + '%'"/><span><b t-esc="c.receita"/></span></div></td>
+                                                    <td class="num" t-esc="c.share"/>
+                                                    <td class="num" t-esc="c.n"/>
+                                                    <td class="num" t-esc="c.ticket"/>
+                                                    <td t-esc="c.tipoPrincipal"/>
+                                                    <td class="num" t-esc="c.ultimo"/>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <a t-if="r.nClientes > 10" href="#" class="o_vst_link o_vst_noprint" t-on-click.prevent="() => this.state.clientesTodos = !this.state.clientesTodos">
+                                    <t t-esc="state.clientesTodos ? 'mostrar só os 10 maiores' : 'ver todos os ' + r.nClientes + ' clientes'"/>
+                                </a>
+                            </t>
+                        </div>
+                        <div class="o_vst_card">
+                            <div class="o_vst_card_head">
+                                <h3>Principais projetos</h3>
+                                <span class="o_vst_hint">os 10 maiores negócios ganhos no período</span>
+                            </div>
+                            <div t-if="!r.projetos.length" class="o_vst_empty">Nenhum projeto ganho neste período.</div>
+                            <div t-else="" class="o_vst_tabela_wrap">
+                                <table class="o_vst_tabela">
+                                    <thead><tr><th>Projeto</th><th>Cliente</th><th>Tipo</th><th t-if="r.mostrarVendedores">Vendedor</th><th class="num">Ganho em</th><th class="num">Valor</th><th class="num">% receita</th></tr></thead>
+                                    <tbody>
+                                        <t t-foreach="r.projetos" t-as="p" t-key="p.id">
+                                            <tr t-on-click="() => this.abrirNegocio(p.id)">
+                                                <td class="o_vst_proj_nome" t-att-title="p.nome" t-esc="p.nome"/>
+                                                <td t-esc="p.cliente"/>
+                                                <td><span class="o_vst_tipo_chip"><span class="o_vst_dot" t-att-style="'background:' + p.cor"/><t t-esc="p.tipo"/></span></td>
+                                                <td t-if="r.mostrarVendedores" t-esc="p.vendedor"/>
+                                                <td class="num" t-esc="p.data"/>
+                                                <td class="num"><b t-esc="p.valor"/></td>
+                                                <td class="num" t-esc="p.share"/>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ TIPO DE PROJETO -->
+                    <section id="vst_tipos" class="o_vst_secao">
+                        <div class="o_vst_secao_titulo">Tipo de projeto</div>
+                        <div class="o_vst_par">
+                            <div class="o_vst_card">
+                                <div class="o_vst_card_head">
+                                    <h3>Resultado por tipo de projeto</h3>
+                                    <span class="o_vst_hint">ganhos e perdas do período · pipeline aberto hoje</span>
+                                </div>
+                                <div class="o_vst_tabela_wrap">
+                                    <table class="o_vst_tabela">
+                                        <thead><tr>
+                                            <th>Tipo</th><th class="o_vst_sharecell">Receita</th><th class="num">% receita</th><th class="num">Projetos</th>
+                                            <th class="num">Ticket</th><th class="num" title="ganhos ÷ (ganhos + perdidos) no período">Conversão</th><th class="num" title="valor aberto hoje neste tipo">Pipeline aberto</th>
+                                        </tr></thead>
+                                        <tbody>
+                                            <t t-foreach="r.tipos" t-as="t" t-key="t.key">
+                                                <tr t-on-click="() => this.abrirNegocios(t.label + ' · ' + state.per.label, t.ids.length ? t.ids : t.idsAbertos)">
+                                                    <td class="o_vst_dimcell"><span class="o_vst_dot" t-att-style="'background:' + t.cor"/><t t-esc="t.label"/></td>
+                                                    <td class="o_vst_sharecell"><div class="o_vst_lbar"><div class="o_vst_lbar_fill" t-att-style="'width:' + t.width + '%'"/><span><b t-esc="t.receita"/></span></div></td>
+                                                    <td class="num" t-att-class="{ 'zero': !t.receitaRaw }" t-esc="t.share"/>
+                                                    <td class="num" t-att-class="{ 'zero': !t.n }" t-esc="t.n"/>
+                                                    <td class="num" t-esc="t.ticket"/>
+                                                    <td class="num" t-esc="t.conv"/>
+                                                    <td class="num" t-att-title="t.nAberto + ' oportunidade(s) aberta(s)'" t-esc="t.aberto"/>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="o_vst_nota_tipo"><i class="fa fa-info-circle"/> O tipo vem do nome do projeto (palavras-chave). Para corrigir um negócio, adicione nele a etiqueta <b>Tipo: &lt;nome do tipo&gt;</b> (ex.: “Tipo: Vídeo e filme”), que prevalece.</div>
+                            </div>
+                            <div class="o_vst_card o_vst_saude">
+                                <div class="o_vst_card_head">
+                                    <h3>Mix de receita</h3>
+                                    <span class="o_vst_hint">participação de cada tipo na receita do período</span>
+                                </div>
+                                <div t-if="!r.donutTipos.segs.length" class="o_vst_empty">Nenhum projeto ganho neste período.</div>
+                                <div t-else="" class="o_vst_donut_linha">
+                                    <svg viewBox="0 0 42 42" class="o_vst_donut" role="img" aria-label="Mix de receita por tipo de projeto">
+                                        <circle cx="21" cy="21" r="15.915" fill="none" stroke="#eef0f3" stroke-width="6"/>
+                                        <t t-foreach="r.donutTipos.segs" t-as="sg" t-key="sg.key">
+                                            <circle cx="21" cy="21" r="15.915" fill="none" t-att-stroke="sg.color" stroke-width="6" t-att-stroke-dasharray="sg.dash" t-att-stroke-dashoffset="sg.offset"/>
+                                        </t>
+                                        <text x="21" y="22.5" text-anchor="middle" class="o_vst_donut_num" t-esc="r.donutTipos.total"/>
+                                    </svg>
+                                    <ul class="o_vst_legenda">
+                                        <t t-foreach="r.tipos" t-as="t" t-key="t.key">
+                                            <li t-if="t.receitaRaw"><span class="o_vst_dot" t-att-style="'background:' + t.cor"/><span t-esc="t.label"/><b t-esc="t.share"/></li>
+                                        </t>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ VENDEDORES (só com 2+ no período) -->
+                    <section t-if="r.mostrarVendedores" id="vst_vendedores" class="o_vst_secao">
+                        <div class="o_vst_secao_titulo">Vendedores</div>
+                        <div class="o_vst_card">
+                            <div class="o_vst_card_head">
+                                <h3>Resultado por vendedor</h3>
+                                <span class="o_vst_hint">responsável do negócio no CRM · ganhos, perdas e oportunidades geradas no período · aberto hoje</span>
+                            </div>
+                            <div class="o_vst_tabela_wrap">
+                                <table class="o_vst_tabela">
+                                    <thead><tr>
+                                        <th>Vendedor</th><th class="o_vst_sharecell">Receita</th><th class="num">% receita</th><th class="num">Ganhos</th>
+                                        <th class="num">Ticket</th><th class="num">Conversão</th><th class="num">Pipeline gerado</th><th class="num">Pipeline aberto</th>
+                                    </tr></thead>
+                                    <tbody>
+                                        <t t-foreach="r.vendedores" t-as="v" t-key="v.key">
+                                            <tr t-on-click="() => this.abrirNegocios(v.key + ' · ' + state.per.label, v.ids)">
+                                                <td class="o_vst_dimcell" t-esc="v.key"/>
+                                                <td class="o_vst_sharecell"><div class="o_vst_lbar"><div class="o_vst_lbar_fill" t-att-style="'width:' + v.width + '%'"/><span><b t-esc="v.receita"/></span></div></td>
+                                                <td class="num" t-att-class="{ 'zero': !v.receitaRaw }" t-esc="v.share"/>
+                                                <td class="num" t-att-class="{ 'zero': !v.n }" t-esc="v.n"/>
+                                                <td class="num" t-esc="v.ticket"/>
+                                                <td class="num" t-esc="v.conv"/>
+                                                <td class="num" t-att-title="v.nGerado + ' oportunidade(s)'" t-esc="v.gerado"/>
+                                                <td class="num" t-att-title="v.nAberto + ' oportunidade(s)'" t-esc="v.aberto"/>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ PIPELINE -->
+                    <section id="vst_pipeline" class="o_vst_secao">
+                        <div class="o_vst_secao_titulo">Pipeline</div>
+                        <t t-set="pl" t-value="r.pipeline"/>
+                        <div class="o_vst_pipe_nums">
+                            <div class="o_vst_card o_vst_mini" role="button" t-on-click="() => this.abrirNegocios('Pipeline gerado · ' + state.per.label, pl.idsGeradoPeriodo)">
+                                <div class="o_vst_mini_label">Gerado no período <i class="fa fa-info-circle o_vst_info" title="Valor das oportunidades que entraram no pipeline no período, em qualquer situação atual."/></div>
+                                <div class="o_vst_mini_valor"><t t-esc="pl.geradoPeriodo"/></div>
+                                <div class="o_vst_hint"><t t-esc="pl.nGeradoPeriodo"/> oportunidade(s)<t t-if="pl.geradoSemValor"> · <t t-esc="pl.geradoSemValor"/> sem valor</t></div>
+                            </div>
+                            <div class="o_vst_card o_vst_mini" role="button" t-on-click="() => this.abrirNegocios('Pipeline gerado no ano', pl.idsGeradoAno)">
+                                <div class="o_vst_mini_label">Gerado no ano <i class="fa fa-info-circle o_vst_info" title="Mesmo critério, de 01/01 até hoje. Não muda com o filtro."/></div>
+                                <div class="o_vst_mini_valor" t-esc="pl.geradoAno"/>
+                                <div class="o_vst_hint"><t t-esc="pl.nGeradoAno"/> oportunidade(s)</div>
+                            </div>
+                            <div class="o_vst_card o_vst_mini" role="button" t-on-click="() => this.abrirNegocios('Pipeline aberto', pl.idsAbertos)">
+                                <div class="o_vst_mini_label">Aberto hoje <i class="fa fa-info-circle o_vst_info" title="Soma do valor das oportunidades em andamento. Ponderado = valor × probabilidade."/></div>
+                                <div class="o_vst_mini_valor" t-esc="pl.aberto"/>
+                                <div class="o_vst_hint"><t t-esc="pl.nAberto"/> oportunidade(s) · ponderado <t t-esc="pl.ponderado"/></div>
+                            </div>
+                            <div class="o_vst_card o_vst_mini">
+                                <div class="o_vst_mini_label">Cobertura do pipeline <i class="fa fa-info-circle o_vst_info" title="Pipeline aberto ÷ receita média mensal dos últimos 12 meses fechados. Referência de mercado: 3× ou mais."/></div>
+                                <div class="o_vst_mini_valor" t-esc="pl.cobertura"/>
+                                <div class="o_vst_hint">receita média <t t-esc="pl.media12"/>/mês · ciclo de venda <t t-esc="pl.ciclo"/></div>
+                            </div>
+                        </div>
+                        <div class="o_vst_par">
+                            <div class="o_vst_card">
+                                <div class="o_vst_card_head">
+                                    <h3>Pipeline aberto por etapa</h3>
+                                    <span class="o_vst_hint">hoje · quantidade e valor esperado</span>
+                                </div>
+                                <div t-if="!pl.nAberto" class="o_vst_empty">Nenhuma oportunidade aberta.</div>
+                                <div t-else="" class="o_vst_funil">
+                                    <t t-foreach="pl.funil" t-as="s" t-key="s.key">
+                                        <div class="o_vst_frow" t-att-class="{ 'zero': !s.n }" t-on-click="() => s.n and this.abrirNegocios(s.nome + ' (aberto)', s.ids)" role="button"
+                                             t-att-title="'ponderado ' + s.ponderado + (s.semValor ? ' · ' + s.semValor + ' sem valor' : '')">
+                                            <div class="o_vst_fnome" t-esc="s.nome"/>
+                                            <div class="o_vst_ftrack"><div class="o_vst_fbar" t-att-style="'width:' + s.width + '%'"/></div>
+                                            <div class="o_vst_fnum" t-esc="s.n"/>
+                                            <div class="o_vst_fval" t-esc="s.valor"/>
+                                        </div>
+                                    </t>
+                                </div>
+                                <div class="o_vst_minititulo">Motivos de perda no período <span class="o_vst_hint" t-if="pl.nPerdidos">· <t t-esc="pl.nPerdidos"/> perdido(s), <t t-esc="pl.valorPerdido"/></span></div>
+                                <div t-if="!pl.motivos.length" class="o_vst_empty">Nenhum negócio perdido no período.</div>
+                                <t t-foreach="pl.motivos.slice(0, 6)" t-as="m" t-key="m.key">
+                                    <div class="o_vst_hbar o_vst_motivos" role="button" t-on-click="() => this.abrirNegocios('Perdidos: ' + m.key, m.ids)" t-att-title="m.valorTxt">
+                                        <div class="o_vst_hbar_nome" t-esc="m.key"/>
+                                        <div class="o_vst_hbar_track"><div class="o_vst_hbar_fill" t-att-style="'width:' + m.width + '%'"/></div>
+                                        <b t-esc="m.n"/>
+                                    </div>
+                                </t>
+                            </div>
+                            <div class="o_vst_card o_vst_saude">
+                                <div class="o_vst_card_head">
+                                    <h3>Saúde do pipeline</h3>
+                                    <span class="o_vst_hint">oportunidades abertas hoje</span>
+                                </div>
+                                <ul class="o_vst_saude_lista">
+                                    <t t-foreach="pl.saude" t-as="h" t-key="h.key">
+                                        <li t-att-class="h.classe" t-on-click="() => h.count and this.abrirNegocios(h.label, h.ids)"
+                                            t-att-title="h.nomes" t-att-role="h.count ? 'button' : null">
+                                            <div><div class="o_vst_saude_label" t-esc="h.label"/><div class="o_vst_hint" t-esc="h.hint"/></div>
+                                            <b t-esc="h.count"/>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
+                    <footer class="o_vst_rodape">
+                        <div>Relatório preparado pela <b>Vivaz</b> para a <b>Sétima</b> · fonte: CRM Odoo, equipe Pipeline Sétima · atualizado às <t t-esc="atualizado"/></div>
+                        <a href="#" class="o_vst_link o_vst_noprint" t-on-click.prevent="() => this.state.glossarioAberto = true"><i class="fa fa-book"/> Glossário de métricas</a>
+                    </footer>
+                </main>
+            </t>
+            <div t-elif="state.loading" class="o_vst_wrap o_vst_empty o_vst_empty_lg"><i class="fa fa-circle-o-notch fa-spin me-2"/>Carregando relatório…</div>
+
+            <div t-if="state.glossarioAberto" class="o_vst_modal_fundo o_vst_noprint" t-on-click.self="() => this.state.glossarioAberto = false">
+                <div class="o_vst_modal" role="dialog" aria-label="Glossário de métricas">
+                    <div class="o_vst_card_head o_vst_head_split">
+                        <h3>Glossário de métricas</h3>
+                        <button type="button" class="btn btn-sm btn-light" t-on-click="() => this.state.glossarioAberto = false" aria-label="Fechar"><i class="fa fa-times"/></button>
+                    </div>
+                    <dl>
+                        <t t-foreach="glossario" t-as="g" t-key="g_index">
+                            <dt t-esc="g[0]"/><dd t-esc="g[1]"/>
+                        </t>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

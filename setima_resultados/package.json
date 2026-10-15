@@ -1,0 +1,9 @@
+{
+  "name": "vivaz-setima-resultados-tools",
+  "private": true,
+  "type": "module",
+  "description": "Scripts de conferência do Dashboard Sétima (rodam o calc.js do módulo no Node).",
+  "dependencies": {
+    "luxon": "3.5.0"
+  }
+}
