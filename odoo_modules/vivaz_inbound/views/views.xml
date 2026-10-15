@@ -96,19 +96,52 @@
         <field name="view_mode">list</field>
     </record>
 
-    <!-- ======================================================= dashboard v2 -->
+    <!-- ======================================================= dashboard (v2) -->
     <record id="action_dashboard_v2" model="ir.actions.client">
-        <field name="name">Relatório Inbound (v2)</field>
+        <field name="name">Relatório de resultados · Inbound Sétima</field>
         <field name="tag">vivaz_inbound_dashboard_v2</field>
     </record>
+    <record id="action_config" model="ir.actions.client">
+        <field name="name">Configurações do relatório</field>
+        <field name="tag">vivaz_inbound_config</field>
+    </record>
 
-    <!-- Visível só para administradores até a aprovação (F5 não executada). A v1 segue intacta. -->
-    <menuitem id="menu_dashboard_v2" name="Dashboard v2" parent="inbound_setima.menu_root"
-              action="action_dashboard_v2" sequence="3" groups="base.group_system"/>
-    <menuitem id="menu_config" name="Configurações do relatório" parent="inbound_setima.menu_root"
-              sequence="90" groups="base.group_system"/>
-    <menuitem id="menu_config_comentario" name="Comentários do analista" parent="menu_config" action="action_comentario" sequence="1"/>
-    <menuitem id="menu_config_campanha" name="Apelidos de campanha" parent="menu_config" action="action_campanha" sequence="2"/>
-    <menuitem id="menu_config_meta" name="Metas por etapa" parent="menu_config" action="action_meta" sequence="3"/>
-    <menuitem id="menu_config_ajuste" name="Ajustes" parent="menu_config" action="action_ajuste" sequence="4"/>
+    <!-- F5 (aprovada em 15/10/2026): a v2 vira o único "Dashboard", visível para todos como era a v1. -->
+    <record id="menu_dashboard_v2" model="ir.ui.menu">
+        <field name="name">Dashboard</field>
+        <field name="parent_id" ref="inbound_setima.menu_root"/>
+        <field name="action" ref="action_dashboard_v2"/>
+        <field name="sequence">2</field>
+        <field name="group_ids" eval="[(5, 0, 0)]"/>
+    </record>
+    <!-- A v1 é arquivada (não excluída): menu inativo; a ação e os assets dela continuam no banco. -->
+    <record id="inbound_setima.menu_dashboard" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Um único item "Configurações" (só Administrador) que abre a página com as quatro opções. -->
+    <record id="menu_config" model="ir.ui.menu">
+        <field name="name">Configurações</field>
+        <field name="parent_id" ref="inbound_setima.menu_root"/>
+        <field name="action" ref="action_config"/>
+        <field name="sequence">90</field>
+        <field name="group_ids" eval="[(6, 0, [ref('base.group_system')])]"/>
+    </record>
+    <!-- Submenus antigos ficam inativos (a página de configurações substitui). -->
+    <record id="menu_config_comentario" model="ir.ui.menu">
+        <field name="name">Comentários do analista</field><field name="parent_id" ref="menu_config"/>
+        <field name="action" ref="action_comentario"/><field name="active" eval="False"/>
+    </record>
+    <record id="menu_config_campanha" model="ir.ui.menu">
+        <field name="name">Apelidos de campanha</field><field name="parent_id" ref="menu_config"/>
+        <field name="action" ref="action_campanha"/><field name="active" eval="False"/>
+    </record>
+    <record id="menu_config_meta" model="ir.ui.menu">
+        <field name="name">Metas por etapa</field><field name="parent_id" ref="menu_config"/>
+        <field name="action" ref="action_meta"/><field name="active" eval="False"/>
+    </record>
+    <record id="menu_config_ajuste" model="ir.ui.menu">
+        <field name="name">Ajustes</field><field name="parent_id" ref="menu_config"/>
+        <field name="action" ref="action_ajuste"/><field name="active" eval="False"/>
+    </record>
 </odoo>

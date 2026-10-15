@@ -16,11 +16,14 @@ Exige a chave de um administrador (ODOO_API_KEY). Credenciais nunca são impress
 import base64
 import io
 import os
+import re
 import sys
 import zipfile
 from collections import Counter
 
-from conexao import cliente
+import requests
+
+from conexao import base_url, cliente
 
 MODULO = "vivaz_inbound"
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -37,6 +40,23 @@ def zip_modulo():
                 caminho = os.path.join(base, a)
                 z.write(caminho, os.path.relpath(caminho, os.path.dirname(PASTA)))
     return buf.getvalue()
+
+
+def checar_scss():
+    """O Odoo compila SCSS com libsass: min()/max()/clamp() do CSS quebram o bundle de TODO o backend."""
+    txt = open(os.path.join(PASTA, "static", "src", "dashboard.scss"), encoding="utf-8").read()
+    ruins = re.findall(r"(?<![\w-])(min|max|clamp)\(", txt)
+    if ruins:
+        sys.exit(f"dashboard.scss usa {sorted(set(ruins))}() — incompatível com o libsass do Odoo. Deploy cancelado.")
+
+
+def checar_bundle_css():
+    """Compila o CSS do backend no servidor (rota pública de assets, modo debug) e procura erro."""
+    r = requests.get(f"{base_url()}/web/assets/debug/web.assets_backend.css", timeout=300)
+    erro = "This error occurred while compiling the bundle" in r.text
+    tem_v2 = ".o_vin" in r.text
+    print(f"CSS do backend: HTTP {r.status_code} · erro de compilação: {'SIM' if erro else 'não'} · estilos v2: {'sim' if tem_v2 else 'não'}")
+    return not erro and tem_v2
 
 
 def estado(c):
@@ -61,6 +81,7 @@ def main():
     imd, mod = estado(c)
     print(f"Módulo {MODULO}: {mod['state'] + ' ' + mod['installed_version'] if mod else 'não instalado'}"
           f" · {len(imd)} registros com external ID")
+    checar_scss()
     pacote = zip_modulo()
     print(f"Pacote: {len(pacote) / 1024:.1f} KB")
     if not aplicar:
@@ -83,10 +104,13 @@ def main():
     for m in modelos:
         print(f"  {m['model']}: {c.search_count(m['model'], [], context={'active_test': False})} registros")
     depois_v1 = assinatura_v1(c)
-    alterados = [k for k in antes_v1 if antes_v1[k] != depois_v1.get(k)]
+    # F5 (aprovada em 15/10/2026): o menu "Dashboard" da v1 é arquivado de propósito pelo módulo v2.
+    esperado = {"ir.ui.menu:menu_dashboard"}
+    alterados = [k for k in antes_v1 if antes_v1[k] != depois_v1.get(k) and k not in esperado]
     print("Duplicados:", dup or "nenhum")
     print("v1 (inbound_setima) alterada:", alterados or "não")
-    if dup or alterados or not mod or mod["state"] != "installed":
+    css_ok = checar_bundle_css()
+    if dup or alterados or not css_ok or not mod or mod["state"] != "installed":
         sys.exit(1)
 
 

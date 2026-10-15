@@ -20,7 +20,8 @@
     color: var(--vin-texto);
     font-size: 14px;
 
-    .o_vin_wrap { max-width: 1440px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+    // largura total da tela (pedido do Diego em 15/10/2026; o PRD previa 1440px)
+    .o_vin_wrap { max-width: none; margin: 0; padding-left: 24px; padding-right: 24px; }
 
     // ------------------------------------------------------------ cabeçalho
     .o_vin_header {
@@ -251,6 +252,15 @@
     .o_vin_modal { background: var(--vin-card); border-radius: 12px; padding: 20px; max-width: 720px; width: 100%; max-height: 85vh; overflow: auto;
         dt { font-size: 13.5px; margin-top: 10px; } dd { font-size: 13px; color: var(--vin-muted); margin: 2px 0 0; } }
 
+    // ------------------------------------------------------------ página de configurações
+    .o_vin_config_grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 16px; margin-top: 8px; }
+    .o_vin_config_item { display: flex; align-items: center; gap: 16px; text-align: left; cursor: pointer; width: 100%;
+        &:hover { border-color: var(--vin-sutil); }
+        h3 { font-size: 16px; font-weight: 600; margin: 0 0 2px; } p { margin: 0 0 6px; } }
+    .o_vin_config_icon { font-size: 22px; color: var(--vin-acento); width: 28px; text-align: center; flex: none; }
+    .o_vin_config_txt { flex: 1; min-width: 0; }
+    .o_vin_config_seta { color: var(--vin-sutil); }
+
     // ------------------------------------------------------------ responsivo (§6)
     @media (max-width: 1279.98px) {
         .o_vin_topo { grid-template-columns: minmax(0, 1fr); grid-template-areas: "acum" "kpis" "leit"; }
@@ -272,6 +282,7 @@
         .o_vin_frow { grid-template-columns: 96px minmax(0, 1fr) 36px 50px; gap: 6px; }
         .o_vin_conv { padding-left: 108px; }
         .o_vin_minis { grid-template-columns: minmax(0, 1fr); }
+        .o_vin_config_grid { grid-template-columns: minmax(0, 1fr); }
         .o_vin_legenda_camp { justify-content: flex-start; }
         h1 { font-size: 22px; }
     }

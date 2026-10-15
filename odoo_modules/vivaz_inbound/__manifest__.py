@@ -1,8 +1,8 @@
 {
     "name": "Inbound Sétima · Relatório de resultados v2",
-    "summary": "Dashboard v2 do Inbound Sétima (PRD v1.1): métricas corrigidas, leitura do período, "
-               "acumulado fixo e configurações do relatório. Menu restrito a administradores.",
-    "version": "19.0.2.0.0",
+    "summary": "Dashboard do Inbound Sétima (PRD v1.1): métricas corrigidas, leitura do período, "
+               "acumulado fixo e configurações do relatório. Substitui o dashboard da v1 (arquivado).",
+    "version": "19.0.2.1.0",
     "category": "Sales/CRM",
     "author": "Agência Vivaz",
     "license": "LGPL-3",
@@ -21,6 +21,7 @@
             "vivaz_inbound/static/src/calc.js",
             "vivaz_inbound/static/src/data.js",
             "vivaz_inbound/static/src/dashboard.js",
+            "vivaz_inbound/static/src/config.js",
         ],
     },
     "installable": True,

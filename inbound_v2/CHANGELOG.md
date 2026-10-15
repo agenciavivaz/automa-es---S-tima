@@ -1,7 +1,15 @@
 # CHANGELOG · Relatório de resultados · Inbound Sétima v2
 
-Versão do módulo: `vivaz_inbound` 19.0.2.0.0 · publicado em 15/10/2026 · PRD v1.1.
-Executado até a **F4**. A **F5 (virada do menu principal / arquivar a v1) não foi feita** e aguarda aprovação.
+Versão do módulo: `vivaz_inbound` 19.0.2.1.0 · publicado em 15/10/2026 · PRD v1.1.
+F0–F4 executadas. **F5 executada em 15/10/2026 com aprovação do Diego** (ver "19.0.2.1.0" abaixo).
+
+## 19.0.2.1.0 — virada (F5) e ajustes pedidos na validação
+
+- **Um só dashboard:** o menu "Dashboard" da v1 (`inbound_setima.menu_dashboard`, id 840) foi **arquivado** (`active = False`, não excluído; ação, assets e código da v1 continuam no banco e em `backup/20261015/`). A v2 passou a ser **CRM › Inbound Sétima › Dashboard**, visível para todos, como era a v1.
+- **Largura total:** o relatório ocupa a tela inteira (padding de 24 px). O PRD previa um container de 1440 px (L1), mas a largura total foi um pedido do Diego.
+- **Menu mais enxuto:** um único item **Configurações** (só Administrador) abre uma página com as quatro opções em cards (Comentários do analista, Apelidos de campanha, Metas por etapa, Ajustes), com a quantidade de registros de cada uma. Os quatro submenus antigos ficaram inativos.
+- **Incidente corrigido (≈ 5 min):** a primeira publicação desta versão usou `min(100%, 420px)` no CSS. O libsass do Odoo não aceita essa sintaxe e a compilação do CSS do backend falhou. Corrigido e republicado em seguida; o CSS voltou a compilar sem erro. Prevenção: `deploy_v2.py` agora recusa `min()/max()/clamp()` no SCSS e, depois de importar, compila o CSS do backend no servidor e falha se houver erro.
+- **Como desfazer a virada:** reativar o menu 840 e remover do `views.xml` os registros `inbound_setima.menu_dashboard` e `menu_dashboard_v2` (grupos), depois rodar o deploy.
 
 Legenda: ✅ feito · ⚠️ feito com ressalva · ⏸ não feito (motivo)
 
@@ -44,7 +52,7 @@ Legenda: ✅ feito · ⚠️ feito com ressalva · ⏸ não feito (motivo)
 
 | ID | Status | O que foi feito |
 |---|---|---|
-| L1 | ✅ | Container de `max-width: 1440px` centralizado, padding de 24 px, gap de 16 px e 24 px entre seções. |
+| L1 | ⚠️ | Primeiro com `max-width: 1440px`; na 19.0.2.1.0 passou a ocupar a **largura total**, por pedido do Diego. Mantidos o padding de 24 px, o gap de 16 px e os 24 px entre seções. |
 | L2 | ✅ | Ordem: Acumulado fixo + KPIs → Leitura → Funil/Saúde → Aquisição → Operação → Atividades → rodapé. |
 | L3 | ✅ | Linhas do funil com 36 px, etapas zeradas em cinza e sem chip entre zeros. Nota de maturação quando o período tem < 30 dias ou termina hoje. |
 | L4 | ✅ | Cards neutros (branco, borda cinza, raio 12 px), sem borda colorida no topo. A cor fica para semântica (bom/ruim/atenção) e para a paleta de campanhas. Exceção intencional do PRD: o card do acumulado. |
@@ -88,4 +96,4 @@ Legenda: ✅ feito · ⚠️ feito com ressalva · ⏸ não feito (motivo)
 3. **1º contato depende das notas manuais.** O envio automático do DataCrazy só deixa a tag, sem data. Se o `sincronizar_odoo_datacrazy.py` postar uma nota "Enviado ao DataCrazy" com a hora do envio, o SLA passa a medir a automação também (mudança fora deste escopo).
 4. **"Sem sucesso"** segue o critério da v1 (por texto). Frases como "sem retorno", "caixa postal" e "fica mudo" não entram. Sugestão: ampliar a lista depois de validar com a Amanda.
 5. **Desempenho:** no Node, pela rede da sandbox, o cálculo levou 2,4–2,8 s por período, com chamadas em paralelo. No navegador, dentro do Odoo, deve ficar abaixo disso; confirmar o critério de < 2 s na validação.
-6. **F5 não executada:** a v1 segue no menu "Dashboard" para todos, e a v2 em "Dashboard v2", só para administradores.
+6. **F5 executada em 15/10/2026:** pelo PRD, a v1 fica arquivada (não excluída) por 30 dias, até 14/11/2026.

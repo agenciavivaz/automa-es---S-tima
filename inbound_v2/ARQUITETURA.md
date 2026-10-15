@@ -85,15 +85,17 @@ navegador (sessão do usuário)
 | Registro v2 | External ID | ID |
 |---|---|---|
 | Ação cliente (tag `vivaz_inbound_dashboard_v2`) | `vivaz_inbound.action_dashboard_v2` | ir.actions.client 1358 |
-| Menu **CRM › Inbound Sétima › Dashboard v2** (só Administrador) | `vivaz_inbound.menu_dashboard_v2` | ir.ui.menu 841 |
-| Menu **Configurações do relatório** (só Administrador) | `vivaz_inbound.menu_config` (+ `menu_config_comentario/campanha/meta/ajuste`) | ir.ui.menu 842–846 |
+| Menu **CRM › Inbound Sétima › Dashboard** (todos; desde a F5) | `vivaz_inbound.menu_dashboard_v2` | ir.ui.menu 841 |
+| Menu **Configurações** (só Administrador) → página com 4 opções | `vivaz_inbound.menu_config` + `action_config` (tag `vivaz_inbound_config`) | ir.ui.menu 842, ir.actions.client 1359 |
+| Submenus antigos de configuração (inativos) | `menu_config_comentario/campanha/meta/ajuste` | ir.ui.menu 843–846 |
+| Menu "Dashboard" da **v1** (arquivado na F5) | `inbound_setima.menu_dashboard` | ir.ui.menu 840, `active = False` |
 | Modelos §9.4 | `model_comentario` (`x_vivaz_inb_comentario`), `model_campanha` (`x_vivaz_inb_campanha`), `model_meta` (`x_vivaz_inb_meta`), `model_ajuste` (`x_vivaz_inb_ajuste`) | ir.model 1220/1222/1224/1226 |
 | Acessos | leitura para Usuário interno; comentário editável por Gerente de Vendas e Administrador; demais só Administrador | 8 ir.model.access |
 | Telas de configuração | `view_comentario_list/form`, `view_campanha_list`, `view_meta_list`, `view_ajuste_list` + 4 act_window | ir.ui.view 4683–4687, act_window 1354–1357 |
 | Dados iniciais (`noupdate`) | 6 apelidos de campanha com cor fixa; ajuste `acumulado_desde` vazio (D5) | x_vivaz_inb_campanha / x_vivaz_inb_ajuste |
 | Assets | `calc.js`, `data.js`, `dashboard.js/.xml/.scss` em `web.assets_backend` | ir.asset 118–122 |
 
-Total: **60 registros** com external ID `vivaz_inbound.*`.
+Total: **63 registros** com external ID `vivaz_inbound.*` (19.0.2.1.0).
 
 ### Deploy e scripts (`inbound_v2/scripts/`)
 
@@ -109,4 +111,4 @@ Dependência dos scripts Node: `cd inbound_v2 && npm install` (luxon). Proxy da 
 
 ### Escritas feitas no Odoo
 Só os registros técnicos do módulo `vivaz_inbound` e os dados de configuração do §9.4 (6 apelidos + 1 ajuste).
-**Nenhuma escrita em `crm.lead`, `mail.message`, `res.partner` ou outro dado de negócio.** A v1 (`inbound_setima`) não foi tocada.
+**Nenhuma escrita em `crm.lead`, `mail.message`, `res.partner` ou outro dado de negócio.** Até a F4 a v1 (`inbound_setima`) não foi tocada. Na F5 (aprovada), só o menu dela foi arquivado.

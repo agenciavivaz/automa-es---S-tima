@@ -457,4 +457,34 @@
             </div>
         </div>
     </t>
+
+    <t t-name="vivaz_inbound.Config">
+        <div class="o_action o_vin h-100 overflow-auto">
+            <header class="o_vin_wrap o_vin_header">
+                <div class="o_vin_titulo">
+                    <div class="o_vin_eyebrow">CRM · Inbound Sétima</div>
+                    <h1>Configurações do relatório</h1>
+                    <div class="o_vin_sub">O que muda aqui aparece no Dashboard na próxima atualização.</div>
+                </div>
+                <div class="o_vin_controles">
+                    <button type="button" class="btn btn-sm btn-light" t-on-click="abrirDashboard"><i class="fa fa-bar-chart me-1"/>Abrir o Dashboard</button>
+                </div>
+            </header>
+            <main class="o_vin_wrap o_vin_corpo">
+                <div class="o_vin_config_grid">
+                    <t t-foreach="opcoes" t-as="o" t-key="o.key">
+                        <button type="button" class="o_vin_card o_vin_config_item" t-on-click="() => this.abrir(o)">
+                            <i t-attf-class="fa {{ o.icon }} o_vin_config_icon"/>
+                            <div class="o_vin_config_txt">
+                                <h3 t-esc="o.titulo"/>
+                                <p class="o_vin_hint" t-esc="o.texto"/>
+                                <span t-if="state.contagem[o.key] !== null and state.contagem[o.key] !== undefined" class="o_vin_etapa"><t t-esc="state.contagem[o.key]"/> registro(s)</span>
+                            </div>
+                            <i class="fa fa-chevron-right o_vin_config_seta"/>
+                        </button>
+                    </t>
+                </div>
+            </main>
+        </div>
+    </t>
 </templates>
