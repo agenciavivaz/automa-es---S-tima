@@ -269,6 +269,9 @@ def build_lead_vals(row: dict, partner_id: int) -> dict:
         "team_id": ODOO_TEAM_ID,
         "stage_id": ODOO_STAGE_ID,
         "lead_properties": properties,
+        # Campos do módulo inbound_setima: aparecem no card do pipeline.
+        "x_meta_conjunto": row.get("adset_name", "").strip(),
+        "x_meta_anuncio": row.get("ad_name", "").strip(),
     }
 
     return {k: v for k, v in vals.items() if v not in (None, "", 0)}

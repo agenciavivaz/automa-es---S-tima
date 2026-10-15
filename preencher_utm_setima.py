@@ -1,5 +1,5 @@
 """
-Preenche as UTMs (origem, mídia, campanha) dos leads do Inbound Sétima vindos do Meta.
+Preenche UTMs (origem, mídia, campanha), conjunto e criativo dos leads do Inbound Sétima vindos do Meta.
 
 A planilha do Meta não tem colunas utm_*: traz campanha, conjunto, anúncio e plataforma,
 que o import_leads_setima.py grava na descrição do lead. Este script lê a descrição e
@@ -9,8 +9,9 @@ preenche os campos padrão do Odoo:
     (anúncio pago)      → Mídia (medium_id): Paid Social
     Campanha            → Campanha (campaign_id): uma utm.campaign por nome
 
+    Conjunto de anuncios → x_meta_conjunto · Anuncio → x_meta_anuncio (campos do módulo inbound_setima)
+
 Só preenche campo vazio (nunca sobrescreve) e inclui leads arquivados (ganhos/perdidos).
-Conjunto e anúncio não têm campo UTM no lead: continuam na descrição.
 
 Uso:
     DRY_RUN=true  python preencher_utm_setima.py   # só mostra o que faria (padrão)
@@ -72,7 +73,7 @@ def main():
         "crm.lead", "search_read",
         domain=[["team_id", "=", TEAM_ID], ["active", "in", [True, False]],
                 ["description", "ilike", "Lead ID (Meta)"]],
-        fields=["description", "source_id", "medium_id", "campaign_id"],
+        fields=["description", "source_id", "medium_id", "campaign_id", "x_meta_conjunto", "x_meta_anuncio"],
     )
     print(f"{len(leads)} lead(s) do Meta na equipe {TEAM_ID}.")
 
@@ -103,6 +104,10 @@ def main():
                 if criada:
                     print(f"  criar campanha: {campanha}")
             vals["campaign_id"] = campanhas[campanha]
+        for campo_lead, rotulo in (("x_meta_conjunto", "Conjunto de anuncios"), ("x_meta_anuncio", "Anuncio")):
+            valor = campo(rotulo, desc)
+            if not lead[campo_lead] and valor:
+                vals[campo_lead] = valor
         if not plataforma and not campanha:
             sem_dados += 1
         if vals:
