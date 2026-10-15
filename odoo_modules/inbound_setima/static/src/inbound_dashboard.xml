@@ -113,6 +113,56 @@
                         </t>
                     </div>
 
+                    <!-- ============================ resultado comercial -->
+                    <div t-if="d.comercial.contratos.length" class="o_abm_grid o_abm_grid_1_1">
+                        <div class="o_abm_card o_inb_receita">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-trophy"/> Receita gerada pelo inbound</h3>
+                                    <span class="o_abm_card_hint">contratos fechados, independente do pipeline</span>
+                                </div>
+                            </div>
+                            <div class="o_inb_receita_valor" t-esc="d.comercial.receitaTotal"/>
+                            <div class="o_abm_card_hint mb-2">
+                                <t t-if="d.comercial.noPeriodo">no período selecionado: <b t-esc="d.comercial.receitaPeriodo"/></t>
+                                <t t-else="">nenhum contrato fechado no período selecionado</t>
+                            </div>
+                            <ul class="o_abm_list">
+                                <t t-foreach="d.comercial.contratos" t-as="c" t-key="c.id">
+                                    <li t-on-click="() => this.openLead(c.id)">
+                                        <span class="o_inb_log_icon" style="background:#10b981"><i class="fa fa-check"/></span>
+                                        <div class="o_abm_list_main">
+                                            <div class="o_abm_list_title" t-esc="c.name"/>
+                                            <div class="o_abm_list_sub">fechado em <t t-esc="c.fechado"/> · <t t-esc="c.pipeline"/></div>
+                                        </div>
+                                        <strong class="text-nowrap" t-esc="c.valor"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+                        <div class="o_abm_card">
+                            <div class="o_abm_card_head">
+                                <div>
+                                    <h3><i class="fa fa-folder-open-o"/> Oportunidades em aberto na mesma empresa</h3>
+                                    <span class="o_abm_card_hint">expansão da conta conquistada · total estimado <t t-esc="d.comercial.abertasValor"/></span>
+                                </div>
+                            </div>
+                            <div t-if="!d.comercial.abertas.length" class="o_abm_empty">Nenhuma oportunidade em aberto.</div>
+                            <ul class="o_abm_list">
+                                <t t-foreach="d.comercial.abertas" t-as="o" t-key="o.id">
+                                    <li t-on-click="() => this.openLead(o.id)">
+                                        <span class="o_inb_log_icon" style="background:#3b82f6"><i class="fa fa-briefcase"/></span>
+                                        <div class="o_abm_list_main">
+                                            <div class="o_abm_list_title" t-esc="o.name"/>
+                                            <div class="o_abm_list_sub"><t t-esc="o.etapa"/> · <t t-esc="o.pipeline"/></div>
+                                        </div>
+                                        <span class="text-nowrap small" t-esc="o.valor"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+                    </div>
+
                     <!-- ============================ funil + situação -->
                     <div class="o_abm_grid o_abm_grid_2_1">
                         <div class="o_abm_card">

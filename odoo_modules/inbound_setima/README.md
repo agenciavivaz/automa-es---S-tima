@@ -31,3 +31,8 @@ Dashboard ABM (depende de `abm_setima_dashboard`).
   por palavra-chave (Reunião / agendamento, E-mail, WhatsApp / DataCrazy, Ligação, Pesquisa,
   Outros), por pessoa e ao longo do tempo, com o registro completo e o tempo até o 1º registro.
 - **Resumo do período** em texto e botão **Exportar PDF** (impressão só do relatório).
+- **Receita gerada:** contratos listados em `CONTRATOS` (topo do `inbound_dashboard.js`)
+  somam receita, independente do pipeline, na data de fechamento informada. Hoje:
+  25/0172 Hyundai (R$ 650.000, fechado em 16/03/2026). Contam como "Ganho" no funil e no KPI
+  quando a data cai no período. Ao lado, as oportunidades em aberto das empresas em
+  `EMPRESAS_RELACIONADAS`, em qualquer pipeline.

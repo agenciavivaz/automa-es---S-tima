@@ -1,7 +1,7 @@
 {
     "name": "Inbound Sétima · Pipeline",
     "summary": "Menu CRM / Inbound Sétima: pipeline e dashboard de resultados no padrão visual do ABM.",
-    "version": "19.0.1.2.0",
+    "version": "19.0.1.3.0",
     "category": "Sales/CRM",
     "author": "Agência Vivaz",
     "license": "LGPL-3",
