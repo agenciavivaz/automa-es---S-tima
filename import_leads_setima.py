@@ -210,6 +210,39 @@ def create_or_find_contact(models, uid, name: str, email: str, phone: str) -> in
     return partner_id
 
 
+# UTM: a planilha do Meta não tem utm_*; plataforma e campanha viram origem/mídia/campanha.
+PLATAFORMAS_UTM = {"ig": "Instagram", "fb": "Facebook", "an": "Audience Network", "msg": "Messenger"}
+_utm_cache: dict = {}
+
+
+def get_or_create_utm(models, uid, model: str, nome: str, campo: str = "name") -> int:
+    chave = (model, nome)
+    if chave not in _utm_cache:
+        achado = models.execute_kw(
+            ODOO_DB, uid, ODOO_API_KEY, model, "search",
+            [[[campo, "=", nome]]], {"limit": 1},
+        )
+        _utm_cache[chave] = achado[0] if achado else models.execute_kw(
+            ODOO_DB, uid, ODOO_API_KEY, model, "create", [{campo: nome}],
+        )
+    return _utm_cache[chave]
+
+
+def build_utm_vals(models, uid, row: dict) -> dict:
+    vals = {}
+    plataforma = row.get("platform", "").strip().lower()
+    if plataforma:
+        vals["source_id"] = get_or_create_utm(
+            models, uid, "utm.source", PLATAFORMAS_UTM.get(plataforma, plataforma))
+    organico = row.get("is_organic", "").strip().lower() == "true"
+    vals["medium_id"] = get_or_create_utm(
+        models, uid, "utm.medium", "Organic Social" if organico else "Paid Social")
+    campanha = row.get("campaign_name", "").strip()
+    if campanha:
+        vals["campaign_id"] = get_or_create_utm(models, uid, "utm.campaign", campanha, "title")
+    return vals
+
+
 def build_lead_vals(row: dict, partner_id: int) -> dict:
     description = "\n".join([
         f"Lead ID (Meta): {row.get('id', '')}",
@@ -236,6 +269,9 @@ def build_lead_vals(row: dict, partner_id: int) -> dict:
         "team_id": ODOO_TEAM_ID,
         "stage_id": ODOO_STAGE_ID,
         "lead_properties": properties,
+        # Campos do módulo inbound_setima: aparecem no card do pipeline.
+        "x_meta_conjunto": row.get("adset_name", "").strip(),
+        "x_meta_anuncio": row.get("ad_name", "").strip(),
     }
 
     return {k: v for k, v in vals.items() if v not in (None, "", 0)}
@@ -294,6 +330,10 @@ def main():
 
             partner_id = create_or_find_contact(models, uid, name, email, phone)
             vals = build_lead_vals(row, partner_id)
+            try:
+                vals.update(build_utm_vals(models, uid, row))
+            except Exception as exc:  # UTM não pode impedir a entrada do lead
+                log.warning(f"UTM não preenchida para Meta ID {meta_id}: {exc}")
             lead_id = create_lead(models, uid, vals)
             log.info(f"Negócio criado: Odoo#{lead_id} | {vals.get('name')} | Contato: {name} | Meta ID: {meta_id}")
             imported += 1
