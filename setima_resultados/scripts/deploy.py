@@ -1,4 +1,4 @@
-"""Deploy idempotente do módulo importado `vivaz_setima` (menu CRM / Sétima + Dashboard).
+"""Deploy idempotente dos módulos importados de dashboard (padrão: `vivaz_setima`).
 
 Mesmo mecanismo do Inbound: zip do módulo (XML + assets, sem Python) enviado por
 `base.import.module` com "Forçar init". Os registros têm external ID `vivaz_setima.*`,
@@ -6,6 +6,7 @@ então rodar de novo ATUALIZA, nunca duplica.
 
     python setima_resultados/scripts/deploy.py            # plano (dry-run)
     python setima_resultados/scripts/deploy.py --aplicar  # importa
+    python setima_resultados/scripts/deploy.py --modulo=abm_setima_dashboard --aplicar
 
 Exige a chave de um administrador em ODOO_API_KEY. Credenciais nunca são impressas.
 """
@@ -26,8 +27,10 @@ from urllib.parse import urlparse  # noqa: E402
 
 from odoo.client import OdooClient, OdooCredentials  # noqa: E402
 
-MODULO = "vivaz_setima"
+# --modulo=<nome> publica outro módulo importado com o mesmo processo (ex.: abm_setima_dashboard)
+MODULO = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--modulo=")), "vivaz_setima")
 PASTA = os.path.join(RAIZ, "odoo_modules", MODULO)
+MARCAS = {"vivaz_setima": (".o_vst", "vivaz_setima_dashboard"), "abm_setima_dashboard": (".o_vab", "abm_setima_dashboard")}
 
 
 def base_url():
@@ -55,16 +58,17 @@ def zip_modulo():
 
 def checar_scss():
     """O Odoo compila SCSS com libsass: min()/max()/clamp() quebram o bundle de TODO o backend."""
-    txt = open(os.path.join(PASTA, "static", "src", "dashboard.scss"), encoding="utf-8").read()
+    txt = "".join(open(os.path.join(b, f), encoding="utf-8").read()
+                  for b, _, fs in os.walk(PASTA) for f in fs if f.endswith(".scss"))
     ruins = re.findall(r"(?<![\w-])(min|max|clamp)\(", txt)
     if ruins:
-        sys.exit(f"dashboard.scss usa {sorted(set(ruins))}() — incompatível com o libsass do Odoo. Deploy cancelado.")
+        sys.exit(f"o SCSS usa {sorted(set(ruins))}() — incompatível com o libsass do Odoo. Deploy cancelado.")
 
 
 def checar_bundles():
     """Compila CSS e JS do backend no servidor e procura erro de compilação."""
     ok = True
-    for ext, marca in (("css", ".o_vst"), ("js", "vivaz_setima_dashboard")):
+    for ext, marca in zip(("css", "js"), MARCAS[MODULO]):
         r = requests.get(f"{base_url()}/web/assets/debug/web.assets_backend.{ext}", timeout=300)
         erro = "This error occurred while compiling the bundle" in r.text or "Could not get content" in r.text
         tem = marca in r.text

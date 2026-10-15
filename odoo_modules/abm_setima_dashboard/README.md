@@ -11,6 +11,13 @@ sessão do próprio usuário, os dados da equipe ABM Setima (`crm.team` 20):
 
 Nada é gravado: o painel só lê.
 
+## Visual
+
+Desde a 19.0.2.0.0 segue a mesma identidade do Relatório Inbound e do Resultado Sétima (CSS escopado em
+`.o_vab`): cabeçalho com período e comparação, barra de seções fixa, KPIs com variação colorida,
+**Leitura do período** gerada por regras, card fixo **Programa hoje** (não muda com o filtro), cards
+neutros com cor só onde há significado e rodapé com glossário e exportação em PDF.
+
 ## O que mostra
 
 - **Seletor de período**: 7 dias, **30 dias (padrão)**, 90 dias, este mês, mês anterior, tudo
@@ -30,7 +37,8 @@ Tudo é clicável e abre a lista/ficha correspondente no Odoo.
 Odoo Online não aceita Python em módulos importados; este só tem XML e assets.
 
 ```bash
-cd odoo_modules && zip -r /tmp/abm_setima_dashboard.zip abm_setima_dashboard
+python setima_resultados/scripts/deploy.py --modulo=abm_setima_dashboard            # plano
+python setima_resultados/scripts/deploy.py --modulo=abm_setima_dashboard --aplicar  # importa e confere os bundles
 ```
 
 Depois, em **Apps → Importar módulo** (modo desenvolvedor), envie o zip marcando
