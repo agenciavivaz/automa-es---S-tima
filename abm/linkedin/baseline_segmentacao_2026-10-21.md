@@ -5,8 +5,11 @@ ampliação de cargos trouxe mais alcance e engajamento das contas ABM.
 
 ## Segmentação dos conjuntos de anúncios
 - Lista de empresas: **[ABM] [Contas alvo] - Sétima 93 (Montadoras)** (E).
-- Lista v2 (só nome + URL da página, 109 empresas) gerada em 21/10 para corrigir
-  a queda de público (de ~900 mil para 24.535 membros na lista de 14/10).
+- Lista v2 (só nome + URL da página, 109 empresas) subida em 21/10: voltou para
+  **~1,2 milhão de membros** (todos os funcionários das empresas, no mundo).
+  A lista de 14/10 tinha caído para 24.535 por causa de país/site/domínio no arquivo.
+- Filtros que reduzem para o público real: localização Brasil + cargos →
+  **4.400+ pessoas** por conjunto. Este é o tamanho endereçável de fato.
 - Cargos (atuais), qualquer um — chegou ao limite do LinkedIn. Antes (até 21/10):
   conteúdo, marketing, marca, produtos, comunicação, mídias sociais (≈35 cargos).
   Incluídos em 21/10: marketing digital (especialista, estrategista, executivo,
@@ -32,6 +35,9 @@ ampliação de cargos trouxe mais alcance e engajamento das contas ABM.
 | CTR | 0,54% – 0,82% | 0,53% – 0,80% |
 | Cliques | 0 – 30 | 0 – 30 |
 | CPC | R$ 45,49 – 53,48 | R$ 62,73 – 73,75 |
+
+## Custo real antes da mudança
+- CPM real ≈ **R$ 785** (R$ 3.544,91 ÷ 4.514 impr.) · CPC real ≈ **R$ 126** (÷ 28 cliques).
 
 ## Resultado real antes da mudança (15/09 a 14/10, campanhas ABM)
 - Investimento R$ 3.544,91 · 4.514 impressões · 28 cliques · CTR 0,62%.
