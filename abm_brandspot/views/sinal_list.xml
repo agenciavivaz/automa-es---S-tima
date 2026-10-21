@@ -1,0 +1,10 @@
+<list editable="top" default_order="x_data desc" decoration-muted="not x_ativo">
+    <field name="x_data" string="Data"/>
+    <field name="x_lead_id" string="Conta" domain="[('team_id', '=', __TEAM__)]"/>
+    <field name="x_partner_id" string="Contato"/>
+    <field name="x_tipo" string="Tipo"/>
+    <field name="x_origem" string="Origem"/>
+    <field name="x_pontos" string="Pontos" sum="Total"/>
+    <field name="x_ativo" string="Ativo"/>
+    <field name="x_detalhe" string="Detalhe"/>
+</list>

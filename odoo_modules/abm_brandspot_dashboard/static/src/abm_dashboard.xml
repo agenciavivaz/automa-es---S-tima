@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="abm_brandspot_dashboard.Donut">
+        <svg viewBox="0 0 42 42" class="o_vab_donut" role="img" t-att-aria-label="donutLabel">
+            <circle cx="21" cy="21" r="15.915" fill="none" stroke="#eef0f3" stroke-width="6"/>
+            <t t-foreach="donut.segs" t-as="seg" t-key="seg.key">
+                <circle cx="21" cy="21" r="15.915" fill="none" t-att-stroke="seg.color" stroke-width="6"
+                        t-att-stroke-dasharray="seg.dash" t-att-stroke-dashoffset="seg.offset"/>
+            </t>
+            <text x="21" y="21.5" text-anchor="middle" class="o_vab_donut_num" t-esc="donut.total"/>
+            <text x="21" y="26.5" text-anchor="middle" class="o_vab_donut_lbl" t-esc="donutLabel"/>
+        </svg>
+    </t>
+
+    <t t-name="abm_brandspot_dashboard.Dashboard">
+        <div class="o_action o_vab h-100 overflow-auto" t-ref="root">
+
+            <!-- ================================================= cabeçalho -->
+            <header class="o_vab_wrap o_vab_header">
+                <div class="o_vab_titulo">
+                    <div class="o_vab_eyebrow">CRM · ABM BrandSpot</div>
+                    <h1>Dashboard estratégico</h1>
+                    <div class="o_vab_sub">
+                        <span><i class="fa fa-calendar me-1"/><t t-esc="periodLabel"/></span>
+                        <t t-if="prevLabel"><span class="o_vab_sep">·</span><span>comparado com <t t-esc="prevLabel"/></span></t>
+                        <t t-if="state.raw"><span class="o_vab_sep">·</span><span>atualizado às <t t-esc="state.raw.loadedAt.toFormat('HH:mm')"/></span></t>
+                    </div>
+                    <div class="o_vab_modo o_vab_noprint" role="radiogroup" aria-label="Tier">
+                        <span class="o_vab_rotulo">Tier:</span>
+                        <t t-foreach="[['all','Todos'],['1','Tier 1'],['2','Tier 2'],['3','Tier 3']]" t-as="t" t-key="t[0]">
+                            <button type="button" role="radio" t-att-aria-checked="state.tier === t[0] ? 'true' : 'false'"
+                                    t-att-class="{ 'active': state.tier === t[0] }" t-on-click="() => this.state.tier = t[0]" t-esc="t[1]"/>
+                        </t>
+                    </div>
+                </div>
+                <div class="o_vab_controles o_vab_noprint">
+                    <div class="o_vab_chips" role="group" aria-label="Período">
+                        <t t-foreach="presets" t-as="p" t-key="p.key">
+                            <button type="button" class="o_vab_chip" t-att-class="{ 'active': state.preset === p.key }"
+                                    t-on-click="() => this.onPreset(p.key)" t-esc="p.label"/>
+                        </t>
+                    </div>
+                    <div class="o_vab_acoes">
+                        <t t-if="state.preset === 'custom'">
+                            <label class="o_vab_data">De <input type="date" class="form-control form-control-sm" t-att-value="state.from" t-on-change="(ev) => this.onCustomDate('from', ev)"/></label>
+                            <label class="o_vab_data">Até <input type="date" class="form-control form-control-sm" t-att-value="state.to" t-on-change="(ev) => this.onCustomDate('to', ev)"/></label>
+                        </t>
+                        <button type="button" class="btn btn-sm btn-primary" t-on-click="exportarPdf"><i class="fa fa-file-pdf-o me-1"/>Exportar PDF</button>
+                        <button type="button" class="btn btn-sm btn-light" title="Atualizar" t-on-click="() => this.load()">
+                            <i class="fa fa-refresh" t-att-class="{ 'fa-spin': state.loading }"/>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ================================================= barra de seções (sticky) -->
+            <nav class="o_vab_nav o_vab_noprint" aria-label="Seções do painel">
+                <div class="o_vab_wrap o_vab_nav_in">
+                    <t t-foreach="secoes" t-as="s" t-key="s.key">
+                        <a href="#" t-att-class="{ 'active': state.secao === s.key }" t-on-click.prevent="() => this.irPara(s.key)" t-esc="s.label"/>
+                    </t>
+                </div>
+            </nav>
+
+            <div t-if="state.error" class="o_vab_wrap"><div class="alert alert-danger">Não foi possível carregar o painel: <t t-esc="state.error"/></div></div>
+
+            <t t-if="state.raw">
+                <t t-set="d" t-value="metrics"/>
+                <main class="o_vab_wrap o_vab_corpo" t-att-class="{ 'o_vab_loading': state.loading }">
+
+                    <!-- ============================================ RESUMO -->
+                    <section id="vab_resumo" class="o_vab_secao">
+                        <div class="o_vab_secao_titulo">Resultado do período</div>
+                        <div class="o_vab_topo">
+                            <div class="o_vab_kpis">
+                                <t t-foreach="d.kpis" t-as="k" t-key="k.key">
+                                    <div class="o_vab_card o_vab_kpi" t-att-class="{ 'alerta': k.alerta }" t-on-click="() => this.openKpi(k.click)" role="button">
+                                        <div class="o_vab_kpi_label">
+                                            <i t-attf-class="fa {{ k.icon }}"/>
+                                            <span t-esc="k.label"/>
+                                            <i class="fa fa-info-circle o_vab_info" t-att-title="k.info" aria-label="Definição"/>
+                                        </div>
+                                        <div class="o_vab_kpi_valor" t-esc="k.value"/>
+                                        <div class="o_vab_kpi_rodape">
+                                            <span t-if="k.delta" class="o_vab_delta" t-att-class="k.delta.classe" t-att-title="k.delta.tooltip">
+                                                <i t-attf-class="fa {{ k.delta.seta }}"/> <t t-esc="k.delta.texto"/>
+                                            </span>
+                                            <span class="o_vab_kpi_sub" t-esc="k.sub"/>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <div class="o_vab_card o_vab_leitura">
+                                <div class="o_vab_card_head"><h3>Leitura do período</h3><span class="o_vab_hint">gerada por regras a partir do CRM</span></div>
+                                <div class="o_vab_leitura_cols">
+                                    <div class="o_vab_lcol">
+                                        <h4 class="bom"><i class="fa fa-line-chart"/> Destaques</h4>
+                                        <ul><t t-foreach="d.leitura.destaques" t-as="t" t-key="t_index"><li t-esc="t"/></t></ul>
+                                    </div>
+                                    <div class="o_vab_lcol">
+                                        <h4 class="atencao"><i class="fa fa-exclamation-triangle"/> Pontos de atenção</h4>
+                                        <ul><t t-foreach="d.leitura.atencao" t-as="t" t-key="t_index"><li t-esc="t"/></t></ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Programa hoje (fixo, não muda com o período) -->
+                            <aside class="o_vab_card o_vab_acum" aria-label="Programa ABM hoje">
+                                <div class="o_vab_pin" title="Não muda com o filtro de período"><i class="fa fa-thumb-tack"/> PROGRAMA HOJE</div>
+                                <h3>Contas no programa ABM</h3>
+                                <div class="o_vab_hint"><t t-esc="d.programa.ativas"/> ativas · <t t-esc="d.programa.cadenciaAtiva"/> em cadência ativa · <t t-esc="d.programa.decisorPct"/>% com decisor no comitê</div>
+                                <div class="o_vab_acum_valor" role="button" t-on-click="() => this.openKpi('contas')" t-esc="d.programa.contas"/>
+                                <div class="o_vab_acum_apoio">score médio <b t-esc="d.programa.scoreMedio"/> de <t t-esc="90"/></div>
+                                <div class="o_vab_temp" role="img" aria-label="Temperatura das contas">
+                                    <t t-foreach="d.programa.faixas" t-as="f" t-key="f.key">
+                                        <div t-if="f.count" t-att-style="'flex:' + f.flex + ';background:' + f.color" t-att-title="f.label + ': ' + f.count"/>
+                                    </t>
+                                </div>
+                                <div class="o_vab_temp_leg">
+                                    <t t-foreach="d.programa.faixas" t-as="f" t-key="f.key">
+                                        <span role="button" t-on-click="() => this.openFaixa(f.key)"><span class="o_vab_dot" t-att-style="'background:' + f.color"/><t t-esc="f.label"/> <b t-esc="f.count"/></span>
+                                    </t>
+                                </div>
+                                <div class="o_vab_minititulo">Maiores scores</div>
+                                <ul class="o_vab_contratos">
+                                    <t t-foreach="d.programa.top" t-as="c" t-key="c.id">
+                                        <li t-on-click="() => this.openLead(c.id)" role="button" t-att-title="c.nome">
+                                            <div class="o_vab_contrato_nome" t-esc="c.nome"/>
+                                            <div class="o_vab_contrato_meta"><span t-esc="c.etapa"/><b t-att-style="'color:' + c.faixa.color" t-esc="c.score"/></div>
+                                        </li>
+                                    </t>
+                                </ul>
+                                <div class="o_vab_acum_periodo" t-att-class="{ 'tem': d.programa.periodoTem }" t-esc="d.programa.periodoTexto"/>
+                            </aside>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ SINAIS -->
+                    <section id="vab_sinais" class="o_vab_secao">
+                        <div class="o_vab_secao_titulo">Sinais</div>
+                        <div class="o_vab_par">
+                            <div class="o_vab_card">
+                                <div class="o_vab_card_head o_vab_head_split">
+                                    <div>
+                                        <h3>Sinais ao longo do tempo</h3>
+                                        <span class="o_vab_hint"><t t-esc="d.totalSinais"/> sinais <t t-esc="d.timeline.unit"/>, por origem</span>
+                                    </div>
+                                    <a href="#" class="o_vab_link o_vab_noprint" t-on-click.prevent="() => this.openKpi('sinais')">ver sinais <i class="fa fa-angle-right"/></a>
+                                </div>
+                                <div class="o_vab_legenda_camp">
+                                    <t t-foreach="d.origens" t-as="o" t-key="o.key">
+                                        <span><span class="o_vab_dot" t-att-style="'background:' + o.color"/><t t-esc="o.label"/> <b t-esc="o.count"/></span>
+                                    </t>
+                                </div>
+                                <div t-if="!d.totalSinais" class="o_vab_empty">Nenhum sinal no período selecionado.</div>
+                                <div t-else="" class="o_vab_serie">
+                                    <div class="o_vab_serie_eixo">
+                                        <span t-esc="d.timeline.max"/>
+                                        <span t-esc="Math.round(d.timeline.max / 2)"/>
+                                        <span>0</span>
+                                    </div>
+                                    <div class="o_vab_serie_barras">
+                                        <t t-foreach="d.timeline.bars" t-as="b" t-key="b.key">
+                                            <div class="o_vab_sbar" t-att-title="b.title">
+                                                <div class="o_vab_sbar_pilha">
+                                                    <span t-if="b.total" class="o_vab_sbar_total" t-esc="b.total"/>
+                                                    <t t-foreach="b.segs" t-as="s" t-key="s.key">
+                                                        <div class="o_vab_sbar_seg" t-att-style="'height:' + s.height + '%;background:' + s.color"/>
+                                                    </t>
+                                                </div>
+                                                <div class="o_vab_sbar_label"><t t-if="b.showLabel" t-esc="b.label"/></div>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="o_vab_card o_vab_saude">
+                                <div class="o_vab_card_head">
+                                    <h3>Origem dos sinais</h3>
+                                    <span class="o_vab_hint">de onde vem a atenção das contas</span>
+                                </div>
+                                <div t-if="!d.totalSinais" class="o_vab_empty">Sem sinais no período.</div>
+                                <div t-else="" class="o_vab_donut_linha">
+                                    <t t-call="abm_brandspot_dashboard.Donut">
+                                        <t t-set="donut" t-value="d.donutOrigens"/>
+                                        <t t-set="donutLabel" t-value="'sinais'"/>
+                                    </t>
+                                    <ul class="o_vab_legenda">
+                                        <t t-foreach="d.origens" t-as="o" t-key="o.key">
+                                            <li><span class="o_vab_dot" t-att-style="'background:' + o.color"/><span t-esc="o.label"/><b t-esc="o.count"/><small class="o_vab_hint ms-1"><t t-esc="o.pontos"/> pts</small></li>
+                                        </t>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="o_vab_par">
+                            <div class="o_vab_card">
+                                <div class="o_vab_card_head">
+                                    <h3>Tipos de sinal</h3>
+                                    <span class="o_vab_hint">o que as contas estão fazendo · <span class="o_vab_etapa o_vab_resp_tag">resposta</span> em destaque</span>
+                                </div>
+                                <div t-if="!d.tipos.length" class="o_vab_empty">Sem sinais no período.</div>
+                                <t t-foreach="d.tipos" t-as="t" t-key="t.key">
+                                    <div class="o_vab_hbar">
+                                        <div class="o_vab_hbar_nome" t-att-title="t.label" t-esc="t.label"/>
+                                        <div class="o_vab_hbar_track"><div class="o_vab_hbar_fill" t-att-class="{ 'resp': t.resposta }" t-att-style="'width:' + t.width + '%'"/></div>
+                                        <b t-esc="t.count"/>
+                                        <span class="o_vab_hint" t-esc="t.pontos + ' pts'"/>
+                                    </div>
+                                </t>
+                            </div>
+                            <div class="o_vab_card">
+                                <div class="o_vab_card_head">
+                                    <h3>Últimos sinais</h3>
+                                    <span class="o_vab_hint">mais recentes no período</span>
+                                </div>
+                                <div t-if="!d.feed.length" class="o_vab_empty">Sem sinais no período.</div>
+                                <ul class="o_vab_lista">
+                                    <t t-foreach="d.feed" t-as="s" t-key="s.id">
+                                        <li t-on-click="() => this.openLead(s.x_lead_id[0])" role="button">
+                                            <span class="o_vab_dot" t-att-style="'background:' + s.origem.color" t-att-title="s.origem.label"/>
+                                            <div class="o_vab_lista_main">
+                                                <div class="o_vab_lista_titulo" t-esc="s.x_lead_id[1]"/>
+                                                <div class="o_vab_hint"><t t-esc="s.tipoLabel"/> · <t t-esc="s.quando"/></div>
+                                            </div>
+                                            <span class="o_vab_pts" t-att-class="{ 'off': !s.x_ativo }"
+                                                  t-att-title="s.x_ativo ? 'conta no score' : 'expirado / fora do score'">+<t t-esc="s.x_pontos"/></span>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ JORNADA -->
+                    <section id="vab_jornada" class="o_vab_secao">
+                        <div class="o_vab_secao_titulo">Jornada das contas</div>
+                        <div class="o_vab_par">
+                            <div class="o_vab_card">
+                                <div class="o_vab_card_head">
+                                    <h3>Posição no pipeline ABM</h3>
+                                    <span class="o_vab_hint">etapa atual das <t t-esc="d.totalLeads"/> contas · % da base</span>
+                                </div>
+                                <div class="o_vab_funil">
+                                    <t t-foreach="d.funil" t-as="s" t-key="s.id">
+                                        <div class="o_vab_frow" t-att-class="{ 'zero': s.zero }" t-on-click="() => this.openStage(s.id)" role="button">
+                                            <div class="o_vab_fnome" t-esc="s.name"/>
+                                            <div class="o_vab_ftrack"><div class="o_vab_fbar" t-att-style="'width:' + s.width + '%'"/></div>
+                                            <div class="o_vab_fnum" t-esc="s.count"/>
+                                            <div class="o_vab_fpct"><t t-esc="s.share"/>%</div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                            <div class="o_vab_card o_vab_saude">
+                                <div class="o_vab_card_head">
+                                    <h3>Temperatura e cadência</h3>
+                                    <span class="o_vab_hint">faixa pelo score dos sinais ativos</span>
+                                </div>
+                                <div class="o_vab_donut_linha">
+                                    <t t-call="abm_brandspot_dashboard.Donut">
+                                        <t t-set="donut" t-value="d.donutFaixas"/>
+                                        <t t-set="donutLabel" t-value="'contas'"/>
+                                    </t>
+                                    <ul class="o_vab_legenda">
+                                        <t t-foreach="d.faixas" t-as="f" t-key="f.key">
+                                            <li role="button" t-on-click="() => this.openFaixa(f.key)"><span class="o_vab_dot" t-att-style="'background:' + f.color"/><span><t t-esc="f.label"/> <small class="o_vab_hint" t-esc="f.hint"/></span><b t-esc="f.count"/></li>
+                                        </t>
+                                    </ul>
+                                </div>
+                                <div class="o_vab_minititulo">Cadência</div>
+                                <div class="o_vab_stack">
+                                    <t t-foreach="d.cadencia" t-as="c" t-key="c.key">
+                                        <div t-att-style="'flex:' + c.count + ';background:' + c.color" t-att-title="c.label + ': ' + c.count"/>
+                                    </t>
+                                </div>
+                                <div class="o_vab_chips_info">
+                                    <t t-foreach="d.cadencia" t-as="c" t-key="c.key">
+                                        <span><span class="o_vab_dot" t-att-style="'background:' + c.color"/><t t-esc="c.label"/> <b t-esc="c.count"/></span>
+                                    </t>
+                                </div>
+                                <div class="o_vab_minititulo">Tiers</div>
+                                <div class="o_vab_chips_info">
+                                    <t t-foreach="d.tiers" t-as="t" t-key="t.key">
+                                        <span class="o_vab_etapa"><t t-esc="t.label"/> · <b t-esc="t.count"/></span>
+                                    </t>
+                                </div>
+                                <div class="o_vab_minititulo">Estúdio interno · tese</div>
+                                <div class="o_vab_stack">
+                                    <t t-foreach="d.estudios" t-as="e" t-key="e.key">
+                                        <div t-att-style="'flex:' + e.count + ';background:' + e.color" t-att-title="e.label + ': ' + e.count"/>
+                                    </t>
+                                </div>
+                                <div class="o_vab_chips_info">
+                                    <t t-foreach="d.estudios" t-as="e" t-key="e.key">
+                                        <span role="button" t-on-click="() => this.openEstudio(e.key)"><span class="o_vab_dot" t-att-style="'background:' + e.color"/><t t-esc="e.label"/> <b t-esc="e.count"/></span>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ ONDE AGIR -->
+                    <section id="vab_agir" class="o_vab_secao">
+                        <div class="o_vab_secao_titulo">Onde agir agora</div>
+                        <div class="o_vab_alertas">
+                            <t t-foreach="d.alertas" t-as="a" t-key="a.key">
+                                <div class="o_vab_card o_vab_alerta" t-att-class="{ 'tem': a.count }">
+                                    <div class="o_vab_alerta_head" t-on-click="() => a.count and this.openAlert(a)" t-att-role="a.count ? 'button' : null">
+                                        <div>
+                                            <div class="o_vab_alerta_titulo"><i t-attf-class="fa {{ a.icon }}"/> <t t-esc="a.title"/></div>
+                                            <div class="o_vab_hint" t-esc="a.hint"/>
+                                        </div>
+                                        <b class="o_vab_alerta_num" t-esc="a.count"/>
+                                    </div>
+                                    <ul t-if="a.count" class="o_vab_alerta_lista">
+                                        <t t-foreach="a.top" t-as="l" t-key="l.id">
+                                            <li t-on-click="() => this.openLead(l.id)" role="button">
+                                                <span t-esc="l.name"/>
+                                                <small class="o_vab_hint" t-esc="l.stage_id and l.stage_id[1]"/>
+                                            </li>
+                                        </t>
+                                        <li t-if="a.count > a.top.length" class="o_vab_mais" t-on-click="() => this.openAlert(a)" role="button">
+                                            + <t t-esc="a.count - a.top.length"/> conta(s)
+                                        </li>
+                                    </ul>
+                                    <div t-else="" class="o_vab_ok"><i class="fa fa-check"/> Nada pendente</div>
+                                </div>
+                            </t>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ EXECUÇÃO -->
+                    <section id="vab_execucao" class="o_vab_secao">
+                        <div class="o_vab_secao_titulo">Execução</div>
+                        <div class="o_vab_minis">
+                            <t t-foreach="d.statusTotals" t-as="s" t-key="s.key">
+                                <div class="o_vab_card o_vab_mini" t-att-class="{ 'atencao': s.key === 'overdue' and s.count }">
+                                    <div class="o_vab_mini_label"><span class="o_vab_dot" t-att-style="'background:' + s.color"/><t t-esc="s.label"/><t t-if="s.key === 'done'"> no período</t><t t-else=""> (abertas hoje)</t></div>
+                                    <div class="o_vab_mini_valor" t-esc="s.count"/>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="o_vab_par o_vab_par_igual">
+                            <div class="o_vab_card">
+                                <div class="o_vab_card_head">
+                                    <h3>Atividades por tipo</h3>
+                                    <span class="o_vab_hint">concluídas no período + carteira aberta hoje</span>
+                                </div>
+                                <div t-if="!d.atividadesTipo.length" class="o_vab_empty">Nenhuma atividade ABM.</div>
+                                <t t-foreach="d.atividadesTipo" t-as="r" t-key="r.name">
+                                    <div class="o_vab_hbar o_vab_hbar_pilha">
+                                        <div class="o_vab_hbar_nome" t-esc="r.name" t-att-title="r.name"/>
+                                        <div class="o_vab_hbar_track o_vab_hbar_multi">
+                                            <t t-foreach="r.segs" t-as="s" t-key="s.key">
+                                                <div t-att-style="'width:' + s.width + '%;background:' + s.color" t-att-title="s.n"/>
+                                            </t>
+                                        </div>
+                                        <b t-esc="r.total"/>
+                                    </div>
+                                </t>
+                            </div>
+                            <div class="o_vab_card">
+                                <div class="o_vab_card_head o_vab_head_split">
+                                    <div>
+                                        <h3>Agenda ABM · próximos 7 dias</h3>
+                                        <span class="o_vab_hint">atrasadas primeiro</span>
+                                    </div>
+                                    <a href="#" class="o_vab_link o_vab_noprint" t-on-click.prevent="() => this.openKpi('atrasadas')">atrasadas <i class="fa fa-angle-right"/></a>
+                                </div>
+                                <div t-if="!d.agenda.length" class="o_vab_empty">Agenda limpa para os próximos dias.</div>
+                                <ul class="o_vab_lista">
+                                    <t t-foreach="d.agenda" t-as="a" t-key="a.id">
+                                        <li t-on-click="() => this.openActivity(a)" role="button">
+                                            <span class="o_vab_quando" t-attf-class="st_{{ a.status }}" t-esc="a.quando"/>
+                                            <div class="o_vab_lista_main">
+                                                <div class="o_vab_lista_titulo" t-esc="a.res_name"/>
+                                                <div class="o_vab_hint"><t t-esc="a.tipo"/><t t-if="a.user_id"> · <t t-esc="a.user_id[1]"/></t></div>
+                                            </div>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================ VISÃO POR CONTA -->
+                    <section id="vab_contas" class="o_vab_secao">
+                        <div class="o_vab_secao_titulo">Visão por conta</div>
+                        <div class="o_vab_card">
+                            <div class="o_vab_card_head o_vab_head_split">
+                                <div>
+                                    <h3>Contas do programa</h3>
+                                    <span class="o_vab_hint">sinais e atividades concluídas no período; score, comitê e pendências atuais</span>
+                                </div>
+                                <div class="o_vab_tabs o_vab_noprint" role="tablist">
+                                    <span class="o_vab_rotulo">Ordenar:</span>
+                                    <t t-foreach="[['score','Score'],['sinais','Pontos no período'],['exposicao','Exposição'],['atividades','Atrasos'],['nome','Nome']]" t-as="o" t-key="o[0]">
+                                        <button type="button" role="tab" t-att-class="{ 'active': state.sort === o[0] }" t-on-click="() => this.onSort(o[0])" t-esc="o[1]"/>
+                                    </t>
+                                </div>
+                            </div>
+                            <div class="o_vab_tabela_wrap">
+                                <table class="o_vab_tabela">
+                                    <thead>
+                                        <tr>
+                                            <th>Conta</th>
+                                            <th>Etapa</th>
+                                            <th class="o_vab_col_score">Score</th>
+                                            <th class="num">Sinais</th>
+                                            <th class="num">Pts</th>
+                                            <th>Último sinal</th>
+                                            <th>Cadência</th>
+                                            <th class="num" title="decisores / pessoas no comitê">Comitê</th>
+                                            <th class="num" title="impressões por pessoa do comitê (30d)">Exposição</th>
+                                            <th class="num" title="concluídas no período / abertas (atrasadas)">Atividades</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="state.contasTodas ? d.contas : d.contas.slice(0, 15)" t-as="c" t-key="c.id">
+                                            <tr t-on-click="() => this.openLead(c.id)">
+                                                <td class="o_vab_dimcell">
+                                                    <span class="o_vab_tier" t-if="c.lead.x_abm_tier">T<t t-esc="c.lead.x_abm_tier"/></span>
+                                                    <b t-esc="c.lead.name"/>
+                                                </td>
+                                                <td><span class="o_vab_etapa" t-esc="c.stage"/></td>
+                                                <td class="o_vab_col_score">
+                                                    <div class="o_vab_score" t-att-title="c.faixa.label">
+                                                        <div class="o_vab_score_track">
+                                                            <div class="o_vab_score_fill" t-att-style="'width:' + c.scorePct + '%;background:' + c.faixa.color"/>
+                                                            <span class="o_vab_score_mark m30"/>
+                                                            <span class="o_vab_score_mark m60"/>
+                                                        </div>
+                                                        <b t-att-style="'color:' + c.faixa.color" t-esc="c.lead.x_abm_score or 0"/>
+                                                    </div>
+                                                </td>
+                                                <td class="num" t-att-class="{ 'zero': !c.sinais }" t-esc="c.sinais or '—'"/>
+                                                <td class="num"><b t-if="c.pontos" t-esc="'+' + c.pontos"/><span t-else="" class="zero">—</span></td>
+                                                <td t-esc="c.ultimoSinal"/>
+                                                <td><span class="o_vab_cad"><span class="o_vab_dot" t-att-style="'background:' + c.cadencia.color"/><t t-esc="c.cadencia.label"/></span></td>
+                                                <td class="num" t-esc="c.comite"/>
+                                                <td class="num" t-esc="c.exposicao"/>
+                                                <td class="num">
+                                                    <t t-esc="c.concluidas"/> / <t t-esc="c.abertas"/>
+                                                    <span t-if="c.atrasadas" class="o_vab_atraso" t-att-title="c.atrasadas + ' atrasada(s)'" t-esc="c.atrasadas"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <a t-if="d.contas.length > 15" href="#" class="o_vab_link o_vab_noprint" t-on-click.prevent="() => this.state.contasTodas = !this.state.contasTodas">
+                                <t t-esc="state.contasTodas ? 'mostrar só as 15 primeiras' : 'ver todas as ' + d.contas.length + ' contas'"/>
+                            </a>
+                        </div>
+                    </section>
+
+                    <footer class="o_vab_rodape">
+                        <div>Painel preparado pela <b>Vivaz</b> para o <b>BrandSpot</b> · fonte: CRM Odoo, equipe ABM BrandSpot · atualizado às <t t-esc="d.loadedAt"/></div>
+                        <a href="#" class="o_vab_link o_vab_noprint" t-on-click.prevent="() => this.state.glossarioAberto = true"><i class="fa fa-book"/> Glossário de métricas</a>
+                    </footer>
+                </main>
+            </t>
+            <div t-elif="state.loading" class="o_vab_wrap o_vab_empty o_vab_empty_lg"><i class="fa fa-circle-o-notch fa-spin me-2"/>Carregando painel ABM…</div>
+
+            <div t-if="state.glossarioAberto" class="o_vab_modal_fundo o_vab_noprint" t-on-click.self="() => this.state.glossarioAberto = false">
+                <div class="o_vab_modal" role="dialog" aria-label="Glossário de métricas">
+                    <div class="o_vab_card_head o_vab_head_split">
+                        <h3>Glossário de métricas</h3>
+                        <button type="button" class="btn btn-sm btn-light" t-on-click="() => this.state.glossarioAberto = false" aria-label="Fechar"><i class="fa fa-times"/></button>
+                    </div>
+                    <dl>
+                        <t t-foreach="glossario" t-as="g" t-key="g_index">
+                            <dt t-esc="g[0]"/><dd t-esc="g[1]"/>
+                        </t>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_abm_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard ABM BrandSpot</field>
+        <field name="tag">abm_brandspot_dashboard</field>
+    </record>
+
+    <!-- Logo abaixo de "Atividades ABM" (sequence 3) no menu CRM / ABM BrandSpot
+         (menu criado por abm_brandspot/estrutura.py). -->
+    <menuitem id="menu_abm_dashboard"
+              name="Dashboard"
+              parent="abm_brandspot.menu_pipeline"
+              action="action_abm_dashboard"
+              sequence="4"/>
+</odoo>

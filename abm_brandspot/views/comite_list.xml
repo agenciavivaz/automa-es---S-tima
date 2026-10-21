@@ -1,0 +1,21 @@
+<list string="Comitê de compra" editable="bottom" limit="100" default_order="x_abm_prioridade, x_abm_papel, name" decoration-bf="x_abm_papel in ('Decisor', 'Influenciador-chave')" decoration-muted="x_abm_optout or x_abm_prioridade == 9">
+    
+    <field name="x_abm_prioridade" string="Prior." width="50px"/>
+    <field name="name" string="Nome"/>
+    <field name="function" string="Cargo"/>
+    <field name="x_abm_papel" string="Papel" widget="badge" decoration-danger="x_abm_papel == 'Decisor'" decoration-warning="x_abm_papel == 'Influenciador-chave'" decoration-info="x_abm_papel == 'Influenciador'"/>
+    <field name="x_abm_area" string="Área"/>
+    <field name="x_abm_senioridade" string="Senioridade" optional="hide"/>
+    <field name="email" string="E-mail" widget="email"/>
+    <field name="x_email_status" string="Status e-mail" widget="badge" decoration-success="x_email_status in ('Verificado', 'Válido')" decoration-warning="x_email_status in ('Extrapolado', 'catch-all')" decoration-danger="x_email_status in ('Inválido', 'Indisponível')"/>
+    <field name="phone" string="Telefone" widget="phone" optional="show"/>
+    <field name="x_linkedin_url" string="LinkedIn" widget="url" text="Perfil"/>
+    <field name="x_abm_li_conexao" string="Conexão" widget="badge" decoration-success="x_abm_li_conexao == 'aceito'" decoration-info="x_abm_li_conexao == 'enviado'" decoration-danger="x_abm_li_conexao == 'recusado_ou_expirado'"/>
+    <field name="x_abm_na_cadencia" string="Cadência" widget="boolean_toggle"/>
+    <field name="x_abm_optout" string="Opt-out" widget="boolean_toggle" optional="show"/>
+    <field name="x_abm_canal_inicial" string="Canal inicial" optional="hide"/>
+    <field name="city" string="Cidade" optional="hide"/>
+    <field name="category_id" string="Tags" widget="many2many_tags" optional="hide"/>
+    <field name="x_abm_notas" string="Anotações" optional="hide"/>
+
+</list>
