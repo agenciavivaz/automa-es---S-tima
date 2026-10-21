@@ -56,3 +56,27 @@ ampliação de cargos trouxe mais alcance e engajamento das contas ABM.
 3. Plano → Empresas (Last 30 days, filtro da lista ABM): nº de contas com nível
    Low ou maior e nº de contas com cliques/engajamentos.
 4. Odoo: contas que saíram de Alvo/Aquecendo por sinal de mídia (A20/A2).
+
+## Conjunto de alcance (objetivo Alcance) — cargos adicionados em 21/10
+Além dos cargos acima, neste conjunto entraram (print de 21/10):
+- **Experiência do cliente/usuário e design:** Diretor/Chefe de experiência do cliente,
+  Gerente de sucesso do cliente, Designer de experiência do usuário, Designer de
+  interação, Senior Product Designer, Pesquisador em UX, Designer de produtos, Gerente
+  de experiência, Arquiteto de UX, Senior User Experience Architect, Líder/Gerente/
+  Diretor/VP de experiência do usuário, Designer sênior de UX, Diretor de design de
+  produtos, Diretor de design de experiência do usuário, Chefe de design.
+- **Inovação e P&D:** Diretor/VP/Gerente/Líder/Consultor de inovação, Senior Innovation
+  Manager, Gerente de inovações, Diretor e Gerente de P&D, Gerente de inovação de
+  produtos, Diretor de inovação tecnológica, Gerente de desenvolvimento, Gerente de
+  projetos, Líder de projetos, Gerente de projetos de inovação/digitais/P&D,
+  Especialista digital.
+- **E-commerce (onde mora o configurador):** Gerente/Chefe/Diretor/Coordenador/
+  Especialista de comércio eletrônico e e-commerce, Senior Manager Ecommerce, Vice
+  President Ecommerce, Gerente de comércio, Diretor de merchandise, Responsável por
+  marketing online.
+- **Transformação:** Gerente/Diretor de transformação, Gerente de transformação de
+  negócios, Gerente de engajamento, Diretor de gestão de marcas.
+
+Previsão do LinkedIn (30 dias) para este conjunto: público **4.400+** · investimento
+R$ 45 – 287 · **alcance 24 – 40 pessoas** · custo por mil alcançadas R$ 1.757 – 2.066 ·
+frequência 5,6 – 9,1.
