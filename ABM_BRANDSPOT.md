@@ -13,6 +13,10 @@ alugar em vez de construir. Sem case ainda; a prova é o showroom em São Paulo.
 CRM → **ABM BrandSpot** (ao lado de ABM Setima): Pipeline · Sinais ABM ·
 Atividades ABM · Dashboard. Mesmo visual de card, ficha e painel da Sétima.
 
+A equipe 22 e as contas ficam **"Visível para todos"** (sem empresa), como a ABM
+Setima: na empresa Brandspot elas sumiam para quem está com a empresa Sétima ativa.
+Líder Diego; membros iguais aos da ABM Setima (Amanda, Diego, Savio, Integração).
+
 ## O que muda em relação à Sétima
 | | Sétima | BrandSpot |
 |---|---|---|
@@ -29,7 +33,7 @@ atividades são **compartilhados** entre as duas frentes.
 
 ## Contas (primeiro ciclo)
 - 91 contas do export do Apollo (`abm_brandspot/contas/`) em **Alvo · Tier 2**,
-  preparação "na fila", SDR Amanda, campanha "ABM BrandSpot Educação", links com
+  preparação "na fila", SDR Amanda, sem empresa, campanha "ABM BrandSpot Educação", links com
   UTM `utm_campaign=abm-brandspot-educacao`, Apollo Account Id na descrição.
 - 5 delas já existiam na equipe 22 (G4, Senai SP, Descomplica, Alura, Arco) e
   foram atualizadas; 10 reaproveitaram empresas que já existiam no Odoo.

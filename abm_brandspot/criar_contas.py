@@ -4,8 +4,8 @@ com a mesma estrutura de card do ABM Sétima (criar_contas_abm.py).
 
 Para cada conta do CSV:
   - Negócio (crm.lead): Alvo · Tier 2 · preparação "na fila" · cadência "não iniciada"
-    · campanha "ABM BrandSpot Educação" · tag "ABM BrandSpot" · SDR Amanda · empresa
-    Brandspot · links com UTM do brandspot.com.br (utm_content = slug da conta)
+    · campanha "ABM BrandSpot Educação" · tag "ABM BrandSpot" · SDR Amanda · visível para
+    todas as empresas · links com UTM do brandspot.com.br (utm_content = slug da conta)
     · nome no LinkedIn = "Company Name" do Apollo (é por ele que o importador de
     comitê casa as pessoas) · Apollo Account Id, setor e porte na descrição.
   - Empresa (res.partner): reaproveita a do card existente, ou uma empresa com o
@@ -31,7 +31,7 @@ from ._odoo import Odoo
 
 TEAM_ID = 22
 SDR_USER_ID = 31
-EMPRESA_BRANDSPOT = 12
+EMPRESA = False           # "Visível para todos", como a equipe (ver estrutura.py)
 CATEGORIA_PARCEIRO = 18   # "ABM Educação"
 IDIOMA_PT_BR = 60
 UTM = ("https://www.brandspot.com.br/?utm_source={fonte}&utm_medium=abm_1a1"
@@ -82,7 +82,7 @@ def padrao_abm(ref, tier, s):
     """Campos que todo card do ABM BrandSpot tem (os mesmos da Sétima)."""
     return {
         "type": "opportunity", "team_id": TEAM_ID, "user_id": SDR_USER_ID,
-        "company_id": EMPRESA_BRANDSPOT, "stage_id": ref["stage_alvo"],
+        "company_id": EMPRESA, "stage_id": ref["stage_alvo"],
         "tag_ids": [[6, 0, [ref["tag_abm"]]]], "campaign_id": ref["campaign_educacao"],
         "lang_id": IDIOMA_PT_BR, "x_abm_tier": tier, "x_abm_preparacao": "fila",
         "x_abm_cadencia_status": "nao_iniciada", "x_abm_onda": 0,
