@@ -2,7 +2,7 @@
 Monta no Odoo a estrutura do ABM BrandSpot (equipe 22) igual à do ABM Sétima (equipe 20).
 
 Cria ou atualiza, com xml-id `abm_brandspot.*` (mesmo esquema do `abm_setima.*`):
-  - equipe 22 visível para todos (sem empresa), com líder e membros da ABM Setima;
+  - equipe 22 na empresa Brandspot (visível com a empresa Brandspot selecionada);
   - parâmetros `abm_brandspot.*` (equipe, SDR, gestor, início, fila 4/dia, freio 10);
   - campo compartilhado `x_abm_estudio` (Estúdio interno) e a cor de card "cliente"
     valendo para as duas equipes;
@@ -35,9 +35,10 @@ MODULO = "abm_brandspot"
 TEAM_ID = 22            # crm.team "ABM BrandSpot" (empresa Brandspot)
 SDR_USER_ID = 31        # Amanda — mesma SDR da Sétima
 GESTOR_USER_ID = 22     # Diego
-# Equipe e contas "Visível para todos" (sem empresa), como a ABM Setima: com a empresa
-# Brandspot, quem está com a empresa Sétima ativa não vê a equipe nem os cards.
-EMPRESA = False
+# Equipe e contas na empresa Brandspot: aparecem quando a empresa Brandspot está
+# selecionada no seletor de empresas (a Sétima fica na empresa Sétima).
+EMPRESA = 12
+LIDER_USER_ID = 6          # Savio
 MEMBROS = [31, 22, 34, 6]  # mesmos da ABM Setima
 CATEGORIA_PARCEIRO = 18  # res.partner.category "ABM Educação"
 INICIO = "2026-10-26"
@@ -156,10 +157,10 @@ class Montador:
 
     def equipe(self):
         print("\n[equipe]")
-        print(f"  ATUALIZA crm.team                     equipe {TEAM_ID}                        visível para todos, líder Diego, membros da ABM Setima")
+        print(f"  ATUALIZA crm.team                     equipe {TEAM_ID}                        empresa Brandspot, líder Savio, membros da ABM Setima")
         if self.aplicar:
             self.odoo.call("crm.team", "write", ids=[TEAM_ID], vals={
-                "company_id": EMPRESA, "user_id": GESTOR_USER_ID, "member_ids": [[6, 0, MEMBROS]]})
+                "company_id": EMPRESA, "user_id": LIDER_USER_ID, "member_ids": [[6, 0, MEMBROS]]})
 
     def etapas(self):
         print("\n[etapas]")
@@ -241,7 +242,7 @@ class Montador:
             "name": "ABM BrandSpot", "res_model": "crm.lead", "view_mode": pipe_setima["view_mode"],
             "domain": f"[('type','=','opportunity'),('team_id','=',{TEAM_ID})]",
             "context": f"{{'default_type': 'opportunity', 'default_team_id': {TEAM_ID}, "
-                       f"'default_user_id': {SDR_USER_ID}}}",
+                       f"'default_user_id': {SDR_USER_ID}, 'default_company_id': {EMPRESA}}}",
             "search_view_id": pipe_setima["search_view_id"][0],
             "help": "<p class=\"o_view_nocontent_smiling_face\">Nenhuma conta ABM BrandSpot ainda.</p>"})
         lista_oportunidade = self.ref("crm.crm_case_tree_view_oppor")
