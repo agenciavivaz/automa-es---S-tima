@@ -14,6 +14,7 @@ Para cada conta do CSV:
   - Cards da equipe 22 que NÃO estão no CSV viram Tier 3 (backlog): continuam no
     programa, mas a fila diária (tier → score → comitê) prepara a lista antes.
   - Não cria atividades: a conta entra na fila diária de preparação.
+  - Contas listadas em contas/excluidas.txt (ex.: órgãos públicos) são ignoradas.
 
 Uso (na raiz do repositório):
     python -m abm_brandspot.criar_contas export.csv            # simulação
@@ -25,6 +26,7 @@ import csv
 import re
 import sys
 import unicodedata
+from pathlib import Path
 from urllib.parse import urlparse
 
 from ._odoo import Odoo
@@ -50,12 +52,17 @@ def dominio(url):
     return re.sub(r"^www\.", "", host.lower())
 
 
+EXCLUIDAS = Path(__file__).parent / "contas" / "excluidas.txt"
+
+
 def ler_csv(caminho):
+    excluidas = {l.strip() for l in EXCLUIDAS.read_text(encoding="utf-8").splitlines()
+                 if l.strip() and not l.startswith("#")}
     contas = []
     with open(caminho, encoding="utf-8-sig") as f:
         for r in csv.DictReader(f):
             nome = r["Company Name"].strip()
-            if not nome:
+            if not nome or nome in excluidas:
                 continue
             contas.append({
                 "conta": nome,

@@ -1,0 +1,12 @@
+# Contas do export do Apollo que NÃO entram no ABM BrandSpot (uma por linha, "Company Name").
+# Órgãos e instituições públicas (compra por licitação) — excluídas em 2026-10-21.
+Prefeitura Municipal de Rio Claro
+Prefeitura Municipal de Barueri
+Prefeitura Municipal de Florianópolis
+Secretaria de Educação do Estado da Bahia
+Governo do Estado de Mato Grosso
+FDE - Fundação para o Desenvolvimento da Educação
+UERJ
+Universidade do Estado de Santa Catarina
+UNEMAT
+Superintendência Regional de Ensino
