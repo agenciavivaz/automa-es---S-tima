@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 """
-Contas de treinamento do ABM Sétima (equipe 20).
+Contas de demonstração do ABM Sétima (equipe 20).
 
-Cria contas fictícias "[TREINO] …" e leva cada uma a uma etapa do processo
+Cria contas fictícias "[DEMO] …" e leva cada uma a uma etapa do processo
 usando as AUTOMAÇÕES REAIS do Odoo (A2, A3, A4, A5, A6, A11, A17, A20). As
 tarefas que aparecem para a SDR e para o gestor são exatamente as do dia a
 dia. Nada envia e-mail: as automações só criam tarefas, sinais e notas, e os
 contatos fictícios usam domínios ".invalid".
 
 Isolamento:
-  - etiqueta "ABM · Treinamento" (parâmetro abm.tag_treino_id): a rotina da
+  - etiqueta "ABM · Demo" (parâmetro abm.tag_demo_id): a rotina da
     fila ignora essas contas e as tarefas delas não contam no freio da SDR
-    (ver fila_preparacao_com_treino.py);
-  - nomes começam com "[TREINO]" e os contatos terminam em "(treino)";
+    (ver fila_preparacao_com_demo.py);
+  - nomes começam com "[DEMO]" e os contatos terminam em "(demo)";
   - `limpar` apaga contas, contatos, sinais e tarefas (abertas e concluídas).
 
-Enquanto existirem, as contas de treino aparecem no pipeline, no menu
+Enquanto existirem, as contas de demo aparecem no pipeline, no menu
 Atividades ABM e no dashboard. Rode `limpar` ao fim do treinamento.
 
-    python abm/treinamento/treino_abm.py status
-    python abm/treinamento/treino_abm.py criar --apply            # todos os cenários
-    python abm/treinamento/treino_abm.py criar 4 5 --apply        # só os cenários 4 e 5
-    python abm/treinamento/treino_abm.py limpar --apply
+    python abm/demo/demo_abm.py status
+    python abm/demo/demo_abm.py criar --apply            # todos os cenários
+    python abm/demo/demo_abm.py criar 4 5 --apply        # só os cenários 4 e 5
+    python abm/demo/demo_abm.py limpar --apply
 """
 
 import argparse
@@ -41,8 +41,8 @@ TEAM_ID = 20
 EMPRESA_SETIMA = 2
 TAG_ABM = 3
 SDR_ID = 31
-PREFIXO = "[TREINO]"
-DOMINIO = "treino.invalid"
+PREFIXO = "[DEMO]"
+DOMINIO = "demo.invalid"
 
 STAGE = {"alvo": 87, "aquecendo": 88, "engajada": 89, "em_cadencia": 90, "conversa": 91}
 # Server actions das automações de tempo (rodadas direto, como o Odoo faria no prazo).
@@ -83,7 +83,7 @@ def slug(texto):
 def ficha(empresa, titulo, resumo):
     return (
         '<div style="background-color:#7c2d12; color:#ffffff; padding:8px 12px; border-radius:6px; '
-        'font-weight:bold; font-size:14px">🎓 CONTA DE TREINAMENTO · %s</div>'
+        'font-weight:bold; font-size:14px">🎓 CONTA DE DEMONSTRAÇÃO · %s</div>'
         '<div style="background-color:#fee2e2; color:#7f1d1d; padding:8px 12px; border-radius:6px; margin:8px 0">'
         '⛔ Dados fictícios. <b>Não envie e-mails nem mensagens</b>: execute a tarefa no Odoo e marque como feita.</div>'
         '<p><b>Cenário:</b> %s</p><p>%s</p>'
@@ -93,11 +93,11 @@ def ficha(empresa, titulo, resumo):
     ) % (empresa, titulo, resumo)
 
 
-class Treino:
+class Demo:
     def __init__(self, client, aplicar):
         self.c = client
         self.aplicar = aplicar
-        self.tag_treino = int(self._param("abm.tag_treino_id") or 0)
+        self.tag_demo = int(self._param("abm.tag_demo_id") or 0)
 
     # -- utilidades ------------------------------------------------------
     def _param(self, chave):
@@ -143,19 +143,19 @@ class Treino:
         contatos = []
         for nome, cargo, papel, prio, area, sen, fone in COMITE:
             contatos.append({
-                "name": "%s (treino)" % nome, "parent_id": empresa_id, "function": cargo,
+                "name": "%s (demo)" % nome, "parent_id": empresa_id, "function": cargo,
                 "email": "%s@%s" % (slug(nome).replace("-", "."), dominio), "phone": fone,
                 "x_abm_papel": papel, "x_abm_prioridade": prio, "x_abm_area": area,
                 "x_abm_senioridade": sen, "x_email_status": "Verificado",
                 "x_abm_li_conexao": "nao_enviado", "x_abm_canal_inicial": "email_linkedin",
-                "x_linkedin_url": "https://example.com/treino/%s" % slug(nome),
+                "x_linkedin_url": "https://example.com/demo/%s" % slug(nome),
             })
         contato_ids = self.c.create("res.partner", contatos)
-        utm = "https://www.setima.cc/PT?utm_source=%s&utm_medium=abm_1a1&utm_campaign=treino&utm_content=" + slug(empresa)
+        utm = "https://www.setima.cc/PT?utm_source=%s&utm_medium=abm_1a1&utm_campaign=demo&utm_content=" + slug(empresa)
         lead_id = self.c.create("crm.lead", {
             "name": "%s %s" % (PREFIXO, empresa), "type": "opportunity", "team_id": TEAM_ID,
             "company_id": EMPRESA_SETIMA, "user_id": SDR_ID, "partner_id": empresa_id,
-            "tag_ids": [(6, 0, [TAG_ABM, self.tag_treino])], "stage_id": STAGE[etapa],
+            "tag_ids": [(6, 0, [TAG_ABM, self.tag_demo])], "stage_id": STAGE[etapa],
             "x_abm_tier": "1", "x_abm_trilha": trilha, "x_abm_preparacao": preparacao,
             "x_abm_dominio": dominio, "x_abm_linkedin_empresa": nome_empresa,
             "x_abm_exposicao": exposicao, "x_abm_comite_validado_em": datetime.date.today().isoformat(),
@@ -171,8 +171,8 @@ class Treino:
         self.c.write("res.partner", ids, {"x_abm_na_cadencia": True})
         self.c.write("crm.lead", [lead_id], {
             "x_abm_trilha": "config_fraco",
-            "x_abm_dossie_url": "https://example.com/treino/dossie.pdf"})
-        self.concluir(lead_id, "Iniciar cadência", "Checklist ok (treino).")
+            "x_abm_dossie_url": "https://example.com/demo/dossie.pdf"})
+        self.concluir(lead_id, "Iniciar cadência", "Checklist ok (demo).")
         self.c.write("crm.lead", [lead_id], {"stage_id": STAGE["em_cadencia"]})  # → A5
 
     def cenario(self, n):
@@ -180,21 +180,21 @@ class Treino:
             self.criar_conta(1, "alvo", "fila")
         elif n == 2:
             lead, _ = self.criar_conta(2, "alvo", "fila")
-            self.sinal(lead, "visita_dominio", "site", "Visita ao site – treino")  # → A20
+            self.sinal(lead, "visita_dominio", "site", "Visita ao site – demo")  # → A20
         elif n == 3:
             lead, _ = self.criar_conta(3, "aquecendo", "liberada", exposicao=9.5)
-            self.sinal(lead, "li_ads_relatorio", "linkedin_ads", "LinkedIn Ads 30 dias · treino", pontos=15)
+            self.sinal(lead, "li_ads_relatorio", "linkedin_ads", "LinkedIn Ads 30 dias · demo", pontos=15)
             self.rodar_acao(ACAO_A17, lead)
         elif n == 4:
             lead, p = self.criar_conta(4, "aquecendo", "liberada", exposicao=6.0)
             self.sinal(lead, "li_reacao_post", "linkedin_manual", "Reagiu a post – Camila Prado",
                        partner_id=p["Camila Prado"])
-            self.sinal(lead, "visita_alta_intencao", "site", "Visitou cases – treino")  # 30 → A2
+            self.sinal(lead, "visita_alta_intencao", "site", "Visitou cases – demo")  # 30 → A2
         elif n in (5, 6):
             lead, p = self.criar_conta(n, "aquecendo", "liberada", exposicao=7.0, trilha="config_fraco")
             self.sinal(lead, "li_reacao_post", "linkedin_manual", "Reagiu a post – Rafael Nunes",
                        partner_id=p["Rafael Nunes"])
-            self.sinal(lead, "visita_alta_intencao", "site", "Visitou cases – treino")  # → A2
+            self.sinal(lead, "visita_alta_intencao", "site", "Visitou cases – demo")  # → A2
             self.preparar_cadencia(lead, p)  # → A5
             if n == 5:
                 self.c.write("res.partner", [p["Rafael Nunes"]], {"x_abm_li_conexao": "aceito"})  # → A11
@@ -209,7 +209,7 @@ class Treino:
     def limpar(self):
         contas = self.contas()
         if not contas:
-            print("Nenhuma conta de treino.")
+            print("Nenhuma conta de demo.")
             return
         ids = [c["id"] for c in contas]
         acts = self.atividades(ids)
@@ -217,7 +217,7 @@ class Treino:
         empresas = sorted({c["partner_id"][0] for c in contas if c["partner_id"]})
         contatos = self.c.search("res.partner", [("parent_id", "in", empresas)], context={"active_test": False})
         print(f"{len(contas)} contas, {len(acts)} atividades, {len(sinais)} sinais, "
-              f"{len(contatos)} contatos e {len(empresas)} empresas de treino.")
+              f"{len(contatos)} contatos e {len(empresas)} empresas de demo.")
         if not self.aplicar:
             print("(dry-run: nada apagado; use --apply)")
             return
@@ -227,12 +227,12 @@ class Treino:
             self.c.call("x_abm_sinal", "unlink", {"ids": sinais})
         self.c.call("crm.lead", "unlink", {"ids": ids})
         self.c.call("res.partner", "unlink", {"ids": contatos + empresas})
-        print("Treino apagado.")
+        print("Demo apagada.")
 
     def status(self):
         contas = self.contas()
         if not contas:
-            print("Nenhuma conta de treino.")
+            print("Nenhuma conta de demo.")
             return
         acts = self.atividades([c["id"] for c in contas], abertas_e_feitas=False)
         for c in sorted(contas, key=lambda x: x["name"]):
@@ -252,24 +252,24 @@ def main():
     parser.add_argument("--apply", action="store_true", help="grava no Odoo (sem isso é dry-run)")
     args = parser.parse_args()
 
-    treino = Treino(cliente_operacional(somente_leitura=not args.apply), args.apply)
+    demo = Demo(cliente_operacional(somente_leitura=not args.apply), args.apply)
     if args.comando == "status":
-        treino.status()
+        demo.status()
     elif args.comando == "limpar":
-        treino.limpar()
+        demo.limpar()
     else:
-        if not treino.tag_treino:
-            sys.exit("Parâmetro abm.tag_treino_id não existe: crie a etiqueta 'ABM · Treinamento' "
-                     "e aplique a fila_preparacao_com_treino.py antes (senão o treino trava a fila).")
+        if not demo.tag_demo:
+            sys.exit("Parâmetro abm.tag_demo_id não existe: crie a etiqueta 'ABM · Demo' "
+                     "e aplique a fila_preparacao_com_demo.py antes (senão a demo trava a fila).")
         escolhidos = args.cenarios or sorted(CENARIOS)
-        if treino.contas():
-            sys.exit("Já existem contas de treino. Rode `limpar --apply` antes de criar de novo.")
+        if demo.contas():
+            sys.exit("Já existem contas de demo. Rode `limpar --apply` antes de criar de novo.")
         for n in escolhidos:
             print(f"Cenário {CENARIOS[n][1]} · {CENARIOS[n][0]}" + ("" if args.apply else " (dry-run)"))
             if args.apply:
-                treino.cenario(n)
+                demo.cenario(n)
         if args.apply:
-            treino.status()
+            demo.status()
 
 
 if __name__ == "__main__":

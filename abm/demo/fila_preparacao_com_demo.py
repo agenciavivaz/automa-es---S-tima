@@ -75,16 +75,16 @@ else:
                 summary='[Preparação] Definir trilha (reaberta: campo vazio) – %s' % lead.name)
         relatorio.append('Trilha: tarefa reaberta (campo vazio) – %s' % lead.name)
     tipos_abm = env['mail.activity.type'].search([('name', '=like', 'ABM · %')])
-    # Contas de treinamento (etiqueta abm.tag_treino_id) não entram no freio nem na fila.
-    tag_treino = int(ICP.get_param('abm.tag_treino_id') or 0)
-    treino_ids = model.search([('tag_ids', 'in', [tag_treino])]).ids if tag_treino else []
-    pendentes = env['mail.activity'].search_count([('res_id', 'not in', treino_ids),
+    # Contas de demonstração (etiqueta abm.tag_demo_id) não entram no freio nem na fila.
+    tag_demo = int(ICP.get_param('abm.tag_demo_id') or 0)
+    demo_ids = model.search([('tag_ids', 'in', [tag_demo])]).ids if tag_demo else []
+    pendentes = env['mail.activity'].search_count([('res_id', 'not in', demo_ids),
         ('user_id', '=', sdr.id), ('res_model', '=', 'crm.lead'),
         ('activity_type_id', 'in', tipos_abm.ids), ('date_deadline', '<=', hoje)])
     alvo = env.ref('abm_setima.stage_alvo')
     candidatas = model.search([
         ('team_id', '=', team_id), ('stage_id', '=', alvo.id),
-        ('x_abm_preparacao', 'in', [False, 'fila']), ('id', 'not in', treino_ids)])
+        ('x_abm_preparacao', 'in', [False, 'fila']), ('id', 'not in', demo_ids)])
     fila = []
     for conta in candidatas:
         comite = conta.partner_id.child_ids.filtered(

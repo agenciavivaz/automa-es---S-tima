@@ -1,9 +1,9 @@
-# Treinamento ABM Sétima · contas [TREINO]
+# Treinamento ABM Sétima · contas [DEMO]
 
 Sete contas fictícias no pipeline **CRM → ABM Setima**, cada uma numa etapa. Elas são
 levadas até lá pelas **automações reais**, então as tarefas, notas e sinais são
-iguais aos do dia a dia. Nada envia e-mail. Contatos terminam em "(treino)" e usam
-e-mails `@….treino.invalid`.
+iguais aos do dia a dia. Nada envia e-mail. Contatos terminam em "(demo)" e usam
+e-mails `@….demo.invalid`.
 
 | Card | Etapa | O que aconteceu (automação) | Tarefas que aparecem |
 |---|---|---|---|
@@ -41,19 +41,19 @@ Os exercícios podem ser repetidos: `limpar` e `criar` de novo recriam tudo do z
 ## Comandos (rodados pelo Claude Code ou por quem tem a chave da API)
 
 ```bash
-python abm/treinamento/treino_abm.py criar --apply        # cria os 7 cards
-python abm/treinamento/treino_abm.py criar 4 5 --apply    # só alguns cenários
-python abm/treinamento/treino_abm.py status               # etapa, score e tarefas de cada card
-python abm/treinamento/treino_abm.py limpar --apply       # apaga contas, contatos, sinais e tarefas
+python abm/demo/demo_abm.py criar --apply        # cria os 7 cards
+python abm/demo/demo_abm.py criar 4 5 --apply    # só alguns cenários
+python abm/demo/demo_abm.py status               # etapa, score e tarefas de cada card
+python abm/demo/demo_abm.py limpar --apply       # apaga contas, contatos, sinais e tarefas
 ```
 
 ## Cuidados
 
-- **Antes do primeiro uso:** criar a etiqueta "ABM · Treinamento" (parâmetro
-  `abm.tag_treino_id`) e aplicar `fila_preparacao_com_treino.py` na rotina
-  "ABM · Fila de preparação". Sem isso, as tarefas de treino contam no freio da Amanda
+- **Antes do primeiro uso:** criar a etiqueta "ABM · Demo" (parâmetro
+  `abm.tag_demo_id`) e aplicar `fila_preparacao_com_demo.py` na rotina
+  "ABM · Fila de preparação". Sem isso, as tarefas de demo contam no freio da Amanda
   e travam a liberação de contas reais.
-- Enquanto existirem, os cards de treino aparecem no pipeline, em Atividades ABM e no
+- Enquanto existirem, os cards de demo aparecem no pipeline, em Atividades ABM e no
   dashboard. **Rodar `limpar` no fim do treinamento.**
 - Automações de tempo (A3, A13, A17, A18) também agiriam nos cards se eles ficassem
   semanas no sistema: mais um motivo para limpar.
