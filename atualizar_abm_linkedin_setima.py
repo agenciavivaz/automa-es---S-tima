@@ -18,6 +18,9 @@ Pontuação (teto 30):
 
 Casamento: coluna "Company name" contra `x_abm_linkedin_empresa` (ou o nome da
 conta). Só contas ativas da equipe ABM entram; o resto é listado no relatório.
+Uma empresa com várias páginas no LinkedIn (ex.: Scania Group, Scania Latin
+America, Scania Brasil) lista todas em `x_abm_linkedin_empresa`, separadas por
+";": as linhas são somadas e vale o maior nível de engajamento.
 
 Dry-run é o padrão. Use --apply para gravar.
 
@@ -81,6 +84,29 @@ def ler_export(caminho):
     return linhas
 
 
+NIVEIS = ["very low", "low", "medium", "high", "very high"]
+COLUNAS_SOMA = ("Organic impressions", "Organic engagements", "Paid impressions",
+                "Paid clicks", "Paid engagements", "Paid video views")
+
+
+def nomes_linkedin(conta):
+    """Páginas do LinkedIn da conta: as de `x_abm_linkedin_empresa` (separadas por ';') e o nome."""
+    nomes = [n.strip() for n in (conta.get("x_abm_linkedin_empresa") or "").split(";")]
+    return [n for n in nomes + [conta["name"]] if n]
+
+
+def somar_linhas(linhas):
+    """Junta as linhas de várias páginas da mesma empresa numa só."""
+    if len(linhas) == 1:
+        return linhas[0]
+    soma = {col: str(sum(inteiro(l.get(col)) for l in linhas)) for col in COLUNAS_SOMA}
+    niveis = [(l.get("Engagement level") or "Very Low").strip() for l in linhas]
+    soma["Engagement level"] = max(niveis, key=lambda n: NIVEIS.index(n.casefold())
+                                   if n.casefold() in NIVEIS else 0)
+    soma["Company name"] = " + ".join(l["Company name"].strip() for l in linhas)
+    return soma
+
+
 def calcular(linha, comite):
     nivel = (linha.get("Engagement level") or "Very Low").strip()
     impressoes = inteiro(linha.get("Paid impressions"))
@@ -109,11 +135,6 @@ def main():
     parser.add_argument("--apply", action="store_true", help="grava no Odoo (sem isso é dry-run)")
     args = parser.parse_args()
 
-    # O JSON-2 fica em <base>/json/2; uma URL copiada do navegador vem com /odoo no fim.
-    url = os.environ.get("ODOO_URL", "").rstrip("/")
-    if url.endswith("/odoo"):
-        os.environ["ODOO_URL"] = url[: -len("/odoo")]
-
     linhas = ler_export(args.export)
     client = cliente_operacional(somente_leitura=not args.apply)
 
@@ -123,9 +144,8 @@ def main():
     )
     por_nome = {}
     for conta in contas:
-        for chave in (conta.get("x_abm_linkedin_empresa"), conta["name"]):
-            if chave:
-                por_nome.setdefault(normalizar(chave), conta)
+        for chave in nomes_linkedin(conta):
+            por_nome.setdefault(normalizar(chave), conta)
 
     nome_sinal = f"LinkedIn Ads 30 dias · relatório de {args.data}"
     ja_rodou = client.search_count(SINAL, [("x_tipo", "=", TIPO), ("x_name", "=", nome_sinal)],
@@ -135,7 +155,7 @@ def main():
 
     agora = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     sem_conta = []
-    vistos = set()
+    por_conta = {}
     resumo = []
 
     for linha in linhas:
@@ -144,12 +164,14 @@ def main():
         if not conta:
             sem_conta.append(empresa)
             continue
-        if conta["id"] in vistos:
-            continue
-        vistos.add(conta["id"])
+        por_conta.setdefault(conta["id"], (conta, []))[1].append(linha)
 
+    for conta, linhas_conta in por_conta.values():
         comite = conta.get("x_abm_comite_total") or 0
+        linha = somar_linhas(linhas_conta)
         r = calcular(linha, comite)
+        if len(linhas_conta) > 1:
+            r["detalhe"] += f" · Páginas somadas: {linha['Company name']}"
         antigos = client.search(SINAL, [("x_lead_id", "=", conta["id"]), ("x_tipo", "=", TIPO),
                                         ("x_ativo", "=", True)])
         pontos_antigos = sum(s["x_pontos"] for s in client.read(SINAL, antigos, ["x_pontos"]))
