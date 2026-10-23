@@ -130,6 +130,54 @@ else:
         relatorio.append('Liberada: %s (%s)' % (conta.name, '; '.join(linhas)))
     restantes = [x[3] for x in fila if x[4] not in liberar]
     relatorio.append('Na fila (%s): %s' % (len(restantes), ', '.join(restantes)))
+
+    # Cadência das contas "Pronta p/ abordagem" (exposição alta sem engajar, A17):
+    # até abm.cadencia_por_semana por semana, 1 por dia útil, em ordem de exposição,
+    # respeitando o teto abm.cadencia_max_ativas e o freio da SDR. As Engajadas por
+    # score (A2) não entram nesta cota: recebem "Iniciar cadência" na hora.
+    tag_pronta = int(ICP.get_param('abm.tag_pronta_abordagem_id') or 0)
+    por_semana = int(ICP.get_param('abm.cadencia_por_semana') or 3)
+    max_ativas = int(ICP.get_param('abm.cadencia_max_ativas') or 8)
+    act_iniciar = env.ref('abm_setima.act_iniciar_cadencia')
+    segunda = (hoje - datetime.timedelta(days=hoje.weekday())).strftime('%Y-%m-%d 00:00:00')
+    da_semana = env['mail.message'].search_count([
+        ('model', '=', 'crm.lead'), ('date', '>=', segunda),
+        ('body', 'ilike', 'cota semanal de cadência'), ('res_id', 'not in', demo_ids)])
+    contas_time = model.search([('team_id', '=', team_id), ('id', 'not in', demo_ids)])
+    em_cadencia = len(contas_time.filtered(lambda l: l.stage_id == env.ref('abm_setima.stage_em_cadencia')))
+    aguardando = len(contas_time.filtered(lambda l: l.activity_ids.filtered(lambda a: a.activity_type_id == act_iniciar)))
+    prontas = model.search([
+        ('team_id', '=', team_id), ('stage_id', '=', env.ref('abm_setima.stage_aquecendo').id),
+        ('tag_ids', 'in', [tag_pronta]), ('id', 'not in', demo_ids),
+        ('x_abm_cadencia_status', 'in', [False, 'nao_iniciada'])],
+        order='x_abm_exposicao desc, x_abm_score desc, name').filtered(
+        lambda l: not l.activity_ids.filtered(lambda a: a.activity_type_id == act_iniciar))
+    if not tag_pronta:
+        motivo = 'etiqueta Pronta p/ abordagem não configurada'
+    elif da_semana >= por_semana:
+        motivo = 'cota da semana cumprida (%s de %s)' % (da_semana, por_semana)
+    elif em_cadencia + aguardando >= max_ativas:
+        motivo = 'teto de %s contas (%s em cadência + %s aguardando início)' % (max_ativas, em_cadencia, aguardando)
+    elif pendentes >= limite:
+        motivo = 'freio da SDR (%s tarefas vencidas/hoje)' % pendentes
+    elif not prontas:
+        motivo = 'nenhuma conta pronta para abordagem'
+    else:
+        motivo = None
+        conta = prontas[0]
+        if not simular:
+            conta.with_context(mail_activity_quick_update=True).activity_schedule(
+                'abm_setima.act_iniciar_cadencia', date_deadline=uteis[0], user_id=sdr.id,
+                summary='[Pronta p/ abordagem] Iniciar cadência – %s' % conta.name)
+            conta.message_post(
+                body='Cadência liberada pela cota semanal de cadência (%s de %s nesta semana): exposição %.1f, score %s. '
+                     'A conta segue em Aquecendo até a SDR concluir o checklist e mover para Em cadência.' % (
+                         da_semana + 1, por_semana, conta.x_abm_exposicao or 0, conta.x_abm_score or 0),
+                message_type='comment', subtype_xmlid='mail.mt_note')
+        relatorio.append('Cadência liberada (pronta p/ abordagem): %s · exposição %.1f · %s de %s na semana' % (
+            conta.name, conta.x_abm_exposicao or 0, da_semana + 1, por_semana))
+    if motivo:
+        relatorio.append('Cadência por exposição: nada liberado (%s). Prontas na espera: %s' % (motivo, len(prontas)))
 log('\n'.join(relatorio))
 if simular:
     action = {'type': 'ir.actions.client', 'tag': 'display_notification',
