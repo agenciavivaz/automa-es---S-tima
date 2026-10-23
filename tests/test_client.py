@@ -5,6 +5,7 @@ import json
 import pytest
 import requests
 
+from odoo.client import OdooCredentials
 from odoo.errors import (
     OdooAuthError,
     OdooPermissionError,
@@ -188,3 +189,23 @@ def test_timeout_configuravel(sessao):
     sessao.respostas.append(RespostaFalsa(200, 0))
     cliente.search_count("crm.lead", [])
     assert sessao.chamadas[0]["timeout"] == 5.0
+
+
+@pytest.mark.parametrize("url", [
+    "https://exemplo.odoo.com",
+    "https://exemplo.odoo.com/",
+    "https://exemplo.odoo.com/odoo",
+    "https://exemplo.odoo.com/odoo/",
+    "https://exemplo.odoo.com/odoo/crm?debug=1",
+    "https://exemplo.odoo.com/web#action=123",
+    " https://exemplo.odoo.com/odoo ",
+])
+def test_url_copiada_do_navegador_vira_base_do_servidor(url):
+    assert OdooCredentials(url, "basefalsa", CHAVE_FALSA, "operacional").url == \
+        "https://exemplo.odoo.com"
+
+
+def test_prefixo_de_proxy_reverso_e_preservado():
+    creds = OdooCredentials("https://erp.exemplo.com/crm-odoo/odoo/crm", "basefalsa",
+                            CHAVE_FALSA, "operacional")
+    assert creds.url == "https://erp.exemplo.com/crm-odoo"

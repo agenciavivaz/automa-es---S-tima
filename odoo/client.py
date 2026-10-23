@@ -17,6 +17,7 @@ import logging
 import os
 import random
 import time
+from urllib.parse import urlsplit, urlunsplit
 
 import requests
 
@@ -50,8 +51,27 @@ MAX_TENTATIVAS = 3             # RF-04
 STATUS_COM_RETRY = frozenset({429, 500, 502, 503, 504})
 BACKOFF_BASE = 1.0
 
+# Rotas da interface web: quem copia a URL do navegador traz junto
+# "/odoo/crm", "/web#..." etc., e o JSON-2 nessa base devolve 400 de CSRF.
+SEGMENTOS_INTERFACE_WEB = frozenset({"odoo", "web"})
+
 PERFIL_OPERACIONAL = "operacional"
 PERFIL_ADMIN = "admin"
+
+
+def normalizar_url_base(url):
+    """Base do servidor, sem rota da interface web, query, fragmento ou barra final.
+
+    Um prefixo legítimo (Odoo atrás de proxy em subcaminho) é preservado.
+    """
+    partes = urlsplit(url.strip())
+    segmentos = [s for s in partes.path.split("/") if s]
+    for i, segmento in enumerate(segmentos):
+        if segmento in SEGMENTOS_INTERFACE_WEB:
+            segmentos = segmentos[:i]
+            break
+    caminho = "/" + "/".join(segmentos) if segmentos else ""
+    return urlunsplit((partes.scheme, partes.netloc, caminho, "", ""))
 
 
 class OdooCredentials:
@@ -68,7 +88,7 @@ class OdooCredentials:
                 "Gere em Configurações → Usuários e Empresas → Usuários → "
                 "aba Preferências → Nova chave de API e coloque no .env."
             )
-        self.url = url.rstrip("/")
+        self.url = normalizar_url_base(url)
         self.db = db
         self.api_key = api_key
         self.perfil = perfil
