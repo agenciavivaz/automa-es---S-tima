@@ -19,7 +19,7 @@ from conftest import ClienteFalso
 # -- RE-01 -----------------------------------------------------------------
 
 def test_lista_de_equipes_definida_em_um_lugar_so():
-    assert ALLOWED_TEAM_IDS == (16, 17, 21)
+    assert ALLOWED_TEAM_IDS == (16, 17, 20)
 
 
 def test_nenhum_outro_modulo_redefine_a_lista():
@@ -40,18 +40,18 @@ def test_nenhum_outro_modulo_redefine_a_lista():
 
 def test_dominio_simples_recebe_filtro_de_equipe():
     resultado = escopar_dominio_lead([("stage_id", "=", 5)])
-    assert resultado == ["&", ("team_id", "in", [16, 17, 21]), ("stage_id", "=", 5)]
+    assert resultado == ["&", ("team_id", "in", [16, 17, 20]), ("stage_id", "=", 5)]
 
 
 def test_dominio_vazio_ou_none_vira_apenas_o_filtro_de_equipe():
-    esperado = [("team_id", "in", [16, 17, 21])]
+    esperado = [("team_id", "in", [16, 17, 20])]
     assert escopar_dominio_lead([]) == esperado
     assert escopar_dominio_lead(None) == esperado
 
 
 def test_dominio_com_and_implicito_de_varias_folhas_continua_valido():
     resultado = escopar_dominio_lead([("a", "=", 1), ("b", "=", 2)])
-    assert resultado == ["&", ("team_id", "in", [16, 17, 21]),
+    assert resultado == ["&", ("team_id", "in", [16, 17, 20]),
                          "&", ("a", "=", 1), ("b", "=", 2)]
     # Normalizar de novo é idempotente: o domain resultante é bem formado.
     assert normalizar(resultado) == resultado
@@ -59,7 +59,7 @@ def test_dominio_com_and_implicito_de_varias_folhas_continua_valido():
 
 def test_dominio_com_or_nao_e_corrompido():
     resultado = escopar_dominio_lead(["|", ("a", "=", 1), ("b", "=", 2)])
-    assert resultado == ["&", ("team_id", "in", [16, 17, 21]),
+    assert resultado == ["&", ("team_id", "in", [16, 17, 20]),
                          "|", ("a", "=", 1), ("b", "=", 2)]
     assert normalizar(resultado) == resultado
 
@@ -68,14 +68,14 @@ def test_or_do_chamador_nao_escapa_do_filtro_de_equipe():
     """O OR fica encapsulado: nunca vira 'equipe OU qualquer coisa'."""
     escopado = escopar_dominio_lead(["|", ("team_id", "=", 99), ("id", "=", 1)])
     assert escopado[0] == "&"
-    assert escopado[1] == ("team_id", "in", [16, 17, 21])
+    assert escopado[1] == ("team_id", "in", [16, 17, 20])
 
 
 def test_toda_extracao_de_lead_leva_o_filtro(schema):
     cliente = ClienteFalso({("crm.lead", "search_read"): []})
     extrator = Extrator(cliente, schema)
     extrator.extrair("crm.lead", campos=["id", "name"], domain=[("probability", ">", 50)])
-    assert ("team_id", "in", [16, 17, 21]) in cliente.ultimo_domain
+    assert ("team_id", "in", [16, 17, 20]) in cliente.ultimo_domain
 
 
 def test_chamador_nao_consegue_desligar_o_filtro(schema):
@@ -84,7 +84,7 @@ def test_chamador_nao_consegue_desligar_o_filtro(schema):
     Extrator(cliente, schema).extrair("crm.lead", campos=["id"],
                                       domain=[("team_id", "=", 99)])
     domain = cliente.ultimo_domain
-    assert ("team_id", "in", [16, 17, 21]) in domain
+    assert ("team_id", "in", [16, 17, 20]) in domain
     assert ("team_id", "=", 99) in domain  # vira interseção vazia, não bypass
 
 
@@ -136,7 +136,7 @@ def test_id_inexistente_tambem_bloqueia():
 def test_escrita_nao_pode_mover_registro_para_fora_do_escopo():
     with pytest.raises(ScopeViolationError):
         verificar_vals_de_equipe({"team_id": 99})
-    verificar_vals_de_equipe({"team_id": 21})  # permitido, não levanta
+    verificar_vals_de_equipe({"team_id": 20})  # permitido, não levanta
 
 
 # -- res.partner (escopo indireto) ----------------------------------------

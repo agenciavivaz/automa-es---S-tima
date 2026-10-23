@@ -66,9 +66,9 @@ class Extrator:
     def dominio_escopado(self, model, domain=None):
         """Aplica o escopo de equipes conforme o modelo."""
         if model == CRM_LEAD:
-            return escopar_dominio_lead(domain), "equipes 16/17/21 (filtro direto em team_id)"
+            return escopar_dominio_lead(domain), "equipes 16/17/20 (filtro direto em team_id)"
         if model == CRM_TEAM:
-            return combinar_e(dominio_equipes_permitidas(), domain), "equipes 16/17/21"
+            return combinar_e(dominio_equipes_permitidas(), domain), "equipes 16/17/20"
         if model == RES_PARTNER:
             leads = self.client.search_read_all(
                 CRM_LEAD, escopar_dominio_lead([("partner_id", "!=", False)]),

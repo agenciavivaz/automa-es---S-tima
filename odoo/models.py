@@ -10,7 +10,7 @@ módulo que precise do escopo importa desta constante.
 # Trava de aplicação, não de segurança: quem tem acesso ao repositório pode
 # editar esta lista. A trava real é uma ir.rule no usuário de serviço dentro
 # do Odoo — ver odoo/README.md.
-ALLOWED_TEAM_IDS = (16, 17, 21)
+ALLOWED_TEAM_IDS = (16, 17, 20)
 
 TEAM_FIELD = "team_id"
 

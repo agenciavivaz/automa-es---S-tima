@@ -367,7 +367,7 @@ def construir_parser():
                         help="Formato da saída no terminal.")
     sub = parser.add_subparsers(dest="comando", required=True)
 
-    sub.add_parser("test-connection", help="Valida as chaves e as equipes 16/17/21.")
+    sub.add_parser("test-connection", help="Valida as chaves e as equipes 16/17/20.")
 
     p_schema = sub.add_parser("schema", help="Introspecção do schema real da base.")
     p_schema.add_argument("acao", choices=["fields", "modelos"])

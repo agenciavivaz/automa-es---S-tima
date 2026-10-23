@@ -6,7 +6,7 @@ Regras que este módulo garante, sem exceção:
 - RF-19 toda escrita aplicada vira linha em ./data/odoo/audit.jsonl;
 - RF-20 domain de escrita nunca é vazio e é sempre resolvido para IDs antes;
 - RF-22/RE-03 os registros alvo são relidos e a operação inteira aborta se
-  algum estiver fora das equipes 16/17/21.
+  algum estiver fora das equipes 16/17/20.
 
 Não existe `unlink` aqui: esta ferramenta não apaga registro.
 """

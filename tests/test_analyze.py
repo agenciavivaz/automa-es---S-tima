@@ -94,7 +94,7 @@ def test_funil_declara_denominador(schema):
 
     assert resultado.meta["registros_considerados"] == 3
     assert resultado.meta["descartados_sem_estagio"] == 1
-    assert resultado.meta["equipes_consideradas"] == [16, 17, 21]
+    assert resultado.meta["equipes_consideradas"] == [16, 17, 20]
     assert "2026-01-01 00:00:00" in resultado.meta["periodo"]
     assert "2026-07-01 23:59:59" in resultado.meta["periodo"]
 
@@ -260,7 +260,7 @@ def test_todas_as_analises_declaram_periodo_e_equipes(schema):
     ):
         principal = resultados[0]
         assert "periodo" in principal.meta
-        assert principal.meta["equipes_consideradas"] == [16, 17, 21]
+        assert principal.meta["equipes_consideradas"] == [16, 17, 20]
         assert "registros_considerados" in principal.meta
 
 

@@ -117,7 +117,7 @@ def test_domain_e_resolvido_para_ids_antes_de_escrever(schema):
     assert plano.ids == [1, 2, 3]
     # A seleção do domain já sai escopada pelas equipes permitidas.
     dominio_da_selecao = cliente.domains[0][1]
-    assert ("team_id", "in", [16, 17, 21]) in dominio_da_selecao
+    assert ("team_id", "in", [16, 17, 20]) in dominio_da_selecao
 
 
 def test_campo_inexistente_vira_erro_nomeando_o_campo(schema):

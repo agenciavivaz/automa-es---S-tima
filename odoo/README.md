@@ -1,7 +1,7 @@
 # Camada de integração Odoo CRM (JSON-2)
 
 Ferramental interno para **extrair, analisar e editar** dados do CRM das equipes
-de venda **16, 17 e 21**, via a API JSON-2 do Odoo 19.
+de venda **16, 17 e 20**, via a API JSON-2 do Odoo 19.
 
 Não é produto: roda por CLI e foi feita para ser dirigida pelo Claude Code, que
 lê os outputs (tabela no terminal, `--formato json`, CSV em `data/odoo/`).
@@ -44,7 +44,7 @@ python -m odoo.cli test-connection
 ```
 
 Ele valida as duas chaves, mostra o usuário autenticado de cada uma e imprime os
-nomes das equipes 16, 17 e 21 — se algum ID não bater com o nome esperado, pare
+nomes das equipes 16, 17 e 20 — se algum ID não bater com o nome esperado, pare
 por aí.
 
 ---
@@ -148,7 +148,7 @@ pacote.
 
 ## 3. Escopo de equipes
 
-`ALLOWED_TEAM_IDS = (16, 17, 21)` vive em `odoo/models.py` e em nenhum outro
+`ALLOWED_TEAM_IDS = (16, 17, 20)` vive em `odoo/models.py` e em nenhum outro
 lugar.
 
 - Toda query em `crm.lead` recebe o filtro de equipe automaticamente, inclusive
@@ -164,7 +164,7 @@ lugar.
 > **Limitação honesta:** isso é trava de aplicação. Quem tem acesso ao
 > repositório pode editar a constante. Para valer de verdade, a restrição
 > precisa ser uma **regra de registro (`ir.rule`)** no usuário de serviço dentro
-> do Odoo, com domain `[("team_id", "in", [16, 17, 21])]` sobre `crm.lead`.
+> do Odoo, com domain `[("team_id", "in", [16, 17, 20])]` sobre `crm.lead`.
 > Recomendado ter os dois: `ir.rule` como trava real, a constante como
 > documentação e mensagem de erro decente.
 
@@ -224,7 +224,7 @@ desativadas e com filtro de equipe obrigatório, e nada de deletar ou arquivar.
 ### Antes de rodar contra a base real
 
 1. `python -m odoo.cli test-connection` — confirme a identidade de cada chave e
-   os nomes das equipes 16/17/21.
+   os nomes das equipes 16/17/20.
 2. Abra a página **`/doc`** da base (documentação dinâmica do Odoo, lista os
    modelos, campos e métodos daquela instalação, inclusive os `x_`) e confira os
    campos que você pretende usar, além das assinaturas de `write` e `create`.
