@@ -13,6 +13,14 @@ trocas   (semanal) — contatos que o Apollo marcou com troca de emprego.
          comitê. Se a pessoa foi para outra conta do ABM, ou para a agência
          que atende uma conta, vira oportunidade (nota + tarefa na conta).
 
+exportar (semanal, antes de "trocas") — salva no Apollo, como contato, quem
+         está no comitê do Odoo e ainda não existe lá (lista "Comite -
+         montadoras - ABM"). Sem isso o Apollo não monitora a troca de
+         emprego dessas pessoas. Só cria quem falta: contato que já existe no
+         Apollo nunca é reenviado, porque o envio sobrescreveria dados mais
+         novos (ex.: o cargo novo de quem trocou de emprego). Criar contato
+         não gasta crédito; há um limite diário de criação no Apollo.
+
 lideres  (mensal) — diretores, heads, VPs e C-levels no Brasil, nas contas do
          ABM, com poucos dias no cargo atual. Liderança nova é gatilho de
          abordagem: tarefa para o gestor avaliar incluir no comitê.
@@ -55,6 +63,8 @@ SENIORIDADES = ["c_suite", "vp", "director", "head"]
 DRY_RUN = os.environ.get("DRY_RUN", "false").strip().lower() in ("1", "true", "sim", "yes")
 
 PAPEIS_CHAVE = ("Decisor", "Influenciador-chave")
+LISTA_COMITE = os.environ.get("APOLLO_LISTA_COMITE", "Comite - montadoras - ABM")
+EXPORTAR_MAX = int(os.environ.get("APOLLO_EXPORTAR_MAX", "500"))
 TIPO_ATIVIDADE = "abm_setima.act_rotina"
 MARCA_LIDER = "Apollo pessoa "
 
@@ -187,6 +197,49 @@ def achar_no_comite(contato, comite, conta_antiga_nome):
     return por_nome
 
 
+def chaves_contato(nome, email, empresa):
+    """Chaves de identidade: e-mail e nome + palavra distintiva da empresa."""
+    ch = set()
+    if email:
+        ch.add("e:" + email.strip().lower())
+    n = norm(nome)
+    for t in tokens(empresa):
+        if n:
+            ch.add("n:%s|%s" % (n, t))
+    return ch
+
+
+def a_exportar(comite, contatos_apollo):
+    """Pessoas do comitê do Odoo que ainda não existem no Apollo."""
+    existentes = set()
+    for c in contatos_apollo:
+        emails = [c.get("email")] + [e.get("email") for e in c.get("contact_emails") or []]
+        for e in emails:
+            existentes |= chaves_contato(None, e, "")
+        existentes |= chaves_contato(c.get("name"), None, c.get("organization_name") or (c.get("account") or {}).get("name"))
+    saida = []
+    for p in comite:
+        if p.get("x_abm_saiu") or not p.get("conta") or not (p.get("name") or "").strip():
+            continue
+        empresa = (p["conta"].get("x_abm_linkedin_empresa") or "").split(";")[0].strip() or p["conta"]["name"]
+        if chaves_contato(p["name"], p.get("email"), empresa) & existentes:
+            continue
+        if chaves_contato(p["name"], None, p["conta"]["name"]) & existentes:
+            continue
+        partes = p["name"].strip().split(" ", 1)
+        vals = {"first_name": partes[0], "last_name": partes[1] if len(partes) > 1 else "",
+                "organization_name": empresa, "label_names": [LISTA_COMITE]}
+        if p.get("email") and "@" in p["email"]:
+            vals["email"] = p["email"].strip()
+        if p.get("function"):
+            vals["title"] = p["function"]
+        dominio = (p["conta"].get("x_abm_dominio") or "").strip()
+        if dominio:
+            vals["website_url"] = "https://" + dominio
+        saida.append(vals)
+    return saida
+
+
 def cargo_relevante(cargo):
     c = " %s " % norm(cargo)
     if any(k in c for k in CARGOS_FORA):
@@ -240,6 +293,36 @@ def buscar_trocas(chave, *, session=None):
         if pagina >= ((d.get("pagination") or {}).get("total_pages") or 0) or not lote:
             return contatos
         pagina += 1
+
+
+def buscar_contatos(chave, *, session=None):
+    """Todos os contatos salvos no Apollo (busca grátis, 100 por página)."""
+    session = session or requests.Session()
+    contatos, pagina = [], 1
+    while True:
+        d = _post(session, chave, "/contacts/search", {"page": pagina, "per_page": 100})
+        lote = d.get("contacts") or []
+        contatos.extend(lote)
+        if pagina >= ((d.get("pagination") or {}).get("total_pages") or 0) or not lote:
+            return contatos
+        pagina += 1
+
+
+def criar_contatos(chave, contatos, *, session=None):
+    """Cria em lotes de 100. Para no primeiro erro (ex.: limite diário) e devolve o que criou."""
+    session = session or requests.Session()
+    criados, sem_pessoa = 0, 0
+    for i in range(0, len(contatos), 100):
+        try:
+            d = _post(session, chave, "/contacts/bulk_create", {"contacts": contatos[i:i + 100]})
+        except requests.HTTPError as exc:
+            log.warning("Criação interrompida no lote %s (%s): o restante entra na próxima execução.",
+                        i // 100 + 1, exc.response.status_code if exc.response is not None else exc)
+            break
+        novos = (d.get("created_contacts") or d.get("contacts") or []) + (d.get("existing_contacts") or [])
+        criados += len(novos)
+        sem_pessoa += sum(1 for c in novos if not c.get("person_id"))
+    return criados, sem_pessoa
 
 
 def buscar_lideres(chave, dominios, dias, *, session=None):
@@ -392,7 +475,7 @@ def lideres_ja_avisados(odoo, conta_ids):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--modo", choices=["trocas", "lideres"], required=True)
+    ap.add_argument("--modo", choices=["trocas", "lideres", "exportar"], required=True)
     args = ap.parse_args()
     chave = os.environ.get("APOLLO_API_KEY", "").strip()
     if not chave:
@@ -405,6 +488,20 @@ def main():
     saida = Saida(odoo, gestor)
     log.info("%s contas do ABM, %s pessoas no comitê%s", len(contas), len(comite), " — DRY_RUN" if DRY_RUN else "")
 
+    if args.modo == "exportar":
+        existentes = buscar_contatos(chave)
+        faltam = a_exportar(comite, existentes)
+        log.info("Apollo: %s contato(s) salvos; %s pessoa(s) do comitê ainda fora do Apollo", len(existentes), len(faltam))
+        for v in faltam[:15]:
+            log.info("exportar → %s %s (%s)", v["first_name"], v["last_name"], v["organization_name"])
+        lote = faltam[:EXPORTAR_MAX]
+        if DRY_RUN:
+            log.info("DRY_RUN: nada criado no Apollo (%s seriam criados nesta execução).", len(lote))
+            return
+        criados, sem_pessoa = criar_contatos(chave, lote)
+        log.info("Criados no Apollo: %s (lista %s). Sem vínculo com o cadastro de pessoas do Apollo: %s "
+                 "(estes não terão troca de emprego monitorada).", criados, LISTA_COMITE, sem_pessoa)
+        return
     if args.modo == "trocas":
         contatos = buscar_trocas(chave)
         log.info("Apollo: %s contato(s) com troca de emprego", len(contatos))

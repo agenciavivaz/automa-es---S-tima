@@ -2,6 +2,8 @@ name: Comitê ABM (Apollo → trocas de emprego e lideranças novas)
 
 on:
   schedule:
+    # Exportar o comitê do Odoo para o Apollo: toda segunda, 08h05 BRT (11:05 UTC)
+    - cron: "5 11 * * 1"
     # Trocas de emprego: toda segunda, 08h20 BRT (11:20 UTC)
     - cron: "20 11 * * 1"
     # Lideranças novas: dia 1 de cada mês, 08h30 BRT (11:30 UTC)
@@ -9,13 +11,13 @@ on:
   workflow_dispatch:
     inputs:
       modo:
-        description: "trocas (saídas do comitê) ou lideres (lideranças novas)"
+        description: "trocas (saídas), lideres (lideranças novas) ou exportar (comitê → Apollo)"
         required: true
         default: "trocas"
         type: choice
-        options: [trocas, lideres]
+        options: [trocas, lideres, exportar]
       dry_run:
-        description: "true = só mostra o que gravaria, sem escrever no Odoo"
+        description: "true = só mostra o que faria, sem gravar no Odoo nem no Apollo"
         required: false
         default: "true"
       dias_no_cargo:
@@ -49,6 +51,6 @@ jobs:
           ODOO_API_KEY: ${{ secrets.ODOO_API_KEY }}
           APOLLO_DIAS_NO_CARGO: ${{ github.event.inputs.dias_no_cargo || '45' }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
-          # No agendamento, o cron da segunda roda "trocas" e o do dia 1 roda "lideres".
-          MODO: ${{ github.event.inputs.modo || (github.event.schedule == '30 11 1 * *' && 'lideres' || 'trocas') }}
+          # No agendamento: 11:05 de segunda = exportar, 11:20 de segunda = trocas, dia 1 = lideres.
+          MODO: ${{ github.event.inputs.modo || (github.event.schedule == '30 11 1 * *' && 'lideres' || (github.event.schedule == '5 11 * * 1' && 'exportar' || 'trocas')) }}
         run: python sincronizar_apollo_comite_abm.py --modo "$MODO"

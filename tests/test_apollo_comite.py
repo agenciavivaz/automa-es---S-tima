@@ -124,3 +124,21 @@ def test_mesmo_contato_duas_vezes_grava_uma():
         "old_account_name": "Stellantis South America", "new_organization_name": "IAB Brasil"}}
     s = _Saida()
     assert sync.processar_trocas([contato, contato], CONTAS, comite, s) == 1
+
+
+def test_exportar_so_quem_falta_e_nunca_quem_saiu():
+    comite = [
+        {"id": 1, "name": "Ana Souza", "email": "ana@ford.com", "function": "Brand Manager", "conta": FORD, "x_abm_saiu": False},
+        {"id": 2, "name": "Bruno Lima", "email": "", "function": "CMO", "conta": FORD, "x_abm_saiu": False},
+        {"id": 3, "name": "Carla Dias", "email": "carla@ford.com", "function": "", "conta": FORD, "x_abm_saiu": True},
+        {"id": 4, "name": "Davi Reis", "email": "davi@ford.com", "function": "Head CX", "conta": FORD, "x_abm_saiu": False},
+    ]
+    apollo = [
+        {"name": "Outra Pessoa", "email": "ana@ford.com", "organization_name": "Ford"},  # mesmo e-mail
+        {"name": "Bruno Lima", "organization_name": "Ford Brasil"},                       # mesmo nome + empresa
+    ]
+    saida = sync.a_exportar(comite, apollo)
+    assert [(v["first_name"], v["last_name"]) for v in saida] == [("Davi", "Reis")]
+    v = saida[0]
+    assert v["email"] == "davi@ford.com" and v["title"] == "Head CX"
+    assert v["label_names"] == [sync.LISTA_COMITE] and v["website_url"] == "https://ford.com"
