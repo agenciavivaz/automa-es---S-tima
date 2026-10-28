@@ -1,0 +1,54 @@
+name: Comitê ABM (Apollo → trocas de emprego e lideranças novas)
+
+on:
+  schedule:
+    # Trocas de emprego: toda segunda, 08h20 BRT (11:20 UTC)
+    - cron: "20 11 * * 1"
+    # Lideranças novas: dia 1 de cada mês, 08h30 BRT (11:30 UTC)
+    - cron: "30 11 1 * *"
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: "trocas (saídas do comitê) ou lideres (lideranças novas)"
+        required: true
+        default: "trocas"
+        type: choice
+        options: [trocas, lideres]
+      dry_run:
+        description: "true = só mostra o que gravaria, sem escrever no Odoo"
+        required: false
+        default: "true"
+      dias_no_cargo:
+        description: "Lideranças: máximo de dias no cargo atual"
+        required: false
+        default: "45"
+
+jobs:
+  sincronizar:
+    runs-on: ubuntu-latest
+    environment: automações
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Sincronizar comitê
+        env:
+          APOLLO_API_KEY: ${{ secrets.APOLLO_API_KEY }}
+          ODOO_URL: ${{ secrets.ODOO_URL }}
+          ODOO_DB: ${{ secrets.ODOO_DB }}
+          ODOO_API_KEY: ${{ secrets.ODOO_API_KEY }}
+          APOLLO_DIAS_NO_CARGO: ${{ github.event.inputs.dias_no_cargo || '45' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          # No agendamento, o cron da segunda roda "trocas" e o do dia 1 roda "lideres".
+          MODO: ${{ github.event.inputs.modo || (github.event.schedule == '30 11 1 * *' && 'lideres' || 'trocas') }}
+        run: python sincronizar_apollo_comite_abm.py --modo "$MODO"
