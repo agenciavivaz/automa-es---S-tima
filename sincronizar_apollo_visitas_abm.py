@@ -14,8 +14,10 @@ O score, a faixa e as automações (A20 tira de Alvo, A2 engaja com 30, A4
 avisa com 60, A13 expira o sinal em 30 dias) são do próprio Odoo: este script
 só grava o sinal.
 
-Deduplicação: um sinal por conta por data de última visita. A data vai no
-detalhe do sinal ("Última visita: AAAA-MM-DD") e é conferida antes de gravar.
+Teto: no máximo um sinal de visita por conta a cada 7 dias (APOLLO_TETO_DIAS),
+para visitas repetidas não inflarem o score. Exceção: se na semana só houve
+visita simples, uma visita de alta intenção ainda entra. A data da visita vai
+no detalhe do sinal ("Última visita: AAAA-MM-DD") e é conferida antes de gravar.
 
 Domínio compartilhado (ex.: stellantis.com em Stellantis, Jeep, Ram e
 Leapmotor): o sinal vai para a conta com o domínio como principal e o maior
@@ -53,6 +55,7 @@ APOLLO_DOMINIO_RASTREADO = os.environ.get("APOLLO_DOMINIO_RASTREADO", "setima.cc
 # dia sem execução não perde visita; a dedup evita sinal repetido.
 APOLLO_JANELA_DIAS = int(os.environ.get("APOLLO_JANELA_DIAS", "7"))
 APOLLO_TIMEOUT = 60
+TETO_DIAS = int(os.environ.get("APOLLO_TETO_DIAS", "7"))
 
 ABM_TEAM_ID = int(os.environ.get("ABM_TEAM_ID", "20"))
 # Descartada e Cliente – expansão não recebem sinal.
@@ -156,13 +159,25 @@ def dominio_da_empresa(empresa):
     return normalizar_dominio(empresa.get("primary_domain") or empresa.get("domain") or empresa.get("website_url"))
 
 
+def bloqueado_pelo_teto(anteriores, ultima, tipo, teto_dias=TETO_DIAS):
+    """anteriores: [(data, tipo)] da conta. Motivo do bloqueio, ou None se pode gravar."""
+    recentes = [(d, t) for d, t in anteriores if abs((ultima - d).days) < teto_dias]
+    if not recentes:
+        return None
+    if any(d == ultima for d, _ in recentes):
+        return "já registrado"
+    if tipo == TIPO_ALTA and not any(t == TIPO_ALTA for _, t in recentes):
+        return None  # visita simples na semana não segura a de alta intenção
+    return "teto de 1 visita a cada %s dias" % teto_dias
+
+
 def montar_sinais(empresas, mapa, dominio_rastreado, ja_registrados, janela_ini):
     """Decide o que gravar. Devolve (sinais, notas, ignoradas).
 
-    ja_registrados: {(lead_id, 'AAAA-MM-DD')} de sinais de visita já gravados.
+    ja_registrados: {lead_id: [(date, tipo)]} de sinais de visita já gravados.
     """
     sinais, notas, ignoradas = [], [], []
-    feitos = set()
+    feitos = {}
     for emp in empresas:
         nome = emp.get("name") or "?"
         dom = dominio_da_empresa(emp)
@@ -179,12 +194,13 @@ def montar_sinais(empresas, mapa, dominio_rastreado, ja_registrados, janela_ini)
             ignoradas.append((nome, dom, "última visita fora da janela"))
             continue
         dona = contas[0]
-        chave = (dona["id"], ultima.isoformat())
-        if chave in ja_registrados or chave in feitos:
-            ignoradas.append((nome, dom, "já registrado"))
-            continue
-        feitos.add(chave)
         tipo, altas = classificar(agg)
+        anteriores = list(ja_registrados.get(dona["id"], [])) + feitos.get(dona["id"], [])
+        motivo = bloqueado_pelo_teto(anteriores, ultima, tipo)
+        if motivo:
+            ignoradas.append((nome, dom, motivo))
+            continue
+        feitos.setdefault(dona["id"], []).append((ultima, tipo))
         texto = detalhe(agg, ultima, altas)
         sinais.append({
             "lead": dona,
@@ -261,13 +277,13 @@ def visitas_registradas(odoo, lead_ids, desde):
         "x_abm_sinal",
         [["x_lead_id", "in", lead_ids], ["x_tipo", "in", [TIPO_VISITA, TIPO_ALTA]],
          ["x_data", ">=", "%s 00:00:00" % desde.isoformat()]],
-        ["x_lead_id", "x_detalhe"],
+        ["x_lead_id", "x_detalhe", "x_tipo"],
     )
-    feitos = set()
+    feitos = {}
     for s in sinais:
         m = re.search(re.escape(MARCA_DATA) + r"(\d{4}-\d{2}-\d{2})", s.get("x_detalhe") or "")
         if m and s.get("x_lead_id"):
-            feitos.add((s["x_lead_id"][0], m.group(1)))
+            feitos.setdefault(s["x_lead_id"][0], []).append((dt.date.fromisoformat(m.group(1)), s.get("x_tipo")))
     return feitos
 
 
@@ -300,7 +316,7 @@ def main():
     log.info("Apollo: %s empresa(s) com visita na janela", len(empresas))
 
     janela_ini = dt.date.today() - dt.timedelta(days=APOLLO_JANELA_DIAS)
-    ja = visitas_registradas(odoo, [c["id"] for c in contas], janela_ini - dt.timedelta(days=1))
+    ja = visitas_registradas(odoo, [c["id"] for c in contas], janela_ini - dt.timedelta(days=TETO_DIAS))
     sinais, notas, ignoradas = montar_sinais(empresas, mapa, APOLLO_DOMINIO_RASTREADO, ja, janela_ini)
 
     for nome, dom, motivo in ignoradas:

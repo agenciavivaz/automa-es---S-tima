@@ -45,7 +45,7 @@ def test_dominio_compartilhado_vai_para_principal_com_maior_comite():
 
 def test_visita_simples_gera_visita_dominio():
     mapa = sync.mapa_dominios(CONTAS)
-    sinais, notas, _ = sync.montar_sinais([empresa("Ram", "ram.com.br")], mapa, "setima.cc", set(), JANELA)
+    sinais, notas, _ = sync.montar_sinais([empresa("Ram", "ram.com.br")], mapa, "setima.cc", {}, JANELA)
     assert len(sinais) == 1 and not notas
     v = sinais[0]["vals"]
     assert v["x_lead_id"] == 3 and v["x_tipo"] == sync.TIPO_VISITA and v["x_origem"] == "site"
@@ -61,13 +61,13 @@ def test_visita_simples_gera_visita_dominio():
 def test_alta_intencao_por_pagina_ou_intencao(caminhos, intent):
     mapa = sync.mapa_dominios(CONTAS)
     sinais, _, _ = sync.montar_sinais([empresa("Ford", "ford.com", caminhos=caminhos, intent=intent)],
-                                      mapa, "setima.cc", set(), JANELA)
+                                      mapa, "setima.cc", {}, JANELA)
     assert sinais[0]["vals"]["x_tipo"] == sync.TIPO_ALTA
 
 
 def test_compartilhado_um_sinal_e_nota_nas_demais():
     mapa = sync.mapa_dominios(CONTAS)
-    sinais, notas, _ = sync.montar_sinais([empresa("Stellantis", "stellantis.com")], mapa, "setima.cc", set(), JANELA)
+    sinais, notas, _ = sync.montar_sinais([empresa("Stellantis", "stellantis.com")], mapa, "setima.cc", {}, JANELA)
     assert [s["lead"]["name"] for s in sinais] == ["Stellantis South America"]
     assert [n[0]["name"] for n in notas] == ["Jeep"]
 
@@ -75,8 +75,33 @@ def test_compartilhado_um_sinal_e_nota_nas_demais():
 def test_dedup_por_conta_e_data():
     mapa = sync.mapa_dominios(CONTAS)
     sinais, _, ign = sync.montar_sinais([empresa("Ram", "ram.com.br")], mapa, "setima.cc",
-                                        {(3, "2026-10-27")}, JANELA)
+                                        {3: [(dt.date(2026, 10, 27), sync.TIPO_VISITA)]}, JANELA)
     assert not sinais and ign[0][2] == "já registrado"
+
+
+def test_teto_bloqueia_segunda_visita_simples_na_semana():
+    mapa = sync.mapa_dominios(CONTAS)
+    sinais, _, ign = sync.montar_sinais([empresa("Ram", "ram.com.br", ultima="20261027")], mapa, "setima.cc",
+                                        {3: [(dt.date(2026, 10, 23), sync.TIPO_VISITA)]}, JANELA)
+    assert not sinais and ign[0][2].startswith("teto")
+
+
+def test_teto_deixa_passar_alta_intencao_depois_de_visita_simples():
+    mapa = sync.mapa_dominios(CONTAS)
+    emp = empresa("Ram", "ram.com.br", caminhos=("setima.cc/PT/obrigado",))
+    sinais, _, _ = sync.montar_sinais([emp], mapa, "setima.cc",
+                                      {3: [(dt.date(2026, 10, 23), sync.TIPO_VISITA)]}, JANELA)
+    assert sinais[0]["vals"]["x_tipo"] == sync.TIPO_ALTA
+    sinais, _, ign = sync.montar_sinais([emp], mapa, "setima.cc",
+                                        {3: [(dt.date(2026, 10, 23), sync.TIPO_ALTA)]}, JANELA)
+    assert not sinais and ign[0][2].startswith("teto")
+
+
+def test_teto_libera_depois_de_7_dias():
+    mapa = sync.mapa_dominios(CONTAS)
+    sinais, _, _ = sync.montar_sinais([empresa("Ram", "ram.com.br", ultima="20261027")], mapa, "setima.cc",
+                                      {3: [(dt.date(2026, 10, 20), sync.TIPO_VISITA)]}, JANELA)
+    assert len(sinais) == 1
 
 
 def test_ignora_fora_do_abm_outro_site_e_fora_da_janela():
@@ -86,7 +111,7 @@ def test_ignora_fora_do_abm_outro_site_e_fora_da_janela():
         empresa("Ram", "ram.com.br", site="brandspot.com.br"),
         empresa("Ford", "ford.com", ultima="20261001"),
     ]
-    sinais, _, ign = sync.montar_sinais(empresas, mapa, "setima.cc", set(), JANELA)
+    sinais, _, ign = sync.montar_sinais(empresas, mapa, "setima.cc", {}, JANELA)
     assert not sinais
     assert [m for _, _, m in ign] == ["domínio fora do ABM", "sem visitas ao site rastreado",
                                       "última visita fora da janela"]
