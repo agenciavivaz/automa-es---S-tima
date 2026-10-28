@@ -1,0 +1,45 @@
+name: Visitas ao site (Apollo → ABM Sétima)
+
+on:
+  schedule:
+    # 08:10 BRT (11:10 UTC), depois da consolidação diária do Apollo (~04:40 BRT)
+    - cron: "10 11 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "true = só mostra o que gravaria, sem escrever no Odoo"
+        required: false
+        default: "true"
+      janela_dias:
+        description: "Janela de visitas em dias (1, 7, 15, 30, 60 ou 90)"
+        required: false
+        default: "7"
+
+jobs:
+  sincronizar:
+    runs-on: ubuntu-latest
+    environment: automações
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Sincronizar visitas
+        env:
+          APOLLO_API_KEY: ${{ secrets.APOLLO_API_KEY }}
+          ODOO_URL: ${{ secrets.ODOO_URL }}
+          ODOO_DB: ${{ secrets.ODOO_DB }}
+          ODOO_API_KEY: ${{ secrets.ODOO_API_KEY }}
+          APOLLO_DOMINIO_RASTREADO: "setima.cc"
+          APOLLO_JANELA_DIAS: ${{ github.event.inputs.janela_dias || '7' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        run: python sincronizar_apollo_visitas_abm.py
