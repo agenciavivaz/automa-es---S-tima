@@ -19,8 +19,11 @@ Nada é gravado: o painel só lê.
 - **KPIs** com variação contra o período anterior de mesma duração.
 - Sinais ao longo do tempo (empilhado por origem), origem dos sinais, tipos de sinal.
 - Jornada das contas por etapa, temperatura (fria < 30, engajada 30–59, quente ≥ 60), cadência e tiers.
-- **Onde agir agora**: engajadas/quentes sem cadência, sem sinal há 21+ dias, comitê sem
+- **Onde agir agora**: prontas p/ abordagem (tag da A17) sem cadência, prontas sem nenhuma
+  conexão aceita no comitê, engajadas/quentes sem cadência, sem sinal há 21+ dias, comitê sem
   decisor e contas com atividade atrasada.
+- **Foto do LinkedIn Ads** no cabeçalho: data do último relatório importado; fica em vermelho
+  com mais de 7 dias (o relatório é semanal, ver `importar_linkedin_ads_abm.py`).
 - Execução das atividades por tipo, agenda dos próximos 7 dias e tabela por conta (ordenável).
 
 Tudo é clicável e abre a lista/ficha correspondente no Odoo.

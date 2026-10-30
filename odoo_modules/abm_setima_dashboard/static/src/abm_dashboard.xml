@@ -25,6 +25,15 @@
                         <t t-esc="periodLabel"/>
                         <t t-if="state.raw"> · atualizado às <t t-esc="state.raw.loadedAt.toFormat('HH:mm')"/></t>
                     </div>
+                    <div t-if="fotoAds" class="o_abm_dash_period o_abm_foto_ads"
+                         t-att-class="{ 'o_abm_foto_ads_late': fotoAds.atrasada }"
+                         title="Relatório de engajamento por empresa do LinkedIn Ads (foto de 30 dias, semanal)">
+                        <i class="fa fa-linkedin-square me-1"/>
+                        <t t-if="fotoAds.data">Foto do LinkedIn Ads: <t t-esc="fotoAds.data"/>
+                            (<t t-if="fotoAds.dias === 0">hoje</t><t t-else="">há <t t-esc="fotoAds.dias"/>d</t>)</t>
+                        <t t-else="">Sem foto do LinkedIn Ads</t>
+                        <t t-if="fotoAds.atrasada"> · importar o relatório da semana</t>
+                    </div>
                 </div>
                 <div class="o_abm_dash_controls">
                     <div class="o_abm_dash_presets" role="group" aria-label="Período">

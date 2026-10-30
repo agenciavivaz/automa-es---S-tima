@@ -12,6 +12,8 @@ const { DateTime } = luxon;
 const TEAM_ID = 20; // crm.team "ABM Setima" (ir.config_parameter abm.team_id)
 const ACTIVITY_DOMAIN = [["activity_type_id.name", "=like", "ABM · %"]];
 const SCORE_MAX = 90; // mesma régua do campo x_abm_score_pct
+const TAG_PRONTA = "ABM · Pronta p/ abordagem"; // marcada pela A17 (14 dias aquecendo com exposição 4+)
+const ADS_FOTO_MAX_DIAS = 7; // o relatório de LinkedIn Ads é semanal
 
 const PRESETS = [
     { key: "7d", label: "7 dias" },
@@ -90,7 +92,7 @@ const LEAD_FIELDS = [
     "name", "stage_id", "user_id", "create_date", "x_abm_score", "x_abm_tier", "x_abm_faixa",
     "x_abm_cadencia_status", "x_abm_preparacao", "x_abm_trilha", "x_abm_ultimo_sinal_data",
     "x_abm_comite_total", "x_abm_comite_decisores", "x_abm_comite_conectados",
-    "x_abm_comite_emails_ok", "x_abm_exposicao", "x_abm_onda",
+    "x_abm_comite_emails_ok", "x_abm_exposicao", "x_abm_onda", "tag_ids",
 ];
 
 const SQL = "yyyy-MM-dd HH:mm:ss";
@@ -204,7 +206,7 @@ export class AbmSetimaDashboard extends Component {
                 sinalDomain.push(["x_data", ">=", toUtcSql(lower)]);
                 doneDomain.push(["date_done", ">=", lower.toISODate()]);
             }
-            const [leads, sinais, abertas, concluidas] = await Promise.all([
+            const [leads, sinais, abertas, concluidas, tagsPronta, ultimaFotoAds] = await Promise.all([
                 this.orm.searchRead(
                     "crm.lead",
                     [["team_id", "=", TEAM_ID], ["type", "=", "opportunity"]],
@@ -229,6 +231,13 @@ export class AbmSetimaDashboard extends Component {
                     ["activity_type_id", "res_model", "res_id", "res_name", "date_deadline", "date_done", "user_id"],
                     { context: { active_test: false } }
                 ),
+                this.orm.searchRead("crm.tag", [["name", "=", TAG_PRONTA]], ["id"]),
+                this.orm.searchRead(
+                    "x_abm_sinal",
+                    [["x_lead_id.team_id", "=", TEAM_ID], ["x_tipo", "=", "li_ads_relatorio"]],
+                    ["x_data"],
+                    { order: "x_data desc", limit: 1 }
+                ),
             ]);
             const stageIds = [...new Set(leads.map((l) => l.stage_id && l.stage_id[0]).filter(Boolean))];
             const stages = await this.orm.searchRead(
@@ -237,7 +246,11 @@ export class AbmSetimaDashboard extends Component {
                 ["name", "sequence"],
                 { order: "sequence, id" }
             );
-            this.state.raw = { leads, sinais, abertas, concluidas, stages, loadedAt: DateTime.local() };
+            this.state.raw = {
+                leads, sinais, abertas, concluidas, stages, loadedAt: DateTime.local(),
+                tagProntaIds: new Set(tagsPronta.map((t) => t.id)),
+                ultimaFotoAds: ultimaFotoAds.length ? fromUtcSql(ultimaFotoAds[0].x_data) : null,
+            };
         } catch (e) {
             this.state.error = (e && (e.data?.message || e.message)) || String(e);
         } finally {
@@ -246,6 +259,20 @@ export class AbmSetimaDashboard extends Component {
     }
 
     // ----------------------------------------------------------- métricas
+    get fotoAds() {
+        // Última foto do relatório de LinkedIn Ads (independe do período e do tier).
+        const raw = this.state.raw;
+        if (!raw) {
+            return null;
+        }
+        const foto = raw.ultimaFotoAds;
+        if (!foto) {
+            return { data: null, dias: null, atrasada: true };
+        }
+        const dias = Math.floor(DateTime.local().startOf("day").diff(foto.startOf("day"), "days").days);
+        return { data: foto.toFormat("dd/MM"), dias, atrasada: dias > ADS_FOTO_MAX_DIAS };
+    }
+
     get metrics() {
         const raw = this.state.raw;
         if (!raw) {
@@ -474,7 +501,21 @@ export class AbmSetimaDashboard extends Component {
             return u ? Math.floor(today.diff(u.startOf("day"), "days").days) : null;
         };
         const stageName = (l) => (l.stage_id ? l.stage_id[1] : "");
+        const pronta = (l) => (l.tag_ids || []).some((t) => raw.tagProntaIds.has(t))
+            && ["Alvo", "Aquecendo", "Engajada"].includes(stageName(l));
         const alertas = [
+            {
+                key: "pronta_sem_cadencia", icon: "fa-flag", color: "#a419bc",
+                title: "Prontas p/ abordagem sem cadência",
+                hint: "Exposição 4+ por 14 dias: conectar decisores e iniciar a cadência.",
+                items: leads.filter((l) => pronta(l) && l.x_abm_cadencia_status !== "ativa"),
+            },
+            {
+                key: "pronta_sem_conexao", icon: "fa-linkedin", color: "#0a66c2",
+                title: "Prontas sem conexão no comitê",
+                hint: "Nenhuma pessoa do comitê marcada como Aceito no LinkedIn.",
+                items: leads.filter((l) => pronta(l) && !l.x_abm_comite_conectados),
+            },
             {
                 key: "quente_sem_cadencia", icon: "fa-fire", color: "#ef4444",
                 title: "Engajadas/quentes sem cadência ativa",
