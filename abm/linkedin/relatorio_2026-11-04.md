@@ -6,23 +6,27 @@ Relatórios recebidos em 04/11 e o que cada um alimentou:
 |---|---|---|
 | Empresas (`companies-export_508640297_2026-11-04`) | últimos 30 dias | **Leadscore e pipeline**: sinal `li_ads_relatorio` + `x_abm_exposicao` |
 | Análise de visitantes da página (prints) | últimos 30 dias | **Notas nas contas e uma atividade** (seção 2) |
+| Seguidores da página (prints) | set–out/2026 | conferência de seguidores de contas ABM (seção 0) |
 | Desempenho do conjunto de anúncios (`campaign_performance_report_5`) | 06/10–04/11 | este relatório (seção 3) |
 | Demográfico (`demographics_report_5`) | 06/10–04/11 | este relatório (seção 3) |
 | Conteúdo da página (`setimacc_content`) | 04/10–02/11 | este relatório (seção 4) |
 | Visitantes da página (`setimacc_visitors`) | 04/10–02/11 | este relatório (seção 4) |
 
-## 0. Relatórios que faltaram
+## 0. Conferência dos relatórios
 
-1. **Seguidores da página** (`setimacc_followers`) não veio. Em 23/10 ele tinha vindo. Sem
-   ele não dá para registrar o sinal "Seguiu a página" (+10).
-2. **O demográfico veio duplicado.** `demographics_report_5` e `demographics_report_6` são
-   idênticos, byte a byte. Se o segundo deveria ser outro recorte (outra campanha ou outro
-   período), ele precisa ser exportado de novo.
-3. **O relatório de conteúdo veio sem a aba de publicações.** Só veio a aba de métricas
-   diárias, então não dá para ver post a post nem quem reagiu.
-4. **A Análise de visitantes veio só em prints, e parciais.** Há trechos entre um print e
-   outro que ficaram de fora (ex.: o item acima de "Especialista em cumprimento na empresa XP
-   Inc."). A lista nominal só existe na página do LinkedIn, sem exportação.
+1. **Seguidores da página**: vieram depois, em prints (lista "Todos os seguidores", de
+   setembro e outubro). Nenhum seguidor novo é de conta ABM. A única pessoa de conta
+   ABM na lista é Adriano Macieira (VW do Brasil, setembro), já registrado em 14/10. Os
+   demais são de agências, produtoras, SENAI e freelancers de design/3D. Os nomes foram
+   cruzados com os contatos do Odoo: nenhum está num comitê. **Nenhum sinal
+   "Seguiu a página" foi gravado.**
+2. **Demográfico**: `demographics_report_5` e `_6` são o mesmo relatório, confirmado.
+3. **Conteúdo da página**: o segundo envio (`setimacc_content_1793803704777`) tem os
+   mesmos dados do primeiro. Os dois trazem só a aba de métricas diárias, sem a lista de
+   publicações. Por isso não dá para medir post a post.
+4. **Análise de visitantes**: veio só em prints, e parciais. Há trechos entre um print e
+   outro que ficaram de fora. A lista com nomes só existe na página do LinkedIn, sem
+   exportação.
 
 ## 1. Leadscore (relatório de Empresas)
 
@@ -136,8 +140,8 @@ visita à página, então essas notas **não pontuam**.
 
 ## 5. O que fica pendente
 
-1. Mandar o export de **seguidores** e o **demográfico correto** (o segundo arquivo veio
-   repetido).
+1. Para medir post a post, exportar o conteúdo com a aba de **publicações**. No LinkedIn,
+   isso fica em Análises → Conteúdo → Exportar, com o período que inclua os posts.
 2. Tirar **Fóton Informática** e as demais páginas erradas da lista de empresas do Ads.
 3. Conferir a página na lista das 5 contas com 0 impressões (Harley, Jetour, Kawasaki,
    LS Tractor e Sany).
