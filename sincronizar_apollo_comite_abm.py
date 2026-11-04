@@ -55,7 +55,7 @@ SENIORIDADES = ["c_suite", "vp", "director", "head"]
 DRY_RUN = os.environ.get("DRY_RUN", "false").strip().lower() in ("1", "true", "sim", "yes")
 
 PAPEIS_CHAVE = ("Decisor", "Influenciador-chave")
-TIPO_ATIVIDADE = "abm_setima.act_rotina"
+TIPO_ATIVIDADE = "abm_setima.act_alerta"  # sem recorrência; act_rotina recria a tarefa a cada conclusão
 MARCA_LIDER = "Apollo pessoa "
 
 # Agências que atendem montadoras (o nome da empresa nova basta para saber
