@@ -27,7 +27,7 @@ Relatórios recebidos em 04/11 e o que cada um alimentou:
 ## 1. Leadscore (relatório de Empresas)
 
 Aplicado às 14:36 UTC com `importar_linkedin_ads_abm.py`. O mesmo script foi usado na foto
-de 30/10 e agora entrou em `main` com testes. A foto de 04/11 **substituiu** a de 30/10,
+de 30/10 e agora está neste branch com testes, ainda sem merge em `main`. A foto de 04/11 **substituiu** a de 30/10,
 conforme a régua da seção 5.4 do processo: nível 0/5/10/20/25, interações 0/5/10/15 e
 exposição 0/5/10, com teto de 30.
 
