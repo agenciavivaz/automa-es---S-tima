@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dados iniciais. noupdate: o que o time Vivaz editar na tela não é sobrescrito por um novo deploy. -->
+<odoo noupdate="1">
+    <!-- Apelidos de campanha (L8): nome UTM → apelido curto + cor fixa (gráfico e tabela). -->
+    <record id="camp_hiperseg" model="x_vivaz_inb_campanha">
+        <field name="x_name">[M]-[Nativo][Sétima] – Continua - Hipersegmentação</field>
+        <field name="x_apelido">Hipersegmentação</field>
+        <field name="x_cor">#1d4ed8</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="camp_continua" model="x_vivaz_inb_campanha">
+        <field name="x_name">[M][Lead][Nátivo][Sétima] - Contínua</field>
+        <field name="x_apelido">Lead Contínua</field>
+        <field name="x_cor">#b45309</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="camp_lp" model="x_vivaz_inb_campanha">
+        <field name="x_name">[M][CONV][Sétima] Landing Page</field>
+        <field name="x_apelido">Landing Page</field>
+        <field name="x_cor">#047857</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="camp_tera" model="x_vivaz_inb_campanha">
+        <field name="x_name">[M][CONV][Lead][LP][Sétima] - Tera V 2.1</field>
+        <field name="x_apelido">LP Tera V 2.1</field>
+        <field name="x_cor">#be185d</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="camp_rmkt" model="x_vivaz_inb_campanha">
+        <field name="x_name">[F][Lead][Nativo][Sétima] - RMKT</field>
+        <field name="x_apelido">Remarketing</field>
+        <field name="x_cor">#6d28d9</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="camp_lp_brandspot" model="x_vivaz_inb_campanha">
+        <field name="x_name">[M][Conv][lead][Brandspot] - landing Page</field>
+        <field name="x_apelido">LP BrandSpot</field>
+        <field name="x_cor">#0e7490</field>
+        <field name="x_active" eval="True"/>
+    </record>
+
+    <!-- D5: data de início do acumulado. Vazio = data do 1º negócio inbound ganho. -->
+    <record id="ajuste_acumulado_desde" model="x_vivaz_inb_ajuste">
+        <field name="x_name">acumulado_desde</field>
+        <field name="x_valor"></field>
+        <field name="x_descricao">Data de início da receita acumulada (AAAA-MM-DD). Vazio = data do primeiro negócio ganho marcado "Originado no Inbound".</field>
+    </record>
+</odoo>

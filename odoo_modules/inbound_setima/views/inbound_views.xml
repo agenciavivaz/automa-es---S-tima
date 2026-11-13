@@ -9,6 +9,18 @@
         <field name="store" eval="True"/>
         <field name="copied" eval="False"/>
     </record>
+    <!-- Atribuição comercial: negócio (de qualquer pipeline) que veio do Inbound Sétima.
+         O Dashboard Inbound soma a receita dos ganhos marcados e lista os em aberto. -->
+    <record id="field_origem_inbound" model="ir.model.fields">
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="name">x_origem_inbound</field>
+        <field name="field_description">Originado no Inbound</field>
+        <field name="ttype">boolean</field>
+        <field name="store" eval="True"/>
+        <field name="copied" eval="True"/>
+        <field name="tracking" eval="True"/>
+    </record>
+
     <record id="field_meta_anuncio" model="ir.model.fields">
         <field name="model_id" ref="crm.model_crm_lead"/>
         <field name="name">x_meta_anuncio</field>
@@ -112,6 +124,30 @@
         </field>
     </record>
 
+    <record id="view_form_origem" model="ir.ui.view">
+        <field name="name">crm.lead.form.inbound_setima.origem</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="(//field[@name='tag_ids'])[1]" position="after">
+                <field name="x_origem_inbound" widget="boolean_toggle"/>
+                <field name="x_studio_data_de_ganho" string="Data do contrato" invisible="not x_origem_inbound"
+                       help="Data de fechamento do contrato usada no Dashboard Inbound (se vazia, usa a data de ganho do CRM)."/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_search_origem" model="ir.ui.view">
+        <field name="name">crm.lead.search.inbound_setima.origem</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.view_crm_case_opportunities_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="origem_inbound" string="Originado no Inbound" domain="[('x_origem_inbound', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_search" model="ir.ui.view">
         <field name="name">crm.lead.search.inbound_setima</field>
         <field name="model">crm.lead</field>
@@ -156,4 +192,10 @@
     <!-- CRM / Inbound Sétima, ao lado de ABM Setima (sequence 2). -->
     <menuitem id="menu_root" name="Inbound Sétima" parent="crm.crm_menu_root" sequence="3"/>
     <menuitem id="menu_pipeline" name="Pipeline" parent="menu_root" action="action_pipeline" sequence="1"/>
+
+    <record id="action_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard Inbound</field>
+        <field name="tag">inbound_setima_dashboard</field>
+    </record>
+    <menuitem id="menu_dashboard" name="Dashboard" parent="menu_root" action="action_dashboard" sequence="2"/>
 </odoo>

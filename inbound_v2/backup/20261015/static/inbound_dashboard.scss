@@ -1,0 +1,145 @@
+// Complementos do Dashboard Inbound. A base visual (.o_abm_*) vem do módulo abm_setima_dashboard.
+
+.o_inb_dash {
+    .o_inb_resumo { margin-bottom: 1rem; border-left: 4px solid $primary; }
+    .o_inb_resumo_list {
+        margin: 0;
+        padding-left: 1.1rem;
+        li { font-size: .9rem; line-height: 1.5; padding: .12rem 0; }
+    }
+
+    .o_inb_receita { border-top: 4px solid #10b981; }
+    .o_inb_receita_valor {
+        font-size: 2.4rem;
+        font-weight: 800;
+        letter-spacing: -.02em;
+        color: #059669;
+        line-height: 1.1;
+    }
+
+    // ----------------------------------------------------------- funil
+    .o_inb_funnel { display: flex; flex-direction: column; }
+    .o_inb_funnel_row {
+        display: grid;
+        grid-template-columns: 10rem minmax(0, 1fr) 5.5rem;
+        align-items: center;
+        gap: .7rem;
+        padding: .3rem;
+        border-radius: .45rem;
+        cursor: pointer;
+        &:hover { background: var(--abm-soft); }
+    }
+    .o_inb_funnel_name { font-size: .88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .o_inb_funnel_track {
+        height: 2rem;
+        background: var(--abm-track);
+        border-radius: .45rem;
+        overflow: hidden;
+    }
+    .o_inb_funnel_bar {
+        height: 100%;
+        min-width: 2.2rem;
+        border-radius: .45rem;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: .6rem;
+        color: #fff;
+        font-weight: 800;
+        font-size: .9rem;
+        transition: width .4s;
+    }
+    .o_inb_funnel_pct {
+        text-align: right;
+        line-height: 1.1;
+        strong { display: block; font-size: 1.05rem; }
+        small { font-size: .68rem; }
+    }
+    .o_inb_step_conv {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .05rem 0 .05rem 10.9rem;
+        font-size: .75rem;
+        color: var(--abm-muted);
+        @include media-breakpoint-down(md) { padding-left: .5rem; }
+    }
+    .o_inb_conv_chip {
+        font-weight: 700;
+        padding: .08rem .55rem;
+        border-radius: 999px;
+        background: rgba(59, 130, 246, .14);
+        color: #2563eb;
+        &.high { background: rgba(16, 185, 129, .16); color: #059669; }
+        &.low { background: rgba(239, 68, 68, .14); color: #dc2626; }
+    }
+    .o_inb_lost_note { font-style: italic; }
+
+    // ---------------------------------------------------------- tabela
+    .o_inb_table td { white-space: nowrap; }
+    .o_inb_dimcell { max-width: 22rem; overflow: hidden; text-overflow: ellipsis; }
+    .o_inb_col_leads { min-width: 9rem; }
+    .o_inb_leadsbar {
+        position: relative;
+        border-radius: .3rem;
+        overflow: hidden;
+        padding: .1rem .4rem;
+        span { position: relative; font-weight: 700; }
+    }
+    .o_inb_leadsbar_fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        background: rgba(10, 102, 194, .15);
+        border-radius: .3rem;
+    }
+    .o_inb_pct {
+        display: inline-block;
+        margin-left: .3rem;
+        font-size: .7rem;
+        font-weight: 700;
+        padding: 0 .4rem;
+        border-radius: 999px;
+        background: var(--abm-track);
+        color: var(--abm-muted);
+        &.high { background: rgba(16, 185, 129, .16); color: #059669; }
+    }
+    .o_inb_pct_lost { background: rgba(239, 68, 68, .12); color: #dc2626; }
+    .o_inb_hbar_sm { grid-template-columns: 9rem minmax(0, 1fr) 2.5rem; }
+    .o_inb_tipo_icon { width: 1rem; text-align: center; }
+
+    // ----------------------------------------------------------- registro
+    .o_inb_log li { align-items: flex-start; }
+    .o_inb_log_icon {
+        flex: none;
+        width: 1.9rem;
+        height: 1.9rem;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        margin-top: .1rem;
+    }
+    .o_inb_log_text {
+        font-size: .8rem;
+        margin: .1rem 0;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+}
+
+// --------------------------------------------------------------- PDF
+// "Exportar PDF" usa a impressão do navegador: só o relatório, sem menus nem botões.
+@media print {
+    body:has(.o_inb_dash) {
+        .o_main_navbar, .o_control_panel, .o_inb_noprint { display: none !important; }
+        &, .o_web_client, .o_action_manager, .o_action, .o_inb_dash {
+            height: auto !important;
+            overflow: visible !important;
+            display: block !important;
+        }
+        .o_inb_dash { padding: 0; background: #fff; }
+        .o_abm_card, .o_abm_kpi, .o_abm_alert { break-inside: avoid; box-shadow: none; }
+        .o_abm_grid_2_1, .o_abm_grid_1_1 { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); display: grid !important; }
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+}

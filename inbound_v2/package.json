@@ -1,0 +1,9 @@
+{
+  "name": "vivaz-inbound-v2-tools",
+  "private": true,
+  "type": "module",
+  "description": "Scripts de validação do Dashboard Inbound v2 (rodam o calc.js do módulo no Node).",
+  "dependencies": {
+    "luxon": "3.5.0"
+  }
+}

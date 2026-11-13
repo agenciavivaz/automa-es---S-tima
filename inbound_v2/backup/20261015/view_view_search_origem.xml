@@ -1,0 +1,3 @@
+<xpath expr="//search" position="inside">
+                <filter name="origem_inbound" string="Originado no Inbound" domain="[('x_origem_inbound', '=', True)]"/>
+            </xpath>

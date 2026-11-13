@@ -1,0 +1,4 @@
+<xpath expr="(//field[@name='tag_ids'])[1]" position="after">
+                <field name="x_origem_inbound" widget="boolean_toggle"/>
+                <field name="x_studio_data_de_ganho" string="Data do contrato" invisible="not x_origem_inbound" help="Data de fechamento do contrato usada no Dashboard Inbound (se vazia, usa a data de ganho do CRM)."/>
+            </xpath>
