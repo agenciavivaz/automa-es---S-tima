@@ -143,6 +143,23 @@
     .o_vin_contrato_nome { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .o_vin_contrato_meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; color: var(--vin-muted); b { color: var(--vin-texto); white-space: nowrap; } }
     .o_vin_badge_novo { white-space: nowrap; margin-left: 6px; font-size: 10.5px; background: var(--vin-bom-bg); color: var(--vin-bom); border-radius: 999px; padding: 0 6px; }
+    .o_vin_conta { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--vin-borda); }
+    .o_vin_conta_titulo { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vin-muted); cursor: pointer;
+        &:hover { color: var(--vin-acento); } }
+    .o_vin_conta_stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 8px 0 2px;
+        > div { background: #fff; border: 1px solid var(--vin-borda); border-radius: 8px; padding: 6px 8px; display: flex; flex-direction: column; min-width: 0; }
+        small { font-size: 11px; color: var(--vin-muted); }
+        b { font-size: 16px; line-height: 1.2; white-space: nowrap; }
+        span { font-size: 11px; color: var(--vin-muted); }
+        .ganho b { color: var(--vin-bom); }
+        .aberto b { color: var(--vin-atencao); }
+        .perdido b { color: var(--vin-muted); } }
+    .o_vin_contratos li.st_perdido { opacity: .7; }
+    .o_vin_status { display: inline-block; font-size: 10.5px; font-weight: 600; border-radius: 999px; padding: 0 6px; margin-right: 4px;
+        &.st_ganho { background: var(--vin-bom-bg); color: var(--vin-bom); }
+        &.st_aberto { background: var(--vin-atencao-bg); color: var(--vin-atencao); }
+        &.st_perdido { background: var(--vin-trilho); color: var(--vin-muted); } }
+    .o_vin_conta_resumo { font-size: 12.5px; color: var(--vin-texto); font-weight: 600; }
     .o_vin_acum_periodo { margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--vin-borda); font-size: 13px; color: var(--vin-muted);
         &.tem { color: var(--vin-bom); font-weight: 600; } }
 

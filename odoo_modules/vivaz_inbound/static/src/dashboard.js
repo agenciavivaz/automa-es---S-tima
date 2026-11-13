@@ -42,7 +42,8 @@ export const GLOSSARIO = [
     ["Leads tocados", "Leads inbound com pelo menos uma ação no período, de qualquer data de entrada."],
     ["Parado", "Lead aberto do período sem mudança de etapa há mais de 7 dias e sem atividade futura."],
     ["Sem sucesso", "Ação cujo texto indica tentativa sem resposta (tentativa, sem contato, não atende, sem resposta, inválido) — critério da v1."],
-    ["Expansão de conta", "Oportunidades de expansão (ex.: Hyundai no pipeline ABM Sétima) não entram em nenhum número do inbound (RN3)."],
+    ["Histórico da conta", "Todas as propostas (oportunidades) das contas que fecharam contrato originado no inbound, em qualquer pipeline: ganhas, em aberto e perdidas. Ficam fora os leads do próprio Inbound e o card de acompanhamento da conta no ABM. Mostra a expansão do cliente que o inbound trouxe; não muda com o filtro."],
+    ["Expansão de conta", "Propostas de expansão aparecem só no histórico da conta, dentro do card do acumulado. Não entram no funil, nos KPIs nem na receita acumulada sem a marcação “Originado no Inbound” (RN3)."],
 ];
 
 export class VivazInboundDashboard extends Component {
@@ -278,6 +279,9 @@ export class VivazInboundDashboard extends Component {
     }
     abrirLinha(linha) {
         this.abrirLeads(`${linha.key} · ${this.state.per.label}`, linha.ids);
+    }
+    abrirConta(k) {
+        this.abrirLeads(`Propostas · ${k.nome}`, k.todosIds);
     }
     abrirContratos(ids) {
         this.abrirLeads("Receita acumulada do processo inbound", ids);

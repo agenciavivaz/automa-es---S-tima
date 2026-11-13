@@ -1,7 +1,14 @@
 # CHANGELOG · Relatório de resultados · Inbound Sétima v2
 
-Versão do módulo: `vivaz_inbound` 19.0.2.1.0 · publicado em 15/10/2026 · PRD v1.1.
+Versão do módulo: `vivaz_inbound` 19.0.2.2.0 · publicado em 13/11/2026 · PRD v1.1.
 F0–F4 executadas. **F5 executada em 15/10/2026 com aprovação do Diego** (ver "19.0.2.1.0" abaixo).
+
+## 19.0.2.2.0 — histórico da conta no card do acumulado (13/11/2026)
+
+- **Card "Receita acumulada do processo inbound"** ganhou, abaixo do valor fechado, o bloco **"Conta Hyundai Motor Brasil · 4 propostas enviadas"** com três números: **Fechado R$ 962,8 mil (2 contratos)**, **Em aberto R$ 476,6 mil (1 proposta)**, **Perdidas 1**, a lista das propostas com status (Em aberto / Ganho / Perdido) e a linha "Potencial da conta: R$ 1.439.380 (fechado + em aberto) · 2 de 3 propostas decididas ganhas".
+- **Critério:** contas com contrato marcado "Originado no Inbound" → todas as oportunidades da conta (`partner_id child_of`) em qualquer pipeline, ativas ou perdidas, exceto leads do próprio Inbound (time 16) e o card de acompanhamento do ABM (time 20, "Cliente – expansão"). Não muda com o filtro.
+- **RN3 ajustada:** a expansão continua fora do funil, dos KPIs e da receita acumulada (que segue contando só ganhos com a flag); ela aparece apenas no histórico da conta. Glossário atualizado.
+- Reconciliado com `valores_dashboard.mjs` (Este mês: KPIs iguais, acumulado R$ 962.800, conta = 4 propostas / R$ 962.800 fechado / R$ 476.580 aberto / 1 perdida). `testes_calc.mjs`: 10 ok.
 
 ## 19.0.2.1.0 — virada (F5) e ajustes pedidos na validação
 

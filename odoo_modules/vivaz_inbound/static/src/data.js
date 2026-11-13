@@ -19,6 +19,9 @@ const ACT_FIELDS = [
     "user_id", "res_id", "active", "feedback", "create_date", "calendar_event_id",
 ];
 const DEAL_FIELDS = ["name", "partner_id", "team_id", "expected_revenue", "won_status", "date_closed", "x_studio_data_de_ganho"];
+const CONTA_FIELDS = [...DEAL_FIELDS, "stage_id", "probability", "active", "create_date", "date_deadline"];
+// Card de acompanhamento da conta no ABM ("Cliente – expansão"): não é proposta.
+export const ABM_TEAM_ID = 20;
 
 export const MODELO = {
     comentario: "x_vivaz_inb_comentario",
@@ -52,6 +55,16 @@ export async function carregar(orm, per) {
         opcional(orm.searchRead(MODELO.meta, [], ["x_etapa", "x_taxa_alvo"]), []),
         opcional(orm.searchRead(MODELO.ajuste, [], ["x_name", "x_valor"]), []),
     ]);
+    // Histórico das contas que fecharam contrato inbound: todas as propostas da conta, em
+    // qualquer pipeline (ganhas, em aberto e perdidas). Fora: leads do próprio Inbound e o
+    // card de acompanhamento do ABM. Não tem período, como o acumulado.
+    const contasIds = [...new Set(contratos.map((c) => c.partner_id && c.partner_id[0]).filter(Boolean))];
+    const negociosConta = contasIds.length
+        ? await orm.searchRead("crm.lead",
+            [["partner_id", "child_of", contasIds], ["type", "=", "opportunity"], ["team_id", "not in", [TEAM_ID, ABM_TEAM_ID]],
+             ["active", "in", [true, false]]],
+            CONTA_FIELDS, { ...CTX, order: "create_date asc" })
+        : [];
     const cohortIds = leads.map((l) => l.id);
     const resIn = (ids) => ["res_id", "in", ids];
     const [msgJanela, msgCoorte, atividades, eventos] = await Promise.all([
@@ -84,7 +97,7 @@ export async function carregar(orm, per) {
         ...eventos.map((e) => e.opportunity_id && e.opportunity_id[0])])].filter((id) => id && !conhecidos.has(id));
     const leadsExtra = extraIds.length ? await orm.searchRead("crm.lead", [["id", "in", extraIds], ["active", "in", [true, false]]], LEAD_FIELDS, CTX) : [];
     return {
-        stages, leads, leadsPrev, leadsExtra, mensagens, atividades, eventos, contratos,
+        stages, leads, leadsPrev, leadsExtra, mensagens, atividades, eventos, contratos, negociosConta,
         tagDataCrazy: tags.map((t) => t.id), apelidos, metas,
         ajustes: Object.fromEntries(ajustes.map((a) => [a.x_name, a.x_valor])),
         todosIds,

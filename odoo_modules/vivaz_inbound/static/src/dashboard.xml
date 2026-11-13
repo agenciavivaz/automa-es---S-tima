@@ -148,7 +148,30 @@
                                 </div>
                                 <div class="o_vin_acum_valor" t-esc="r.acumulado.valor"/>
                                 <div class="o_vin_acum_apoio" t-esc="r.acumulado.apoio"/>
-                                <ul class="o_vin_contratos">
+                                <!-- Histórico da conta originada no inbound: fechado, em aberto e perdido -->
+                                <t t-foreach="r.acumulado.contas" t-as="k" t-key="k.id">
+                                    <div class="o_vin_conta">
+                                        <div class="o_vin_conta_titulo" role="button" t-on-click="() => this.abrirConta(k)" t-esc="k.titulo"/>
+                                        <div class="o_vin_conta_stats">
+                                            <div class="ganho"><small>Fechado</small><b t-esc="k.fechado"/><span t-esc="k.lblGanho"/></div>
+                                            <div class="aberto"><small>Em aberto</small><b t-esc="k.aberto"/><span t-esc="k.lblAberto"/></div>
+                                            <div class="perdido"><small>Perdidas</small><b t-esc="k.nPerdido"/><span t-esc="k.lblPerdido"/></div>
+                                        </div>
+                                        <ul class="o_vin_contratos">
+                                            <t t-foreach="k.itens" t-as="c" t-key="c.id">
+                                                <li t-on-click="() => this.abrirLead(c.id)" role="button" t-att-title="c.nome" t-att-class="'st_' + c.status">
+                                                    <div class="o_vin_contrato_nome" t-esc="c.nome"/>
+                                                    <div class="o_vin_contrato_meta">
+                                                        <span><span t-att-class="'o_vin_status st_' + c.status" t-esc="c.rotulo"/> <t t-esc="c.meta"/></span>
+                                                        <b t-esc="c.valor"/>
+                                                    </div>
+                                                </li>
+                                            </t>
+                                        </ul>
+                                        <div class="o_vin_conta_resumo" t-esc="k.resumo"/>
+                                    </div>
+                                </t>
+                                <ul t-if="!r.acumulado.contas.length" class="o_vin_contratos">
                                     <t t-foreach="r.acumulado.lista" t-as="c" t-key="c.id">
                                         <li t-on-click="() => this.abrirLead(c.id)" role="button" t-att-title="c.nome">
                                             <div class="o_vin_contrato_nome" t-esc="c.nome"/>
@@ -156,7 +179,7 @@
                                         </li>
                                     </t>
                                 </ul>
-                                <a t-if="r.acumulado.nContratos > 3" href="#" class="o_vin_link" t-on-click.prevent="() => this.abrirContratos(r.acumulado.todosIds)">ver todos (<t t-esc="r.acumulado.nContratos"/>)</a>
+                                <a t-if="!r.acumulado.contas.length and r.acumulado.nContratos > 3" href="#" class="o_vin_link" t-on-click.prevent="() => this.abrirContratos(r.acumulado.todosIds)">ver todos (<t t-esc="r.acumulado.nContratos"/>)</a>
                                 <div class="o_vin_acum_periodo" t-att-class="{ 'tem': r.acumulado.periodoValorRaw > 0 }" t-esc="r.acumulado.periodoTexto"/>
                             </aside>
                         </div>

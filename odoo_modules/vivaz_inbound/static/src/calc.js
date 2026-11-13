@@ -524,6 +524,7 @@ export function calcular(raw, per, opts = {}) {
             p: per.labelCurto, v: fmtBrl(receitaPeriodo), n: fmtInt(noPeriodo.length), c: noPeriodo.length === 1 ? "contrato" : "contratos",
         }),
         periodoValorRaw: receitaPeriodo, periodoN: noPeriodo.length,
+        contas: historicoContas(raw, validos, contratos, conta),
     };
 
     // ---------------- aquisição: entrada por dia/semana/mês e campanha
@@ -645,12 +646,75 @@ export function calcular(raw, per, opts = {}) {
             mediana1oContatoHoras: medianaH, contatados: horas.length,
             datacrazy: dcN, acoes: acoes.length, leadsTocados: tocados.size,
             receitaAcumulada: receitaTotal, contratosAcumulados: validos.length,
+            contas: acumulado.contas.map((k) => ({ conta: k.nome, propostas: k.nPropostas, fechado: k.fechadoRaw, aberto: k.abertoRaw, perdidas: k.nPerdido })),
             receitaPeriodo, contratosPeriodo: noPeriodo.length,
             funil: Object.fromEntries(fSteps.map((s) => [s.name, s.count])),
             leadsAnterior: leadsPrev ? leadsPrev.length : null,
             parados: parados.length, semProxima: semProxima.length, semContato: semContatoNunca.length,
         },
     };
+}
+
+/**
+ * Histórico das contas originadas no inbound (A5+): todas as propostas da conta em qualquer
+ * pipeline — ganhas, em aberto e perdidas —, para mostrar a expansão do cliente que o
+ * inbound trouxe. Proposta = oportunidade da conta fora do pipeline Inbound e fora do card
+ * de acompanhamento do ABM (data.js). Não muda com o filtro de período.
+ */
+export function historicoContas(raw, validos, contratos, contaDe) {
+    const porId = new Map();
+    for (const d of [...(raw.negociosConta || []), ...contratos]) if (!porId.has(d.id)) porId.set(d.id, d);
+    const contas = new Map();
+    for (const d of porId.values()) {
+        const pid = d.partner_id ? d.partner_id[0] : 0;
+        if (!contas.has(pid)) contas.set(pid, { id: pid, nome: d.partner_id ? d.partner_id[1] : contaDe(d), itens: [] });
+        const status = d.won_status === "won" ? "ganho" : d.won_status === "lost" || d.active === false ? "perdido" : "aberto";
+        const fechado = fromDateStr(d.x_studio_data_de_ganho) || fromUtcSql(d.date_closed);
+        const data = status === "aberto" ? fromUtcSql(d.create_date) : fechado || fromUtcSql(d.create_date);
+        contas.get(pid).itens.push({
+            id: d.id, nome: d.name, status, valorRaw: d.expected_revenue || 0, data,
+            etapa: d.stage_id ? d.stage_id[1] : "",
+        });
+    }
+    const ordem = { aberto: 0, ganho: 1, perdido: 2 };
+    const ROTULO = { aberto: "Em aberto", ganho: "Ganho", perdido: "Perdido" };
+    const comContrato = new Set(validos.map((c) => (c.partner_id ? c.partner_id[0] : 0)));
+    return [...contas.values()]
+        .filter((k) => comContrato.has(k.id))
+        .map((k) => {
+            const soma = (st) => k.itens.filter((i) => i.status === st).reduce((t, i) => t + i.valorRaw, 0);
+            const n = (st) => k.itens.filter((i) => i.status === st).length;
+            const fechadoRaw = soma("ganho");
+            const abertoRaw = soma("aberto");
+            const nPropostas = k.itens.length;
+            const nGanho = n("ganho");
+            const nPerdido = n("perdido");
+            const decididas = nGanho + nPerdido;
+            return {
+                id: k.id, nome: k.nome, nPropostas, nGanho, nAberto: n("aberto"), nPerdido,
+                fechadoRaw, abertoRaw, potencialRaw: fechadoRaw + abertoRaw,
+                fechado: fmtBrlCurto(fechadoRaw), aberto: fmtBrlCurto(abertoRaw),
+                lblGanho: tpl("{n} {p}", { n: fmtInt(nGanho), p: nGanho === 1 ? "contrato" : "contratos" }),
+                lblAberto: tpl("{n} {p}", { n: fmtInt(n("aberto")), p: n("aberto") === 1 ? "proposta" : "propostas" }),
+                lblPerdido: nPerdido === 1 ? "proposta" : "propostas",
+                titulo: tpl("Conta {c} · {n} {p} enviadas", { c: k.nome, n: fmtInt(nPropostas), p: nPropostas === 1 ? "proposta" : "propostas" }),
+                resumo: tpl("Potencial da conta: {v} (fechado + em aberto){x}", {
+                    v: fmtBrl(fechadoRaw + abertoRaw),
+                    x: decididas ? ` · ${fmtInt(nGanho)} de ${fmtInt(decididas)} propostas decididas ganhas` : "",
+                }),
+                itens: k.itens
+                    .sort((a, b) => ordem[a.status] - ordem[b.status] || (b.data && a.data ? b.data - a.data : 0))
+                    .map((i) => ({
+                        id: i.id, nome: i.nome, status: i.status, rotulo: ROTULO[i.status],
+                        valor: i.valorRaw ? fmtBrl(i.valorRaw) : "valor não registrado",
+                        meta: i.status === "aberto"
+                            ? tpl("{e} · desde {d}", { e: i.etapa, d: fmtDate(i.data) })
+                            : fmtDate(i.data),
+                    })),
+                todosIds: k.itens.map((i) => i.id),
+            };
+        })
+        .sort((a, b) => b.potencialRaw - a.potencialRaw);
 }
 
 function serie(items, dtFn, keyFn, colorMap, from, end, unit) {
