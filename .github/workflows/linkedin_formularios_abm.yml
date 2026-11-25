@@ -1,0 +1,43 @@
+name: Formulário aberto no LinkedIn (Make → ABM)
+
+on:
+  schedule:
+    # Segunda 08:25 BRT (11:25 UTC), depois do cenário do Make das 06:55 que
+    # grava as aberturas de formulário da semana anterior no data store.
+    - cron: "25 11 * * 1"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "true = só mostra o que gravaria, sem escrever no Odoo"
+        required: false
+        default: "true"
+
+jobs:
+  sincronizar:
+    runs-on: ubuntu-latest
+    environment: automações
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Sincronizar formulários abertos
+        env:
+          MAKE_API_TOKEN: ${{ secrets.MAKE_API_TOKEN }}
+          MAKE_ZONE: "us1.make.com"
+          MAKE_DATASTORE_ID: "102062"
+          ODOO_URL: ${{ secrets.ODOO_URL }}
+          ODOO_DB: ${{ secrets.ODOO_DB }}
+          ODOO_API_KEY: ${{ secrets.ODOO_API_KEY }}
+          PONTOS_FORMULARIO_ABERTO: "20"
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        run: python sincronizar_linkedin_formularios_abm.py
