@@ -36,6 +36,38 @@ segmentação, sendo o público = pessoas no Brasil com os cargos da campanha no
 Faixas: < 2× baixa, 2–4× construindo, 4–8× ideal, > 8× saturando. Informativo: não entra no score.
 Primeira carga em 27/11/2026 (impressões de 01–27/11, 22 contas), ainda manual.
 
+## Mídia · LinkedIn Ads (19.0.4.0.0)
+
+Seção "Mídia" (logo após o Resumo), para o especialista decidir e para reportar à liderança. Lê três modelos
+criados pelo próprio módulo (`views/midia_models.xml`, modelos "manual", leitura para usuários internos):
+
+| Modelo | O que é | Origem |
+|---|---|---|
+| `x_abm_midia_dia` | dia × campanha: investimento, impressões, cliques, LP, formulário, engajamento, vídeo | aba `diario_campanha` |
+| `x_abm_midia_empresa` | semana × empresa (impressões, cliques), casada com a conta pelo "Nome no LinkedIn" | aba `empresas_abm` |
+| `x_abm_midia_segmento` | período × frente × senioridade / função / cargo | adAnalytics com pivôs MEMBER_* |
+
+Carga: `python atualizar_midia_abm.py --planilha <export.xlsx> [--cargos <cargos.json>] --aplicar` (upsert por
+`x_name`, rodar de novo só atualiza). Primeira carga em 27/11/2026: 190 dias × campanha (21/09–26/11, R$ 23.128),
+96 empresas da semana 17–23/11 (28 casadas com contas ABM) e 150 linhas de público (21/09–26/11).
+
+O que a seção mostra, com filtro de **frente** (Comitê · Sétima = campanhas de comitê das contas ABM; Educação ·
+BrandSpot = `[Comite] - Educação`, que mira contas do ABM BrandSpot; Todas):
+
+1. KPIs com variação contra o período anterior: valor investido, CPM, CTR, CPC, frequência média das contas
+   (impressões ÷ público estimado, medição `x_abm_midia_*`) e retenção de vídeo (até o fim ÷ views de 2s).
+2. **Leitura para decisão**: regras que viram frases para o board (senioridade de quem vê, dispersão de CPM entre
+   campanhas, retenção do vídeo, cobertura das contas, contas aquecidas sem cadência, mídia sem conversão, empresas
+   do setor impactadas fora da lista).
+3. Investimento por semana com CPM, funil de retenção (impressão → view 2s → fim) e ação gerada (engajamento,
+   cliques, LP, formulário, leads).
+4. Tabela de campanhas (investimento, CPM, CTR, CPC, engajamento, retenção, formulário).
+5. Público: senioridade agrupada em decisores / gerência / execução, funções e top 12 cargos (coleta pontual,
+   não segue o filtro de período).
+6. Mídia por conta ABM: distribuição por faixa de frequência e tabela com a **próxima ação de mídia** (sem entrega →
+   incluir na lista; < 2× ampliar; 2–4× manter; 4–8× acionar cadência se a conta não está em contato; > 8× trocar
+   criativo/reduzir verba).
+
 Fora do painel por decisão de 27/11/2026: nível LinkedIn Ads por conta e a "Frequência"
 (`x_abm_exposicao` = impressões pagas da empresa inteira ÷ pessoas do comitê no CRM, que infla o número).
 

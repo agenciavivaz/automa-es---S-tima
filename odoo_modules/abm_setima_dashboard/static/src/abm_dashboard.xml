@@ -92,6 +92,306 @@
                         </div>
                     </section>
 
+                    <!-- ============================================ MÍDIA (LinkedIn Ads) -->
+                    <section id="vas_midia" class="o_vas_secao">
+                        <t t-set="m" t-value="d.midia"/>
+                        <div class="o_vas_secao_head">
+                            <div>
+                                <div class="o_vas_secao_titulo">Mídia · LinkedIn Ads</div>
+                                <div class="o_vas_hint" t-if="m.fonte"><t t-esc="m.fonte"/> · fonte: Make → planilha → Odoo</div>
+                            </div>
+                            <div class="o_vas_tabs o_vas_noprint" role="radiogroup" aria-label="Frente de mídia">
+                                <span class="o_vas_rotulo">Frente:</span>
+                                <t t-foreach="m.frentes" t-as="f" t-key="f.key">
+                                    <button type="button" role="radio" t-att-aria-checked="state.frente === f.key ? 'true' : 'false'"
+                                            t-att-class="{ 'active': state.frente === f.key }" t-on-click="() => this.onFrente(f.key)" t-esc="f.label"/>
+                                </t>
+                            </div>
+                        </div>
+                        <div t-if="m.vazio" class="o_vas_card o_vas_empty">Ainda não há dados de mídia no Odoo. Rode atualizar_midia_abm.py.</div>
+                        <t t-else="">
+                            <div class="o_vas_kpis">
+                                <t t-foreach="m.kpis" t-as="k" t-key="k.key">
+                                    <div class="o_vas_card o_vas_kpi o_vas_kpi_static">
+                                        <div class="o_vas_kpi_label">
+                                            <i t-attf-class="fa {{ k.icon }}"/>
+                                            <span t-esc="k.label"/>
+                                            <i class="fa fa-info-circle o_vas_info" t-att-title="k.info" aria-label="Definição"/>
+                                        </div>
+                                        <div class="o_vas_kpi_valor">
+                                            <t t-esc="k.value"/>
+                                            <span t-if="k.delta" class="o_vas_delta" t-att-class="k.delta.classe" t-att-title="k.delta.tooltip">
+                                                <i t-attf-class="fa {{ k.delta.seta }}"/> <t t-esc="k.delta.texto"/>
+                                            </span>
+                                        </div>
+                                        <div class="o_vas_kpi_sub" t-esc="k.sub"/>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <div t-if="m.semDadosPeriodo" class="o_vas_card o_vas_empty mt-3">Sem veiculação desta frente no período selecionado.</div>
+
+                            <div class="o_vas_bloco" t-if="m.leitura.length">
+                                <div class="o_vas_card">
+                                    <div class="o_vas_card_head">
+                                        <h3>Leitura para decisão</h3>
+                                        <span class="o_vas_hint">o que os números pedem, em ordem de impacto no ABM</span>
+                                    </div>
+                                    <div class="o_vas_leitura">
+                                        <t t-foreach="m.leitura" t-as="l" t-key="l_index">
+                                            <div class="o_vas_insight" t-att-class="l.tipo">
+                                                <span class="o_vas_insight_tag" t-esc="l.tipo === 'alerta' ? 'Atenção' : l.tipo === 'ok' ? 'Ok' : 'Oportunidade'"/>
+                                                <div>
+                                                    <b t-esc="l.titulo"/>
+                                                    <div class="o_vas_hint" t-esc="l.texto"/>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="o_vas_par" t-if="!m.semDadosPeriodo">
+                                <div class="o_vas_card">
+                                    <div class="o_vas_card_head o_vas_head_split">
+                                        <div>
+                                            <h3>Investimento <t t-esc="m.serie.unit"/></h3>
+                                            <span class="o_vas_hint">R$ por barra · CPM embaixo</span>
+                                        </div>
+                                        <a href="#" class="o_vas_link o_vas_noprint" t-on-click.prevent="() => this.openMidiaDia()">ver por dia <i class="fa fa-angle-right"/></a>
+                                    </div>
+                                    <div class="o_vas_serie o_vas_serie_midia">
+                                        <div class="o_vas_serie_eixo">
+                                            <span t-esc="Math.round(m.serie.max).toLocaleString('pt-BR')"/>
+                                            <span t-esc="Math.round(m.serie.max / 2).toLocaleString('pt-BR')"/>
+                                            <span>0</span>
+                                        </div>
+                                        <div class="o_vas_serie_barras">
+                                            <t t-foreach="m.serie.bars" t-as="b" t-key="b.key">
+                                                <div class="o_vas_sbar" t-att-title="b.title">
+                                                    <div class="o_vas_sbar_pilha">
+                                                        <span t-if="b.valor" class="o_vas_sbar_total" t-esc="b.valor"/>
+                                                        <t t-foreach="b.segs" t-as="s" t-key="s.key">
+                                                            <div class="o_vas_sbar_seg" t-att-style="'height:' + s.height + '%;background:' + s.color"/>
+                                                        </t>
+                                                    </div>
+                                                    <div class="o_vas_sbar_label"><t t-if="b.showLabel" t-esc="b.label"/></div>
+                                                    <div class="o_vas_sbar_cpm"><t t-if="b.showLabel" t-esc="b.cpm"/></div>
+                                                </div>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="o_vas_card">
+                                    <div class="o_vas_card_head">
+                                        <h3>Retenção e ação</h3>
+                                        <span class="o_vas_hint">do vídeo visto ao formulário</span>
+                                    </div>
+                                    <t t-foreach="m.funilVideo" t-as="f" t-key="f.key">
+                                        <div class="o_vas_funil_midia">
+                                            <span t-esc="f.label"/>
+                                            <div class="o_vas_hbar_track"><div class="o_vas_hbar_fill" t-att-style="'width:' + Math.max(f.pct, 0.6) + '%'"/></div>
+                                            <b t-esc="f.n.toLocaleString('pt-BR')"/>
+                                            <small class="o_vas_hint" t-esc="f.txt"/>
+                                        </div>
+                                    </t>
+                                    <div class="o_vas_minititulo">Ação gerada</div>
+                                    <div class="o_vas_acao_grid">
+                                        <t t-foreach="m.acao" t-as="a" t-key="a.key">
+                                            <div t-att-class="{ 'zero': !a.n }">
+                                                <b t-esc="a.n.toLocaleString('pt-BR')"/>
+                                                <span t-esc="a.label"/>
+                                                <small class="o_vas_hint" t-if="a.txt" t-esc="a.txt"/>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="o_vas_bloco" t-if="m.campanhas.length">
+                                <div class="o_vas_card o_vas_card_tabela">
+                                    <div class="o_vas_card_head">
+                                        <h3>Campanhas no período</h3>
+                                        <span class="o_vas_hint">ordenado por investimento · clique para ver o diário</span>
+                                    </div>
+                                    <div class="o_vas_tabela_wrap">
+                                        <table class="o_vas_tabela">
+                                            <thead>
+                                                <tr>
+                                                    <th>Campanha<small>frente · dias com entrega</small></th>
+                                                    <th class="num">Investimento<small>% do total</small></th>
+                                                    <th class="num">Impressões</th>
+                                                    <th class="num">CPM</th>
+                                                    <th class="num">Cliques</th>
+                                                    <th class="num">CTR</th>
+                                                    <th class="num">CPC</th>
+                                                    <th class="num">Engajamento<small>engaj. ÷ impr.</small></th>
+                                                    <th class="num">Retenção<small>vídeo até o fim</small></th>
+                                                    <th class="num">Formulário<small>aberturas · leads</small></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-foreach="m.campanhas" t-as="c" t-key="c.id">
+                                                    <tr t-on-click="() => this.openCampanha(c)">
+                                                        <td class="o_vas_conta">
+                                                            <div class="o_vas_conta_nome"><span class="o_vas_dot" t-att-style="'background:' + c.cor"/><b t-esc="c.nome"/></div>
+                                                            <div class="o_vas_hint"><t t-esc="c.frenteLabel"/> · <t t-esc="c.dias"/> dia(s)</div>
+                                                        </td>
+                                                        <td class="num"><b t-esc="fmt.brl(c.t.custo, 0)"/> <span class="o_vas_hint"><t t-esc="c.share"/>%</span></td>
+                                                        <td class="num" t-esc="c.t.imp.toLocaleString('pt-BR')"/>
+                                                        <td class="num" t-esc="fmt.brl(c.t.cpm, 2)"/>
+                                                        <td class="num" t-esc="c.t.cli.toLocaleString('pt-BR')"/>
+                                                        <td class="num" t-esc="fmt.pct(c.t.ctr, 2)"/>
+                                                        <td class="num" t-esc="fmt.brl(c.t.cpc, 2)"/>
+                                                        <td class="num" t-esc="fmt.pct(c.t.engRate, 2)"/>
+                                                        <td class="num" t-esc="fmt.pct(c.t.ret, 1)"/>
+                                                        <td class="num"><t t-esc="c.t.form"/> · <t t-esc="c.t.leads"/></td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                            <tfoot t-if="m.campanhas.length > 1">
+                                                <tr>
+                                                    <td><b>Total</b></td>
+                                                    <td class="num"><b t-esc="fmt.brl(m.total.custo, 0)"/></td>
+                                                    <td class="num" t-esc="m.total.imp.toLocaleString('pt-BR')"/>
+                                                    <td class="num" t-esc="fmt.brl(m.total.cpm, 2)"/>
+                                                    <td class="num" t-esc="m.total.cli.toLocaleString('pt-BR')"/>
+                                                    <td class="num" t-esc="fmt.pct(m.total.ctr, 2)"/>
+                                                    <td class="num" t-esc="fmt.brl(m.total.cpc, 2)"/>
+                                                    <td class="num" t-esc="fmt.pct(m.total.engRate, 2)"/>
+                                                    <td class="num" t-esc="fmt.pct(m.total.ret, 1)"/>
+                                                    <td class="num"><t t-esc="m.total.form"/> · <t t-esc="m.total.leads"/></td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="o_vas_par o_vas_par_igual" t-if="m.publico.totSen">
+                                <div class="o_vas_card">
+                                    <div class="o_vas_card_head o_vas_head_split">
+                                        <div>
+                                            <h3>Quem está vendo · senioridade e função</h3>
+                                            <span class="o_vas_hint">% das impressões · <t t-esc="m.publico.periodo"/> (coleta pontual, não segue o filtro)</span>
+                                        </div>
+                                        <a href="#" class="o_vas_link o_vas_noprint" t-on-click.prevent="() => this.openSegmento('senioridade')">dados <i class="fa fa-angle-right"/></a>
+                                    </div>
+                                    <div class="o_vas_stack o_vas_stack_lg">
+                                        <t t-foreach="m.publico.grupos" t-as="g" t-key="g.key">
+                                            <div t-att-style="'flex:' + (g.imp || 0.0001) + ';background:' + g.color" t-att-title="g.label + ': ' + g.pct + '%'"/>
+                                        </t>
+                                    </div>
+                                    <ul class="o_vas_legenda o_vas_legenda_sen">
+                                        <t t-foreach="m.publico.grupos" t-as="g" t-key="g.key">
+                                            <li t-att-title="g.detalhe"><span class="o_vas_dot" t-att-style="'background:' + g.color"/><span t-esc="g.label"/><span class="o_vas_hint ms-auto">CTR <t t-esc="fmt.pct(g.ctr, 2)"/></span><b><t t-esc="g.pct"/>%</b></li>
+                                        </t>
+                                    </ul>
+                                    <div class="o_vas_minititulo">Funções com mais impressões</div>
+                                    <t t-foreach="m.publico.funcoes" t-as="f" t-key="f.id">
+                                        <div class="o_vas_pront">
+                                            <span t-esc="f.nome"/>
+                                            <div class="o_vas_hbar_track"><div class="o_vas_hbar_fill" t-att-style="'width:' + f.width + '%'"/></div>
+                                            <b><t t-esc="f.pct"/>%</b>
+                                        </div>
+                                    </t>
+                                </div>
+                                <div class="o_vas_card">
+                                    <div class="o_vas_card_head o_vas_head_split">
+                                        <div>
+                                            <h3>Cargos mais impactados</h3>
+                                            <span class="o_vas_hint">top 12 por impressões · % das impressões · CTR</span>
+                                        </div>
+                                        <a href="#" class="o_vas_link o_vas_noprint" t-on-click.prevent="() => this.openSegmento('cargo')">todos <i class="fa fa-angle-right"/></a>
+                                    </div>
+                                    <div class="o_vas_hbar o_vas_hbar_cargo o_vas_hbar_head">
+                                        <span>cargo</span><span/><span>impr.</span><span>%</span><span>CTR</span>
+                                    </div>
+                                    <t t-foreach="m.publico.cargos" t-as="c" t-key="c.id">
+                                        <div class="o_vas_hbar o_vas_hbar_cargo">
+                                            <div class="o_vas_hbar_nome" t-att-title="c.nome" t-esc="c.nome"/>
+                                            <div class="o_vas_hbar_track"><div class="o_vas_hbar_fill" t-att-style="'width:' + c.width + '%'"/></div>
+                                            <span t-esc="c.imp.toLocaleString('pt-BR')"/>
+                                            <span t-esc="c.pct.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%'"/>
+                                            <span class="o_vas_hint" t-esc="fmt.pct(c.ctr, 1)"/>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <div class="o_vas_bloco" t-if="m.mostraContas">
+                                <div class="o_vas_card o_vas_card_tabela">
+                                    <div class="o_vas_card_head o_vas_head_split">
+                                        <div>
+                                            <h3>Mídia por conta ABM</h3>
+                                            <span class="o_vas_hint"><t t-esc="m.comEntrega"/> de <t t-esc="m.totalAtivas"/> contas ativas com entrega · frequência = impressões ÷ público estimado na segmentação</span>
+                                        </div>
+                                    </div>
+                                    <div class="o_vas_stack o_vas_stack_lg">
+                                        <t t-foreach="m.distrib" t-as="s" t-key="s.key">
+                                            <div t-if="s.count" t-att-style="'flex:' + s.count + ';background:' + s.color" t-att-title="s.label + ': ' + s.count"/>
+                                        </t>
+                                    </div>
+                                    <div class="o_vas_chips_info o_vas_chips_click">
+                                        <t t-foreach="m.distrib" t-as="s" t-key="s.key">
+                                            <span role="button" t-on-click="() => this.openMidiaStatus(s.key, m.contas)"><span class="o_vas_dot" t-att-style="'background:' + s.color"/><t t-esc="s.label"/> <b t-esc="s.count"/></span>
+                                        </t>
+                                    </div>
+                                    <div class="o_vas_tabela_wrap mt-2">
+                                        <table class="o_vas_tabela">
+                                            <thead>
+                                                <tr>
+                                                    <th>Conta<small>tier · etapa</small></th>
+                                                    <th class="num">Score<small>temperatura</small></th>
+                                                    <th class="num" t-if="m.semanaLabel">Semana <t t-esc="m.semanaLabel"/><small>impressões · cliques</small></th>
+                                                    <th class="num">Impressões medidas<small>÷ público estimado</small></th>
+                                                    <th class="num">Frequência<small>impressões por pessoa</small></th>
+                                                    <th>Próxima ação de mídia</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-foreach="state.midiaContasTodas ? m.contas : m.contas.slice(0, 15)" t-as="c" t-key="c.id">
+                                                    <tr t-on-click="() => this.openLead(c.id)">
+                                                        <td class="o_vas_conta">
+                                                            <div class="o_vas_conta_nome">
+                                                                <span class="o_vas_tier" t-if="c.lead.x_abm_tier">T<t t-esc="c.lead.x_abm_tier"/></span>
+                                                                <b t-esc="c.lead.name"/>
+                                                            </div>
+                                                            <div class="o_vas_hint"><t t-esc="c.stage"/><t t-if="c.cadAtiva"> · cadência ativa</t></div>
+                                                        </td>
+                                                        <td class="num"><span class="o_vas_dot" t-att-style="'background:' + c.faixa.color"/><b t-esc="c.score"/></td>
+                                                        <td class="num" t-if="m.semanaLabel">
+                                                            <t t-if="c.semImp"><t t-esc="c.semImp.toLocaleString('pt-BR')"/><span class="o_vas_hint"> · <t t-esc="c.semCli"/></span></t>
+                                                            <span t-else="" class="zero">—</span>
+                                                        </td>
+                                                        <td class="num" t-att-title="c.info.titulo">
+                                                            <t t-if="c.lead.x_abm_midia_impressoes"><t t-esc="c.lead.x_abm_midia_impressoes.toLocaleString('pt-BR')"/><span class="o_vas_hint"> ÷ <t t-esc="(c.lead.x_abm_midia_publico || 0).toLocaleString('pt-BR')"/></span></t>
+                                                            <span t-else="" class="zero">—</span>
+                                                        </td>
+                                                        <td class="num" t-att-title="c.info.titulo">
+                                                            <span t-if="c.info.faixa" class="o_vas_midia" t-att-class="c.info.faixa.key"><t t-esc="c.info.texto"/><small t-esc="c.info.faixa.label"/></span>
+                                                            <span t-else="" class="zero" t-esc="c.info.texto"/>
+                                                        </td>
+                                                        <td><span class="o_vas_acao_midia" t-att-class="c.status" t-esc="c.acao"/></td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <a t-if="m.contas.length > 15" href="#" class="o_vas_link o_vas_ver_todas o_vas_noprint" t-on-click.prevent="() => this.state.midiaContasTodas = !this.state.midiaContasTodas">
+                                        <t t-esc="state.midiaContasTodas ? 'mostrar só as 15 primeiras' : 'ver todas as ' + m.contas.length + ' contas'"/>
+                                    </a>
+                                    <div t-if="m.foraDaLista.length" class="o_vas_fora">
+                                        <span class="o_vas_minititulo">Empresas impactadas na semana <t t-esc="m.semanaLabel"/> que não são contas do ABM Sétima</span>
+                                        <div class="o_vas_hint">
+                                            <t t-foreach="m.foraDaLista" t-as="e" t-key="e.id"><t t-esc="e.x_empresa"/> (<t t-esc="e.x_impressoes"/><t t-if="e.x_cliques"> · <t t-esc="e.x_cliques"/> cliques</t>)<t t-if="!e_last"> · </t></t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </section>
+
                     <!-- ============================================ ENGAJAMENTO -->
                     <section id="vas_sinais" class="o_vas_secao">
                         <div class="o_vas_secao_titulo">Sinais de intenção</div>

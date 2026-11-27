@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Mídia do ABM (LinkedIn Ads). Dados vêm da planilha alimentada pelo Make e são gravados pelo
+         script atualizar_midia_abm.py. O painel só lê. Modelos "manual" (sem Python): o Odoo Online aceita. -->
+
+    <record id="model_x_abm_midia_dia" model="ir.model">
+        <field name="name">ABM · Mídia diária (LinkedIn Ads por campanha)</field>
+        <field name="model">x_abm_midia_dia</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_name" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_name</field>
+        <field name="field_description">Chave (data|campanha)</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_data" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_data</field>
+        <field name="field_description">Data</field>
+        <field name="ttype">date</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_campanha_id" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_campanha_id</field>
+        <field name="field_description">ID da campanha</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_campanha" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_campanha</field>
+        <field name="field_description">Campanha</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_frente" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_frente</field>
+        <field name="field_description">Frente</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_impressoes" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_impressoes</field>
+        <field name="field_description">Impressões</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_cliques" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_cliques</field>
+        <field name="field_description">Cliques</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_custo" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_custo</field>
+        <field name="field_description">Investimento (R$)</field>
+        <field name="ttype">float</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_cliques_lp" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_cliques_lp</field>
+        <field name="field_description">Cliques na landing page</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_aberturas_form" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_aberturas_form</field>
+        <field name="field_description">Aberturas de formulário</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_leads_form" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_leads_form</field>
+        <field name="field_description">Leads de formulário</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_conversoes" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_conversoes</field>
+        <field name="field_description">Conversões no site</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_engajamentos" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_engajamentos</field>
+        <field name="field_description">Engajamentos</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_reacoes" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_reacoes</field>
+        <field name="field_description">Reações</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_comentarios" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_comentarios</field>
+        <field name="field_description">Comentários</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_compartilhamentos" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_compartilhamentos</field>
+        <field name="field_description">Compartilhamentos</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_seguidores" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_seguidores</field>
+        <field name="field_description">Novos seguidores</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_cliques_pagina" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_cliques_pagina</field>
+        <field name="field_description">Cliques na página da empresa</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_alcance" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_alcance</field>
+        <field name="field_description">Alcance aproximado (dia)</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_video_inicios" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_video_inicios</field>
+        <field name="field_description">Vídeo · inícios</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_video_views" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_video_views</field>
+        <field name="field_description">Vídeo · views (2s+)</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_video_completos" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_video_completos</field>
+        <field name="field_description">Vídeo · assistidos até o fim</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_dia_x_coletado_em" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="name">x_coletado_em</field>
+        <field name="field_description">Coletado em</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="access_x_abm_midia_dia_user" model="ir.model.access">
+        <field name="name">x_abm_midia_dia leitura</field>
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="access_x_abm_midia_dia_admin" model="ir.model.access">
+        <field name="name">x_abm_midia_dia administração</field>
+        <field name="model_id" ref="model_x_abm_midia_dia"/>
+        <field name="group_id" ref="base.group_system"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="model_x_abm_midia_empresa" model="ir.model">
+        <field name="name">ABM · Mídia por empresa (LinkedIn Ads)</field>
+        <field name="model">x_abm_midia_empresa</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_empresa_x_name" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_empresa"/>
+        <field name="name">x_name</field>
+        <field name="field_description">Chave (início|empresa)</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_empresa_x_periodo_inicio" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_empresa"/>
+        <field name="name">x_periodo_inicio</field>
+        <field name="field_description">Início do período</field>
+        <field name="ttype">date</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_empresa_x_periodo_fim" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_empresa"/>
+        <field name="name">x_periodo_fim</field>
+        <field name="field_description">Fim do período</field>
+        <field name="ttype">date</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_empresa_x_empresa_urn" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_empresa"/>
+        <field name="name">x_empresa_urn</field>
+        <field name="field_description">URN da empresa</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_empresa_x_empresa" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_empresa"/>
+        <field name="name">x_empresa</field>
+        <field name="field_description">Empresa no LinkedIn</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_empresa_x_impressoes" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_empresa"/>
+        <field name="name">x_impressoes</field>
+        <field name="field_description">Impressões</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_empresa_x_cliques" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_empresa"/>
+        <field name="name">x_cliques</field>
+        <field name="field_description">Cliques</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_empresa_x_lead_id" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_empresa"/>
+        <field name="name">x_lead_id</field>
+        <field name="field_description">Conta ABM</field>
+        <field name="ttype">many2one</field>
+        <field name="state">manual</field>
+        <field name="relation">crm.lead</field>
+        <field name="on_delete">set null</field>
+    </record>
+    <record id="access_x_abm_midia_empresa_user" model="ir.model.access">
+        <field name="name">x_abm_midia_empresa leitura</field>
+        <field name="model_id" ref="model_x_abm_midia_empresa"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="access_x_abm_midia_empresa_admin" model="ir.model.access">
+        <field name="name">x_abm_midia_empresa administração</field>
+        <field name="model_id" ref="model_x_abm_midia_empresa"/>
+        <field name="group_id" ref="base.group_system"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="model_x_abm_midia_segmento" model="ir.model">
+        <field name="name">ABM · Mídia por público (cargo, senioridade, função)</field>
+        <field name="model">x_abm_midia_segmento</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_segmento_x_name" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_segmento"/>
+        <field name="name">x_name</field>
+        <field name="field_description">Chave</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_segmento_x_periodo_inicio" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_segmento"/>
+        <field name="name">x_periodo_inicio</field>
+        <field name="field_description">Início do período</field>
+        <field name="ttype">date</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_segmento_x_periodo_fim" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_segmento"/>
+        <field name="name">x_periodo_fim</field>
+        <field name="field_description">Fim do período</field>
+        <field name="ttype">date</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_segmento_x_frente" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_segmento"/>
+        <field name="name">x_frente</field>
+        <field name="field_description">Frente</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_segmento_x_dimensao" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_segmento"/>
+        <field name="name">x_dimensao</field>
+        <field name="field_description">Dimensão (cargo, senioridade, funcao)</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_segmento_x_valor_id" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_segmento"/>
+        <field name="name">x_valor_id</field>
+        <field name="field_description">ID no LinkedIn</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_segmento_x_valor" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_segmento"/>
+        <field name="name">x_valor</field>
+        <field name="field_description">Valor</field>
+        <field name="ttype">char</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_segmento_x_impressoes" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_segmento"/>
+        <field name="name">x_impressoes</field>
+        <field name="field_description">Impressões</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_segmento_x_cliques" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_segmento"/>
+        <field name="name">x_cliques</field>
+        <field name="field_description">Cliques</field>
+        <field name="ttype">integer</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="f_x_abm_midia_segmento_x_custo" model="ir.model.fields">
+        <field name="model_id" ref="model_x_abm_midia_segmento"/>
+        <field name="name">x_custo</field>
+        <field name="field_description">Investimento (R$)</field>
+        <field name="ttype">float</field>
+        <field name="state">manual</field>
+    </record>
+    <record id="access_x_abm_midia_segmento_user" model="ir.model.access">
+        <field name="name">x_abm_midia_segmento leitura</field>
+        <field name="model_id" ref="model_x_abm_midia_segmento"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="access_x_abm_midia_segmento_admin" model="ir.model.access">
+        <field name="name">x_abm_midia_segmento administração</field>
+        <field name="model_id" ref="model_x_abm_midia_segmento"/>
+        <field name="group_id" ref="base.group_system"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>
