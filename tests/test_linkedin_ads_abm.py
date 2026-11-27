@@ -108,3 +108,15 @@ def test_planejar_com_frequencia_medida_rebaixa_exposicao_inflada():
     assert s["x_pontos_custom"] == 10
     assert "frequência de mídia 1.1× (impressões ÷ público estimado na segmentação) (+0)" in s["x_detalhe"]
     assert itens[0]["exposicao"] == 18.9  # x_abm_exposicao (legado) continua sendo gravado
+
+
+@pytest.mark.parametrize("estagio,nome,base", [(88, "Aquecendo", "frequencia"), (87, "Alvo", "frequencia"),
+                                               (89, "Engajada", "comite"), (90, "Em cadência", "comite")])
+def test_engajada_e_em_cadencia_ficam_na_regra_antiga(estagio, nome, base):
+    c = conta_medida(5, "Marcopolo S.A.", 27, 1.1, "Marcopolo S.A.")
+    c["stage_id"] = [estagio, nome]
+    itens, _ = li.planejar([c], [pagina("Marcopolo S.A.", imp_pago=900)], dt.date(2026, 11, 27))
+    av = itens[0]["av"]
+    assert av["base"] == base
+    # regra antiga: 900 / 27 = 33,3 → +10; frequência 1,1× → +0
+    assert av["exposicao"] == (10 if base == "comite" else 0)

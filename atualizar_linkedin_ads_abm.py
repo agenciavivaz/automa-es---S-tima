@@ -20,6 +20,7 @@ mesmo padrão dos relatórios anteriores:
                     < 2× → +0 · 2–4× → +5 · ≥ 4× → +10 (acima de 8× é alerta de mídia, não muda o score).
                     Conta ainda sem medição de mídia (x_abm_midia_impressoes vazio) usa a regra
                     antiga até ser medida: impressões PAGAS / pessoas no comitê, com as mesmas faixas.
+                    Contas em Engajada ou Em cadência ficam SEMPRE na regra antiga (ESTAGIOS_REGRA_ANTIGA).
     Total           soma dos três, com teto de 30
 
 O snapshot anterior da conta (li_ads_relatorio ativo) é desativado (x_ativo = False),
@@ -48,6 +49,9 @@ log = logging.getLogger(__name__)
 
 ABM_TEAM_ID = int(os.environ.get("ABM_TEAM_ID", "20"))
 ESTAGIOS_FORA = [95, 96]  # Descartada e Cliente – expansão não recebem sinal
+# Engajada e Em cadência ficam na regra antiga de exposição (impressões ÷ comitê), mesmo com
+# frequência de mídia medida: decisão de 27/11/2026 para não mexer no score de quem já avançou.
+ESTAGIOS_REGRA_ANTIGA = [89, 90]
 TETO = 30
 
 NIVEL_PONTOS = {"very low": 0, "low": 5, "medium": 10, "high": 20, "very high": 25}
@@ -133,9 +137,17 @@ def agregar(conta, por_nome):
     return agg, [p["nome"] for p in paginas]
 
 
+def estagio_id(conta):
+    st = (conta or {}).get("stage_id")
+    return st[0] if isinstance(st, (list, tuple)) and st else st
+
+
 def frequencia_midia(conta):
-    """Frequência de mídia medida (x_abm_midia_freq) ou None se a conta ainda não foi medida."""
+    """Frequência de mídia medida (x_abm_midia_freq) ou None se a conta ainda não foi medida
+    ou está em Engajada / Em cadência (essas seguem na regra antiga)."""
     if not conta or not conta.get("x_abm_midia_impressoes"):
+        return None
+    if estagio_id(conta) in ESTAGIOS_REGRA_ANTIGA:
         return None
     return float(conta.get("x_abm_midia_freq") or 0.0)
 
@@ -222,7 +234,7 @@ def main():
     contas = odoo.search_read(
         "crm.lead",
         [["team_id", "=", ABM_TEAM_ID], ["active", "=", True], ["stage_id", "not in", ESTAGIOS_FORA]],
-        ["id", "name", "x_abm_linkedin_empresa", "x_abm_comite_total", "x_abm_score", "x_abm_exposicao",
+        ["id", "name", "stage_id", "x_abm_linkedin_empresa", "x_abm_comite_total", "x_abm_score", "x_abm_exposicao",
          "x_abm_midia_freq", "x_abm_midia_impressoes"],
     )
     linhas = ler_csv(args.csv)
