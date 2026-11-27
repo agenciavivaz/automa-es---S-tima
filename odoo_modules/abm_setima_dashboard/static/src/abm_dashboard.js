@@ -91,6 +91,7 @@ const SECOES = [
 const ORDENS = [
     ["score", "Score"],
     ["intencao", "Intenção no período"],
+    ["midia", "Frequência de mídia"],
     ["nome", "Nome"],
 ];
 
@@ -101,6 +102,7 @@ const GLOSSARIO = [
     ["Sinal de intenção", "Ação de alguém da conta registrada em x_abm_sinal: visita ao site ou ao perfil, follow, reação, formulário, resposta, ligação. Não inclui o relatório do LinkedIn Ads."],
     ["Respostas", "Respostas genuínas a e-mail ou DM (automáticas ficam fora). Braço erguido = resposta positiva."],
     ["Score e temperatura", "Soma dos pontos dos sinais ativos (expiram em 30 dias), régua de 0 a 90. Fria < 30, engajada 30–59, quente ≥ 60."],
+    ["Frequência de mídia", "Impressões do LinkedIn Ads na empresa ÷ público estimado na segmentação (pessoas no Brasil com os cargos da campanha, contadas no Apollo e calibradas pelo público total do LinkedIn). Faixas: < 2× baixa, 2–4× construindo, 4–8× ideal, > 8× saturando. Informativo: não entra no score."],
     ["Comitê", "Decisores mapeados sobre o total de pessoas do comitê de compra da conta."],
     ["Comparação", "Os indicadores comparam com o período imediatamente anterior de mesma duração."],
 ];
@@ -109,6 +111,7 @@ const LEAD_FIELDS = [
     "name", "stage_id", "create_date", "x_abm_score", "x_abm_tier", "x_abm_faixa",
     "x_abm_cadencia_status", "x_abm_ultimo_sinal_data", "x_abm_segmento",
     "x_abm_comite_total", "x_abm_comite_decisores",
+    "x_abm_midia_freq", "x_abm_midia_impressoes", "x_abm_midia_publico", "x_abm_midia_periodo",
 ];
 const SINAL_FIELDS = ["x_name", "x_detalhe", "x_data", "x_lead_id", "x_origem", "x_tipo", "x_pontos", "x_ativo"];
 
@@ -126,6 +129,28 @@ const tipoChave = (s) => {
     return acao ? `outro:${acao}` : "outro";
 };
 const tipoLabel = (key) => (key.startsWith("outro:") ? key.slice(6) : TIPOS[key] || key || "—");
+// Frequência de mídia (x_abm_midia_*): impressões ÷ público estimado na segmentação.
+const MIDIA_FAIXAS = [
+    { max: 2, key: "baixa", label: "baixa" },
+    { max: 4, key: "construindo", label: "construindo" },
+    { max: 8, key: "ideal", label: "ideal" },
+    { max: Infinity, key: "saturando", label: "saturando" },
+];
+const midiaInfo = (l) => {
+    const f = l.x_abm_midia_freq;
+    if (!f && !l.x_abm_midia_impressoes) {
+        return { freq: null, texto: "—", faixa: null, titulo: "Sem medição de mídia para esta conta" };
+    }
+    const faixa = f ? MIDIA_FAIXAS.find((x) => f < x.max) : null;
+    return {
+        freq: f || null,
+        texto: f ? `${f.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}×` : "n/d",
+        faixa,
+        titulo: `${(l.x_abm_midia_impressoes || 0).toLocaleString("pt-BR")} impressões ÷ ${(l.x_abm_midia_publico || 0).toLocaleString("pt-BR")} pessoas estimadas na segmentação` +
+            (l.x_abm_midia_periodo ? ` · ${l.x_abm_midia_periodo}` : ""),
+    };
+};
+
 export class AbmSetimaDashboard extends Component {
     static template = "abm_setima_dashboard.Dashboard";
     static props = ["*"];
@@ -537,6 +562,7 @@ export class AbmSetimaDashboard extends Component {
                 ultimo: ult ? tipoLabel(ult.tipoKey) : null,
                 ultimoQuando: dias === null ? "" : dias === 0 ? "hoje" : dias === 1 ? "ontem" : `há ${dias}d`,
                 ultimoTitulo: ult ? `${ult.x_name || ""} · ${ult.dt.toFormat("dd/MM/yyyy")}` : "Nenhum sinal de intenção registrado",
+                midia: midiaInfo(l),
                 decisores: l.x_abm_comite_decisores || 0,
                 comite: l.x_abm_comite_total || 0,
                 cadencia: CADENCIA[l.x_abm_cadencia_status] || CADENCIA.false,
@@ -545,6 +571,7 @@ export class AbmSetimaDashboard extends Component {
         const sorters = {
             score: (a, b) => b.score - a.score || b.intPts - a.intPts,
             intencao: (a, b) => b.intPts - a.intPts || b.intN - a.intN || b.score - a.score,
+            midia: (a, b) => (b.midia.freq ?? -1) - (a.midia.freq ?? -1),
             nome: (a, b) => a.lead.name.localeCompare(b.lead.name),
         };
         const contas = linhas.sort(sorters[this.state.sort] || sorters.score);

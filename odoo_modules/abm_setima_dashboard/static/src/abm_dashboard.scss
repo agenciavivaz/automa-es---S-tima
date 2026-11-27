@@ -202,6 +202,12 @@
     .o_vas_score_mark { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(31, 35, 40, .25);
         &.m30 { left: 33.3%; } &.m60 { left: 66.7%; } }
     .o_vas_ultimo { max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+    .o_vas_midia { display: inline-flex; align-items: baseline; gap: 6px; font-weight: 600; font-variant-numeric: tabular-nums;
+        small { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 0 6px; background: var(--vas-trilho); color: var(--vas-muted); }
+        &.baixa small { background: var(--vas-ruim-bg); color: var(--vas-ruim); }
+        &.construindo small { background: var(--vas-atencao-bg); color: var(--vas-atencao); }
+        &.ideal small { background: var(--vas-bom-bg); color: var(--vas-bom); }
+        &.saturando small { background: #ede9fe; color: #6d28d9; } }
     .o_vas_sem_decisor { color: var(--vas-atencao); font-weight: 700; }
     .o_vas_cad { display: inline-flex; align-items: center; font-size: 12.5px; }
     .o_vas_ver_todas { display: inline-block; margin-top: 8px; }

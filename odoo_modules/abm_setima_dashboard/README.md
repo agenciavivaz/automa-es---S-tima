@@ -25,8 +25,16 @@ Escopo CSS próprio `.o_vas` (o painel do ABM BrandSpot usa `.o_vab` e, com o me
 2. **Sinais de intenção** (ações de pessoas das contas; o relatório 30d do LinkedIn Ads não entra):
    série semanal por origem, tipos (o "Outro" é desmembrado pelo resumo do sinal) e últimos sinais.
 3. **Jornada das contas**: etapa atual com as novas do período, temperatura, prontidão e cadência.
-4. **Visão por conta**: score, intenção no período, último sinal de intenção, comitê (decisores /
-   pessoas) e cadência.
+4. **Visão por conta**: score, intenção no período, último sinal de intenção, **mídia · frequência**,
+   comitê (decisores / pessoas) e cadência.
+
+**Frequência de mídia** (19.0.3.2.0): campos `x_abm_midia_freq`, `x_abm_midia_impressoes`,
+`x_abm_midia_publico` e `x_abm_midia_periodo` em `crm.lead`, criados pelo próprio módulo
+(`views/midia_fields.xml`). Frequência = impressões do LinkedIn Ads na empresa ÷ público estimado na
+segmentação, sendo o público = pessoas no Brasil com os cargos da campanha no Apollo × fator de calibragem
+(público total do LinkedIn ÷ total do Apollo nas contas da lista; em 27/11: 4.800 ÷ 2.732 = 1,76).
+Faixas: < 2× baixa, 2–4× construindo, 4–8× ideal, > 8× saturando. Informativo: não entra no score.
+Primeira carga em 27/11/2026 (impressões de 01–27/11, 22 contas), ainda manual.
 
 Fora do painel por decisão de 27/11/2026: nível LinkedIn Ads por conta e a "Frequência"
 (`x_abm_exposicao` = impressões pagas da empresa inteira ÷ pessoas do comitê no CRM, que infla o número).

@@ -246,7 +246,7 @@
                             <div class="o_vas_card_head o_vas_head_split">
                                 <div>
                                     <h3>Contas do programa</h3>
-                                    <span class="o_vas_hint">score, comitê e cadência são a foto de hoje · intenção conta só o período</span>
+                                    <span class="o_vas_hint">score, mídia, comitê e cadência são a foto atual · intenção conta só o período</span>
                                 </div>
                                 <div class="o_vas_tabs o_vas_noprint" role="tablist">
                                     <span class="o_vas_rotulo">Ordenar:</span>
@@ -263,6 +263,7 @@
                                             <th class="o_vas_col_score">Score<small>0–90 · fria / engajada / quente</small></th>
                                             <th title="Sinais de intenção (fora o relatório do LinkedIn Ads) no período">Intenção no período<small>sinais · pontos</small></th>
                                             <th title="Sinal de intenção mais recente, em qualquer data">Último sinal de intenção<small>o quê · quando</small></th>
+                                            <th class="num" title="Impressões do LinkedIn Ads na empresa ÷ público estimado na segmentação da campanha">Mídia · frequência<small>impressões por pessoa</small></th>
                                             <th class="num" title="Decisores mapeados / total de pessoas no comitê de compra">Comitê<small>decisores / pessoas</small></th>
                                             <th>Cadência</th>
                                         </tr>
@@ -295,6 +296,10 @@
                                                 <td class="o_vas_ultimo" t-att-title="c.ultimoTitulo">
                                                     <t t-if="c.ultimo"><span t-esc="c.ultimo"/> <span class="o_vas_hint">· <t t-esc="c.ultimoQuando"/></span></t>
                                                     <span t-else="" class="zero">nenhum</span>
+                                                </td>
+                                                <td class="num" t-att-title="c.midia.titulo">
+                                                    <span t-if="c.midia.faixa" class="o_vas_midia" t-att-class="c.midia.faixa.key"><t t-esc="c.midia.texto"/><small t-esc="c.midia.faixa.label"/></span>
+                                                    <span t-else="" class="zero" t-esc="c.midia.texto"/>
                                                 </td>
                                                 <td class="num">
                                                     <t t-if="c.comite">
