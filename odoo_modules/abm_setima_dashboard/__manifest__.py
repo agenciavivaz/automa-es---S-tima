@@ -1,7 +1,7 @@
 {
     "name": "ABM Sétima · Dashboard",
     "summary": "Painel estratégico do ABM Sétima: cobertura, engajamento LinkedIn, sinais de intenção e contas.",
-    "version": "19.0.3.0.0",
+    "version": "19.0.3.1.0",
     "category": "Sales/CRM",
     "author": "Agência Vivaz",
     "license": "LGPL-3",

@@ -36,16 +36,6 @@ const FAIXAS = [
     { key: "quente", label: "Quente", hint: "≥ 60", color: "#b91c1c" },
 ];
 
-// Nível de engajamento que o LinkedIn atribui à empresa (ordinal → uma só cor, claro → escuro).
-const NIVEIS_LI = [
-    { key: "Very High", label: "Muito alto", pts: 25, color: "#1e3a8a", rank: 5 },
-    { key: "High", label: "Alto", pts: 20, color: "#1d4ed8", rank: 4 },
-    { key: "Medium", label: "Médio", pts: 10, color: "#3b82f6", rank: 3 },
-    { key: "Low", label: "Baixo", pts: 5, color: "#93c5fd", rank: 2 },
-    { key: "Very Low", label: "Muito baixo", pts: 0, color: "#dbe4f0", rank: 1 },
-];
-const SEM_LEITURA = { key: "none", label: "Sem leitura", color: "#eef0f3", rank: 0 };
-
 const ORIGENS = {
     linkedin_ads: { label: "LinkedIn Ads", color: "#1d4ed8" },
     linkedin_manual: { label: "LinkedIn (manual)", color: "#0e7490" },
@@ -93,7 +83,7 @@ const CADENCIA = {
 
 const SECOES = [
     { key: "resumo", label: "Resumo" },
-    { key: "sinais", label: "Engajamento" },
+    { key: "sinais", label: "Sinais de intenção" },
     { key: "jornada", label: "Jornada das contas" },
     { key: "contas", label: "Visão por conta" },
 ];
@@ -101,20 +91,16 @@ const SECOES = [
 const ORDENS = [
     ["score", "Score"],
     ["intencao", "Intenção no período"],
-    ["linkedin", "LinkedIn Ads"],
-    ["frequencia", "Frequência"],
     ["nome", "Nome"],
 ];
 
 const GLOSSARIO = [
     ["Contas no programa", "Oportunidades da equipe ABM Setima (id 20). O filtro de tier vale para todo o painel."],
     ["Novas contas", "Contas criadas no período (data de criação no CRM). Explicam quedas de percentual: conta nova entra sem histórico de sinais."],
-    ["Cobertura", "% das contas com pelo menos um sinal que pontuou no período (inclui a leitura do LinkedIn Ads com pontos). Compara com o período anterior usando a base que existia na época; “sem as novas” tira do cálculo as contas criadas no período."],
+    ["Cobertura", "% das contas com pelo menos um sinal que pontuou no período (inclui o relatório 30d do LinkedIn Ads quando ele pontua). Compara com o período anterior usando a base que existia na época; “sem as novas” tira do cálculo as contas criadas no período."],
     ["Sinal de intenção", "Ação de alguém da conta registrada em x_abm_sinal: visita ao site ou ao perfil, follow, reação, formulário, resposta, ligação. Não inclui o relatório do LinkedIn Ads."],
-    ["LinkedIn Ads · última leitura", "Foto de 30 dias que o LinkedIn dá para cada empresa (nível de engajamento Muito baixo → Muito alto). É importada toda semana, por isso o painel usa só a leitura mais recente de cada conta e compara com a primeira leitura do período."],
     ["Respostas", "Respostas genuínas a e-mail ou DM (automáticas ficam fora). Braço erguido = resposta positiva."],
     ["Score e temperatura", "Soma dos pontos dos sinais ativos (expiram em 30 dias), régua de 0 a 90. Fria < 30, engajada 30–59, quente ≥ 60."],
-    ["Frequência LinkedIn", "Impressões dos anúncios nos últimos 30 dias divididas pelas pessoas do comitê (x_abm_exposicao). 4× ou mais já dá a pontuação máxima de exposição."],
     ["Comitê", "Decisores mapeados sobre o total de pessoas do comitê de compra da conta."],
     ["Comparação", "Os indicadores comparam com o período imediatamente anterior de mesma duração."],
 ];
@@ -122,7 +108,7 @@ const GLOSSARIO = [
 const LEAD_FIELDS = [
     "name", "stage_id", "create_date", "x_abm_score", "x_abm_tier", "x_abm_faixa",
     "x_abm_cadencia_status", "x_abm_ultimo_sinal_data", "x_abm_segmento",
-    "x_abm_comite_total", "x_abm_comite_decisores", "x_abm_exposicao",
+    "x_abm_comite_total", "x_abm_comite_decisores",
 ];
 const SINAL_FIELDS = ["x_name", "x_detalhe", "x_data", "x_lead_id", "x_origem", "x_tipo", "x_pontos", "x_ativo"];
 
@@ -140,11 +126,6 @@ const tipoChave = (s) => {
     return acao ? `outro:${acao}` : "outro";
 };
 const tipoLabel = (key) => (key.startsWith("outro:") ? key.slice(6) : TIPOS[key] || key || "—");
-const nivelLi = (s) => {
-    const m = /N[íi]vel LinkedIn:\s*([A-Za-z ]+?)\s*\(/.exec(s.x_detalhe || "");
-    return (m && NIVEIS_LI.find((n) => n.key.toLowerCase() === m[1].trim().toLowerCase())) || null;
-};
-
 export class AbmSetimaDashboard extends Component {
     static template = "abm_setima_dashboard.Dashboard";
     static props = ["*"];
@@ -183,7 +164,7 @@ export class AbmSetimaDashboard extends Component {
         return SECOES;
     }
     irPara(key) {
-        const el = this.root.el && this.root.el.querySelector(`#vab_${key}`);
+        const el = this.root.el && this.root.el.querySelector(`#vas_${key}`);
         if (el) {
             this.root.el.scrollTo({ top: el.offsetTop - 56, behavior: "smooth" });
             this.state.secao = key;
@@ -194,7 +175,7 @@ export class AbmSetimaDashboard extends Component {
         if (!rootEl) return;
         let atual = SECOES[0].key;
         for (const s of SECOES) {
-            const el = rootEl.querySelector(`#vab_${s.key}`);
+            const el = rootEl.querySelector(`#vas_${s.key}`);
             if (el && el.offsetTop - 80 <= rootEl.scrollTop) atual = s.key;
         }
         if (atual !== this.state.secao) this.state.secao = atual;
@@ -423,50 +404,6 @@ export class AbmSetimaDashboard extends Component {
             },
         ];
 
-        // ---------- LinkedIn Ads: última leitura de cada conta vs primeira do período
-        const porConta = (lista, maisRecente) => {
-            const m = new Map();
-            for (const s of lista) {
-                const atual = m.get(s.x_lead_id[0]);
-                if (!atual || (maisRecente ? s.dt > atual.dt : s.dt < atual.dt)) m.set(s.x_lead_id[0], s);
-            }
-            return m;
-        };
-        const ultimaLi = porConta(rel, true);
-        const primeiraLi = porConta(rel, false);
-        const contaNivel = (mapa) => {
-            const c = new Map();
-            for (const s of mapa.values()) {
-                const n = nivelLi(s);
-                const k = n ? n.key : "none";
-                c.set(k, (c.get(k) || 0) + 1);
-            }
-            return c;
-        };
-        const nivUlt = contaNivel(ultimaLi);
-        const nivPri = contaNivel(primeiraLi);
-        const datasLi = rel.map((s) => s.dt).sort((a, b) => a - b);
-        const temComparacao = datasLi.length && !datasLi[0].hasSame(datasLi[datasLi.length - 1], "day");
-        const semLeitura = leads.length - ultimaLi.size;
-        const maxNivel = Math.max(1, ...nivUlt.values(), semLeitura);
-        const linkedin = {
-            data: datasLi.length ? datasLi[datasLi.length - 1].toFormat("dd/MM") : null,
-            dataInicio: datasLi.length ? datasLi[0].toFormat("dd/MM") : null,
-            temComparacao,
-            contas: ultimaLi.size,
-            interagindo: [...ultimaLi.values()].filter((s) => (nivelLi(s) || { rank: 0 }).rank >= 2).length,
-            linhas: [...NIVEIS_LI, SEM_LEITURA].map((n) => {
-                const count = n.key === "none" ? semLeitura : nivUlt.get(n.key) || 0;
-                const antes = n.key === "none" ? null : nivPri.get(n.key) || 0;
-                const d = temComparacao && antes !== null ? count - antes : null;
-                return {
-                    ...n, count, width: pct(count, maxNivel), zero: !count,
-                    delta: d ? { texto: d > 0 ? `+${d}` : `–${-d}`, classe: n.rank >= 3 ? (d > 0 ? "bom" : "ruim") : "neutro" } : null,
-                };
-            }),
-        };
-        linkedin.interagindoPct = pct(linkedin.interagindo, linkedin.contas);
-
         // ---------- tipos de sinal de intenção ("Outro" desmembrado)
         const tiposMap = new Map();
         for (const s of intencao) {
@@ -527,7 +464,7 @@ export class AbmSetimaDashboard extends Component {
         };
 
         // ---------- últimos sinais de intenção
-        const feed = intencao.slice(0, 6).map((s) => ({
+        const feed = intencao.slice(0, 8).map((s) => ({
             ...s,
             quando: s.dt.setLocale("pt-BR").toFormat("dd/MM HH:mm"),
             tipoLabel: tipoLabel(s.tipoKey),
@@ -583,13 +520,10 @@ export class AbmSetimaDashboard extends Component {
             intPeriodo.set(s.x_lead_id[0], r);
         }
         const linhas = leads.map((l) => {
-            const li = ultimaLi.get(l.id);
-            const nivel = li ? nivelLi(li) || SEM_LEITURA : SEM_LEITURA;
             const ult = ultimoInt.get(l.id);
             const dias = ult ? Math.floor(today.diff(ult.dt.startOf("day"), "days").days) : null;
             const ip = intPeriodo.get(l.id) || { n: 0, pts: 0 };
             const faixa = FAIXAS.find((f) => f.key === (l.x_abm_faixa || "fria"));
-            const exp = l.x_abm_exposicao || 0;
             return {
                 id: l.id,
                 lead: l,
@@ -598,33 +532,25 @@ export class AbmSetimaDashboard extends Component {
                 faixa,
                 score: l.x_abm_score || 0,
                 scorePct: Math.min(100, Math.round(((l.x_abm_score || 0) * 100) / SCORE_MAX)),
-                nivel,
-                liPts: li ? li.x_pontos || 0 : null,
-                liTitulo: li ? `${li.x_detalhe || ""}` : "Sem relatório do LinkedIn Ads no período",
                 intN: ip.n,
                 intPts: ip.pts,
                 ultimo: ult ? tipoLabel(ult.tipoKey) : null,
                 ultimoQuando: dias === null ? "" : dias === 0 ? "hoje" : dias === 1 ? "ontem" : `há ${dias}d`,
                 ultimoTitulo: ult ? `${ult.x_name || ""} · ${ult.dt.toFormat("dd/MM/yyyy")}` : "Nenhum sinal de intenção registrado",
-                freq: exp,
-                freqTxt: l.x_abm_comite_total ? `${exp.toLocaleString("pt-BR", { maximumFractionDigits: exp >= 10 ? 0 : 1 })}×` : "—",
-                freqNivel: !l.x_abm_comite_total ? "nd" : exp >= 4 ? "alta" : exp >= 2 ? "media" : "baixa",
                 decisores: l.x_abm_comite_decisores || 0,
                 comite: l.x_abm_comite_total || 0,
                 cadencia: CADENCIA[l.x_abm_cadencia_status] || CADENCIA.false,
             };
         });
         const sorters = {
-            score: (a, b) => b.score - a.score || b.intPts - a.intPts || b.nivel.rank - a.nivel.rank,
+            score: (a, b) => b.score - a.score || b.intPts - a.intPts,
             intencao: (a, b) => b.intPts - a.intPts || b.intN - a.intN || b.score - a.score,
-            linkedin: (a, b) => b.nivel.rank - a.nivel.rank || b.score - a.score,
-            frequencia: (a, b) => b.freq - a.freq,
             nome: (a, b) => a.lead.name.localeCompare(b.lead.name),
         };
         const contas = linhas.sort(sorters[this.state.sort] || sorters.score);
 
         return {
-            kpis, linkedin, tipos, timeline, feed, funil, faixas, cadencia, prontidao, contas,
+            kpis, tipos, timeline, feed, funil, faixas, cadencia, prontidao, contas,
             novas: novas.length, scoreMedio,
             totalLeads: leads.length, totalIntencao: intencao.length,
             donutFaixas: this._donut(faixas),
@@ -700,8 +626,6 @@ export class AbmSetimaDashboard extends Component {
             this.openList(`Sinais que pontuaram · ${this.periodLabel}`, "x_abm_sinal", [...sinalBase, ["x_pontos", ">", 0]]);
         } else if (kind === "intencao") {
             this.openList(`Sinais de intenção · ${this.periodLabel}`, "x_abm_sinal", intencao);
-        } else if (kind === "linkedin") {
-            this.openList(`LinkedIn Ads · relatórios · ${this.periodLabel}`, "x_abm_sinal", [...sinalBase, ["x_tipo", "=", LI_RELATORIO]]);
         } else if (kind === "respostas") {
             this.openList(`Respostas · ${this.periodLabel}`, "x_abm_sinal", [...sinalBase, ["x_tipo", "in", [...TIPOS_RESPOSTA]]]);
         } else if (kind === "aquecidas") {

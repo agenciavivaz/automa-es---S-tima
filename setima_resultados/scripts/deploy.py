@@ -30,7 +30,7 @@ from odoo.client import OdooClient, OdooCredentials  # noqa: E402
 # --modulo=<nome> publica outro módulo importado com o mesmo processo (ex.: abm_setima_dashboard)
 MODULO = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--modulo=")), "vivaz_setima")
 PASTA = os.path.join(RAIZ, "odoo_modules", MODULO)
-MARCAS = {"vivaz_setima": (".o_vst", "vivaz_setima_dashboard"), "abm_setima_dashboard": (".o_vab", "abm_setima_dashboard")}
+MARCAS = {"vivaz_setima": (".o_vst", "vivaz_setima_dashboard"), "abm_setima_dashboard": (".o_vas", "abm_setima_dashboard")}
 
 
 def base_url():
