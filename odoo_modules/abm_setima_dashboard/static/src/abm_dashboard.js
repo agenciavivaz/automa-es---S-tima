@@ -1,17 +1,24 @@
 /** @odoo-module **/
 // Dashboard estratégico do ABM Sétima (CRM / ABM Setima / Dashboard).
-// Lê ao vivo crm.lead (equipe ABM Setima), x_abm_sinal e mail.activity (tipos "ABM · …")
-// com a sessão do próprio usuário: nada é copiado nem gravado.
+// Lê ao vivo crm.lead (equipe ABM Setima) e x_abm_sinal com a sessão do próprio usuário:
+// nada é copiado nem gravado.
+//
+// Leitura para o board: separa as duas naturezas de sinal.
+//  - LinkedIn Ads · relatório 30d é uma FOTO semanal de cada conta (nível de engajamento,
+//    interações, exposição). Repete toda semana, então nunca é somado: vale a última leitura.
+//  - Sinais de intenção são ações de pessoas das contas (visita, formulário, resposta, follow…).
 
-import { Component, onWillStart, useState } from "@odoo/owl";
+import { Component, onMounted, onWillStart, onWillUnmount, useRef, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { router } from "@web/core/browser/router";
 
 const { DateTime } = luxon;
 
 const TEAM_ID = 20; // crm.team "ABM Setima" (ir.config_parameter abm.team_id)
-const ACTIVITY_DOMAIN = [["activity_type_id.name", "=like", "ABM · %"]];
 const SCORE_MAX = 90; // mesma régua do campo x_abm_score_pct
+const LI_RELATORIO = "li_ads_relatorio";
+const ENCERRADAS = ["Descartada", "Cliente – expansão"];
 
 const PRESETS = [
     { key: "7d", label: "7 dias" },
@@ -24,20 +31,30 @@ const PRESETS = [
 ];
 
 const FAIXAS = [
-    { key: "fria", label: "Fria", hint: "score < 30", color: "#3b82f6" },
-    { key: "engajada", label: "Engajada", hint: "score 30–59", color: "#f59e0b" },
-    { key: "quente", label: "Quente", hint: "score ≥ 60", color: "#ef4444" },
+    { key: "fria", label: "Fria", hint: "< 30", color: "#94a3b8" },
+    { key: "engajada", label: "Engajada", hint: "30–59", color: "#b45309" },
+    { key: "quente", label: "Quente", hint: "≥ 60", color: "#b91c1c" },
 ];
 
+// Nível de engajamento que o LinkedIn atribui à empresa (ordinal → uma só cor, claro → escuro).
+const NIVEIS_LI = [
+    { key: "Very High", label: "Muito alto", pts: 25, color: "#1e3a8a", rank: 5 },
+    { key: "High", label: "Alto", pts: 20, color: "#1d4ed8", rank: 4 },
+    { key: "Medium", label: "Médio", pts: 10, color: "#3b82f6", rank: 3 },
+    { key: "Low", label: "Baixo", pts: 5, color: "#93c5fd", rank: 2 },
+    { key: "Very Low", label: "Muito baixo", pts: 0, color: "#dbe4f0", rank: 1 },
+];
+const SEM_LEITURA = { key: "none", label: "Sem leitura", color: "#eef0f3", rank: 0 };
+
 const ORIGENS = {
-    linkedin_ads: { label: "LinkedIn Ads", color: "#0a66c2" },
-    linkedin_manual: { label: "LinkedIn (manual)", color: "#60a5fa" },
-    apollo_manual: { label: "Apollo", color: "#8b5cf6" },
-    site: { label: "Site", color: "#10b981" },
-    email: { label: "E-mail", color: "#f59e0b" },
-    whatsapp: { label: "WhatsApp", color: "#22c55e" },
-    formulario: { label: "Formulário", color: "#ec4899" },
-    ligacao: { label: "Ligação", color: "#14b8a6" },
+    linkedin_ads: { label: "LinkedIn Ads", color: "#1d4ed8" },
+    linkedin_manual: { label: "LinkedIn (manual)", color: "#0e7490" },
+    apollo_manual: { label: "Apollo", color: "#6d28d9" },
+    site: { label: "Site", color: "#047857" },
+    email: { label: "E-mail", color: "#b45309" },
+    whatsapp: { label: "WhatsApp", color: "#4d7c0f" },
+    formulario: { label: "Formulário", color: "#be185d" },
+    ligacao: { label: "Ligação", color: "#9a3412" },
     false: { label: "Sem origem", color: "#94a3b8" },
 };
 
@@ -47,9 +64,9 @@ const TIPOS = {
     li_cliques: "LinkedIn · cliques",
     li_reacao_post: "Reagiu a post do especialista",
     li_conexao_aceita: "Conexão aceita",
-    li_seguiu_pagina: "Seguiu a página",
+    li_seguiu_pagina: "Seguiu a página da Sétima",
     li_dm_resposta: "Respondeu DM",
-    visita_dominio: "Visita ao site",
+    visita_dominio: "Visitou o site",
     visita_alta_intencao: "Visita de alta intenção",
     email_resposta: "Respondeu e-mail",
     formulario: "Formulário / lead magnet",
@@ -62,36 +79,52 @@ const TIPOS = {
     outro: "Outro",
 };
 const TIPOS_RESPOSTA = new Set([
-    "resposta_a_classificar", "resposta_automatica", "resposta_negativa",
-    "resposta_neutra", "resposta_positiva", "email_resposta", "li_dm_resposta",
+    "resposta_a_classificar", "resposta_negativa", "resposta_neutra",
+    "resposta_positiva", "email_resposta", "li_dm_resposta",
 ]);
 
 const CADENCIA = {
-    nao_iniciada: { label: "Não iniciada", color: "#94a3b8" },
-    ativa: { label: "Ativa", color: "#10b981" },
-    pausada: { label: "Pausada", color: "#f59e0b" },
-    concluida: { label: "Concluída", color: "#6366f1" },
-    false: { label: "Sem status", color: "#cbd5e1" },
+    nao_iniciada: { label: "Não iniciada", color: "#cbd5e1" },
+    ativa: { label: "Ativa", color: "#047857" },
+    pausada: { label: "Pausada", color: "#b45309" },
+    concluida: { label: "Concluída", color: "#1d4ed8" },
+    false: { label: "Sem status", color: "#e3e6ea" },
 };
 
-const STATUS_ATIV = [
-    { key: "done", label: "Concluídas", color: "#10b981" },
-    { key: "planned", label: "No prazo", color: "#3b82f6" },
-    { key: "today", label: "Hoje", color: "#f59e0b" },
-    { key: "overdue", label: "Atrasadas", color: "#ef4444" },
+const SECOES = [
+    { key: "resumo", label: "Resumo" },
+    { key: "sinais", label: "Engajamento" },
+    { key: "jornada", label: "Jornada das contas" },
+    { key: "contas", label: "Visão por conta" },
 ];
 
-const STAGE_COLORS = [
-    "#cbd5e1", "#93c5fd", "#60a5fa", "#3b82f6", "#6366f1",
-    "#8b5cf6", "#a855f7", "#14b8a6", "#94a3b8", "#10b981", "#64748b",
+const ORDENS = [
+    ["score", "Score"],
+    ["intencao", "Intenção no período"],
+    ["linkedin", "LinkedIn Ads"],
+    ["frequencia", "Frequência"],
+    ["nome", "Nome"],
+];
+
+const GLOSSARIO = [
+    ["Contas no programa", "Oportunidades da equipe ABM Setima (id 20). O filtro de tier vale para todo o painel."],
+    ["Novas contas", "Contas criadas no período (data de criação no CRM). Explicam quedas de percentual: conta nova entra sem histórico de sinais."],
+    ["Cobertura", "% das contas com pelo menos um sinal que pontuou no período (inclui a leitura do LinkedIn Ads com pontos). Compara com o período anterior usando a base que existia na época; “sem as novas” tira do cálculo as contas criadas no período."],
+    ["Sinal de intenção", "Ação de alguém da conta registrada em x_abm_sinal: visita ao site ou ao perfil, follow, reação, formulário, resposta, ligação. Não inclui o relatório do LinkedIn Ads."],
+    ["LinkedIn Ads · última leitura", "Foto de 30 dias que o LinkedIn dá para cada empresa (nível de engajamento Muito baixo → Muito alto). É importada toda semana, por isso o painel usa só a leitura mais recente de cada conta e compara com a primeira leitura do período."],
+    ["Respostas", "Respostas genuínas a e-mail ou DM (automáticas ficam fora). Braço erguido = resposta positiva."],
+    ["Score e temperatura", "Soma dos pontos dos sinais ativos (expiram em 30 dias), régua de 0 a 90. Fria < 30, engajada 30–59, quente ≥ 60."],
+    ["Frequência LinkedIn", "Impressões dos anúncios nos últimos 30 dias divididas pelas pessoas do comitê (x_abm_exposicao). 4× ou mais já dá a pontuação máxima de exposição."],
+    ["Comitê", "Decisores mapeados sobre o total de pessoas do comitê de compra da conta."],
+    ["Comparação", "Os indicadores comparam com o período imediatamente anterior de mesma duração."],
 ];
 
 const LEAD_FIELDS = [
-    "name", "stage_id", "user_id", "create_date", "x_abm_score", "x_abm_tier", "x_abm_faixa",
-    "x_abm_cadencia_status", "x_abm_preparacao", "x_abm_trilha", "x_abm_ultimo_sinal_data",
-    "x_abm_comite_total", "x_abm_comite_decisores", "x_abm_comite_conectados",
-    "x_abm_comite_emails_ok", "x_abm_exposicao", "x_abm_onda",
+    "name", "stage_id", "create_date", "x_abm_score", "x_abm_tier", "x_abm_faixa",
+    "x_abm_cadencia_status", "x_abm_ultimo_sinal_data", "x_abm_segmento",
+    "x_abm_comite_total", "x_abm_comite_decisores", "x_abm_exposicao",
 ];
+const SINAL_FIELDS = ["x_name", "x_detalhe", "x_data", "x_lead_id", "x_origem", "x_tipo", "x_pontos", "x_ativo"];
 
 const SQL = "yyyy-MM-dd HH:mm:ss";
 const toUtcSql = (dt) => dt.toUTC().toFormat(SQL);
@@ -99,6 +132,18 @@ const fromUtcSql = (s) => (s ? DateTime.fromSQL(s, { zone: "utc" }).toLocal() : 
 const fromDate = (s) => (s ? DateTime.fromISO(s) : null);
 const fmtInt = (n) => (n || 0).toLocaleString("pt-BR");
 const pct = (a, b) => (b ? Math.round((a * 100) / b) : 0);
+
+// "Outro" é desmembrado pelo começo do resumo ("Visitou o perfil do especialista – …").
+const tipoChave = (s) => {
+    if (s.x_tipo !== "outro") return s.x_tipo || "false";
+    const acao = (s.x_name || "").split(/\s+[–-]\s+/)[0].trim();
+    return acao ? `outro:${acao}` : "outro";
+};
+const tipoLabel = (key) => (key.startsWith("outro:") ? key.slice(6) : TIPOS[key] || key || "—");
+const nivelLi = (s) => {
+    const m = /N[íi]vel LinkedIn:\s*([A-Za-z ]+?)\s*\(/.exec(s.x_detalhe || "");
+    return (m && NIVEIS_LI.find((n) => n.key.toLowerCase() === m[1].trim().toLowerCase())) || null;
+};
 
 export class AbmSetimaDashboard extends Component {
     static template = "abm_setima_dashboard.Dashboard";
@@ -108,10 +153,17 @@ export class AbmSetimaDashboard extends Component {
         this.orm = useService("orm");
         this.actionService = useService("action");
         this.presets = PRESETS;
-        this.faixas = FAIXAS;
-        this.statusAtiv = STATUS_ATIV;
+        this.ordens = ORDENS;
+        this.glossario = GLOSSARIO;
+        this.scoreMax = SCORE_MAX;
+        this.root = useRef("root");
+        const url = router.current || {};
+        const presetUrl = PRESETS.some((p) => p.key === url.period && p.key !== "custom") ? url.period : "30d";
         this.state = useState({
-            preset: "30d",
+            preset: presetUrl,
+            secao: "resumo",
+            glossarioAberto: false,
+            contasTodas: false,
             from: "",
             to: "",
             tier: "all",
@@ -120,8 +172,35 @@ export class AbmSetimaDashboard extends Component {
             error: null,
             raw: null,
         });
-        this._setPresetDates("30d");
+        this._setPresetDates(presetUrl);
         onWillStart(() => this.load());
+        this._onScroll = () => this.spy();
+        onMounted(() => this.root.el && this.root.el.addEventListener("scroll", this._onScroll, { passive: true }));
+        onWillUnmount(() => this.root.el && this.root.el.removeEventListener("scroll", this._onScroll));
+    }
+
+    get secoes() {
+        return SECOES;
+    }
+    irPara(key) {
+        const el = this.root.el && this.root.el.querySelector(`#vab_${key}`);
+        if (el) {
+            this.root.el.scrollTo({ top: el.offsetTop - 56, behavior: "smooth" });
+            this.state.secao = key;
+        }
+    }
+    spy() {
+        const rootEl = this.root.el;
+        if (!rootEl) return;
+        let atual = SECOES[0].key;
+        for (const s of SECOES) {
+            const el = rootEl.querySelector(`#vab_${s.key}`);
+            if (el && el.offsetTop - 80 <= rootEl.scrollTop) atual = s.key;
+        }
+        if (atual !== this.state.secao) this.state.secao = atual;
+    }
+    exportarPdf() {
+        window.print();
     }
 
     // ------------------------------------------------------------ período
@@ -165,10 +244,17 @@ export class AbmSetimaDashboard extends Component {
         return start ? `${f(start)} – ${f(end)}` : `Desde o início – ${f(end)}`;
     }
 
+    get prevLabel() {
+        const { prevStart, prevEnd } = this.period;
+        const f = (d) => d.toFormat("dd/MM/yyyy");
+        return prevStart ? `${f(prevStart)} – ${f(prevEnd)}` : null;
+    }
+
     async onPreset(key) {
         this.state.preset = key;
         if (key !== "custom") {
             this._setPresetDates(key);
+            router.replaceState({ period: key });
             await this.load();
         }
     }
@@ -179,10 +265,6 @@ export class AbmSetimaDashboard extends Component {
         if (this.state.to && (!this.state.from || this.state.from <= this.state.to)) {
             await this.load();
         }
-    }
-
-    onTier(ev) {
-        this.state.tier = ev.target.value;
     }
 
     onSort(key) {
@@ -196,38 +278,24 @@ export class AbmSetimaDashboard extends Component {
         const { start, end, prevStart } = this.period;
         const lower = prevStart || start;
         try {
-            const sinalDomain = [["x_lead_id.team_id", "=", TEAM_ID], ["x_data", "<=", toUtcSql(end)]];
-            const doneDomain = [
-                ...ACTIVITY_DOMAIN, ["active", "=", false], ["date_done", "<=", end.toISODate()],
-            ];
-            if (lower) {
-                sinalDomain.push(["x_data", ">=", toUtcSql(lower)]);
-                doneDomain.push(["date_done", ">=", lower.toISODate()]);
-            }
-            const [leads, sinais, abertas, concluidas] = await Promise.all([
+            const team = [["x_lead_id.team_id", "=", TEAM_ID]];
+            // relatórios do LinkedIn: só a janela (período + anterior); intenção: histórico todo (é pouco
+            // volume e dá o "último sinal de intenção" real de cada conta).
+            const relDomain = [...team, ["x_tipo", "=", LI_RELATORIO], ["x_data", "<=", toUtcSql(end)]];
+            if (lower) relDomain.push(["x_data", ">=", toUtcSql(lower)]);
+            const [leads, relatorios, intencao] = await Promise.all([
                 this.orm.searchRead(
                     "crm.lead",
                     [["team_id", "=", TEAM_ID], ["type", "=", "opportunity"]],
                     LEAD_FIELDS,
                     { order: "x_abm_score desc, name" }
                 ),
+                this.orm.searchRead("x_abm_sinal", relDomain, SINAL_FIELDS, { order: "x_data desc" }),
                 this.orm.searchRead(
                     "x_abm_sinal",
-                    sinalDomain,
-                    ["x_name", "x_data", "x_lead_id", "x_origem", "x_tipo", "x_pontos", "x_ativo", "x_partner_id"],
+                    [...team, ["x_tipo", "!=", LI_RELATORIO], ["x_data", "<=", toUtcSql(end)]],
+                    SINAL_FIELDS,
                     { order: "x_data desc" }
-                ),
-                this.orm.searchRead(
-                    "mail.activity",
-                    ACTIVITY_DOMAIN,
-                    ["activity_type_id", "res_model", "res_id", "res_name", "date_deadline", "user_id", "summary"],
-                    { order: "date_deadline asc" }
-                ),
-                this.orm.searchRead(
-                    "mail.activity",
-                    doneDomain,
-                    ["activity_type_id", "res_model", "res_id", "res_name", "date_deadline", "date_done", "user_id"],
-                    { context: { active_test: false } }
                 ),
             ]);
             const stageIds = [...new Set(leads.map((l) => l.stage_id && l.stage_id[0]).filter(Boolean))];
@@ -237,7 +305,7 @@ export class AbmSetimaDashboard extends Component {
                 ["name", "sequence"],
                 { order: "sequence, id" }
             );
-            this.state.raw = { leads, sinais, abertas, concluidas, stages, loadedAt: DateTime.local() };
+            this.state.raw = { leads, relatorios, intencao, stages, loadedAt: DateTime.local() };
         } catch (e) {
             this.state.error = (e && (e.data?.message || e.message)) || String(e);
         } finally {
@@ -253,128 +321,181 @@ export class AbmSetimaDashboard extends Component {
         }
         const { start, end, prevStart, prevEnd } = this.period;
         const tier = this.state.tier;
-        const leads = raw.leads.filter((l) => tier === "all" || l.x_abm_tier === tier);
-        const leadIds = new Set(leads.map((l) => l.id));
-        const inRange = (dt, a, b) => dt && (!a || dt >= a) && dt <= b;
-
-        const sinaisAll = raw.sinais
-            .filter((s) => s.x_lead_id && leadIds.has(s.x_lead_id[0]))
-            .map((s) => ({ ...s, dt: fromUtcSql(s.x_data) }));
-        const sinais = sinaisAll.filter((s) => inRange(s.dt, start, end));
-        const sinaisPrev = prevStart ? sinaisAll.filter((s) => inRange(s.dt, prevStart, prevEnd)) : null;
-
-        const isAbmRecord = (a) => (a.res_model === "crm.lead" ? leadIds.has(a.res_id) : tier === "all");
         const today = DateTime.local().startOf("day");
-        const abertas = raw.abertas.filter(isAbmRecord).map((a) => {
-            const dl = fromDate(a.date_deadline);
-            const status = dl < today ? "overdue" : dl.equals(today) ? "today" : "planned";
-            return { ...a, dl, status };
-        });
-        const concluidasAll = raw.concluidas.filter(isAbmRecord).map((a) => ({ ...a, dd: fromDate(a.date_done) }));
-        const concluidas = concluidasAll.filter((a) => inRange(a.dd, start && start.startOf("day"), end));
-        const concluidasPrev = prevStart
-            ? concluidasAll.filter((a) => inRange(a.dd, prevStart.startOf("day"), prevEnd))
-            : null;
-        const onTime = concluidas.filter((a) => a.date_done <= a.date_deadline).length;
+        const inRange = (dt, a, b) => dt && (!a || dt >= a) && dt <= b;
+        const stageName = (l) => (l.stage_id ? l.stage_id[1] : "");
 
-        // ---------- por conta
-        const byLead = new Map(leads.map((l) => [l.id, {
-            lead: l, sinais: 0, pontos: 0, abertas: 0, atrasadas: 0, concluidas: 0, proxima: null,
-        }]));
-        for (const s of sinais) {
-            const r = byLead.get(s.x_lead_id[0]);
-            r.sinais += 1;
-            r.pontos += s.x_pontos || 0;
+        const leads = raw.leads
+            .filter((l) => tier === "all" || l.x_abm_tier === tier)
+            .map((l) => ({ ...l, criada: fromUtcSql(l.create_date) }));
+        const leadIds = new Set(leads.map((l) => l.id));
+        const daBase = (s) => s.x_lead_id && leadIds.has(s.x_lead_id[0]);
+        const comData = (s) => ({ ...s, dt: fromUtcSql(s.x_data), tipoKey: tipoChave(s) });
+        const relAll = raw.relatorios.filter(daBase).map(comData);
+        const intAll = raw.intencao.filter(daBase).map(comData);
+        const rel = relAll.filter((s) => inRange(s.dt, start, end));
+        const relPrev = prevStart ? relAll.filter((s) => inRange(s.dt, prevStart, prevEnd)) : null;
+        const intencao = intAll.filter((s) => inRange(s.dt, start, end));
+        const intencaoPrev = prevStart ? intAll.filter((s) => inRange(s.dt, prevStart, prevEnd)) : null;
+
+        // ---------- base e novas contas
+        const novas = leads.filter((l) => inRange(l.criada, start, end));
+        const novasIds = new Set(novas.map((l) => l.id));
+        const novasPrev = prevStart ? leads.filter((l) => inRange(l.criada, prevStart, prevEnd)) : null;
+        const baseInicio = start ? leads.filter((l) => l.criada < start).length : 0;
+        const basePrev = prevEnd ? leads.filter((l) => l.criada <= prevEnd) : null;
+
+        // ---------- cobertura: contas com sinal que pontuou
+        const pontuou = (lista) => new Set(lista.filter((s) => (s.x_pontos || 0) > 0).map((s) => s.x_lead_id[0]));
+        const cobertas = pontuou([...rel, ...intencao]);
+        const cobertasAntigas = [...cobertas].filter((id) => !novasIds.has(id)).length;
+        const antigas = leads.length - novas.length;
+        const coberturaPct = pct(cobertas.size, leads.length);
+        let coberturaPrevPct = null;
+        if (relPrev && basePrev && basePrev.length) {
+            const idsPrev = new Set(basePrev.map((l) => l.id));
+            const cobPrev = [...pontuou([...relPrev, ...intencaoPrev])].filter((id) => idsPrev.has(id)).length;
+            coberturaPrevPct = pct(cobPrev, basePrev.length);
         }
-        for (const a of abertas) {
-            const r = a.res_model === "crm.lead" && byLead.get(a.res_id);
-            if (r) {
-                r.abertas += 1;
-                if (a.status === "overdue") r.atrasadas += 1;
-                if (!r.proxima || a.dl < r.proxima.dl) r.proxima = a;
-            }
-        }
-        for (const a of concluidas) {
-            const r = a.res_model === "crm.lead" && byLead.get(a.res_id);
-            if (r) r.concluidas += 1;
-        }
+
+        // ---------- variações
+        const prevLabel = this.prevLabel;
+        const delta = (cur, prev, { unidade = "", pctMin = 10, neutro = false } = {}) => {
+            if (prev === null || prev === undefined) return null;
+            const d = cur - prev;
+            const usaPct = !unidade && prev >= pctMin;
+            const sinal = d > 0 ? `+${fmtInt(d)}${unidade}` : d < 0 ? `–${fmtInt(-d)}${unidade}` : `0${unidade}`;
+            return {
+                texto: usaPct && d !== 0 ? `${sinal} (${d > 0 ? "+" : "–"}${Math.abs(pct(d, prev))}%)` : sinal,
+                seta: d > 0 ? "fa-arrow-up" : d < 0 ? "fa-arrow-down" : "fa-minus",
+                classe: neutro || d === 0 || (!unidade && !usaPct) ? "neutro" : d > 0 ? "bom" : "ruim",
+                tooltip: `${prevLabel}: ${fmtInt(prev)}${unidade}`,
+            };
+        };
 
         // ---------- KPIs
-        const score = leads.map((l) => l.x_abm_score || 0);
-        const contasComSinal = new Set(sinais.map((s) => s.x_lead_id[0])).size;
-        const pontos = sinais.reduce((t, s) => t + (s.x_pontos || 0), 0);
-        const respostas = sinais.filter((s) => TIPOS_RESPOSTA.has(s.x_tipo)).length;
-        const bracos = sinais.filter((s) => s.x_tipo === "resposta_positiva").length;
-        const delta = (cur, prev) => (prev === null || prev === undefined ? null : cur - prev);
+        const respostas = intencao.filter((s) => TIPOS_RESPOSTA.has(s.x_tipo));
+        const bracos = intencao.filter((s) => s.x_tipo === "resposta_positiva").length;
+        const pontosInt = intencao.reduce((t, s) => t + (s.x_pontos || 0), 0);
+        const contasInt = new Set(intencao.map((s) => s.x_lead_id[0])).size;
+        const aquecidas = leads.filter((l) => ["engajada", "quente"].includes(l.x_abm_faixa));
+        const scoreMedio = leads.length
+            ? Math.round(leads.reduce((t, l) => t + (l.x_abm_score || 0), 0) / leads.length) : 0;
         const kpis = [
             {
-                key: "contas", icon: "fa-building", label: "Contas no programa", value: leads.length,
-                sub: `${leads.filter((l) => l.x_abm_cadencia_status === "ativa").length} em cadência ativa`,
-                color: "#6366f1", click: "contas",
+                key: "contas", icon: "fa-building-o", label: "Contas no programa", value: fmtInt(leads.length),
+                sub: start ? `eram ${fmtInt(baseInicio)} no início do período` : "base atual",
+                delta: null, click: "contas",
+                info: "Oportunidades da equipe ABM Setima hoje (respeita o filtro de tier).",
             },
             {
-                key: "ativadas", icon: "fa-bolt", label: "Contas com sinal", value: contasComSinal,
-                sub: `${pct(contasComSinal, leads.length)}% da base no período`,
-                delta: delta(contasComSinal, sinaisPrev && new Set(sinaisPrev.map((s) => s.x_lead_id[0])).size),
-                color: "#0a66c2", click: "sinais",
+                key: "novas", icon: "fa-plus-circle", label: "Novas contas", value: fmtInt(novas.length),
+                sub: start && baseInicio ? `+${pct(novas.length, baseInicio)}% sobre a base` : "criadas no período",
+                delta: delta(novas.length, novasPrev && novasPrev.length, { neutro: true }), click: "novas", destaque: novas.length > 0,
+                info: "Contas criadas no período. Entram sem histórico de sinais e por isso puxam a cobertura para baixo.",
             },
             {
-                key: "sinais", icon: "fa-signal", label: "Sinais captados", value: sinais.length,
-                sub: `${fmtInt(pontos)} pontos gerados`,
-                delta: delta(sinais.length, sinaisPrev && sinaisPrev.length),
-                color: "#0ea5e9", click: "sinais",
+                key: "cobertura", icon: "fa-bullseye", label: "Cobertura", value: `${coberturaPct}%`,
+                sub: novas.length
+                    ? `${cobertas.size} de ${leads.length} · ${pct(cobertasAntigas, antigas)}% sem as novas`
+                    : `${cobertas.size} de ${leads.length} contas`,
+                delta: delta(coberturaPct, coberturaPrevPct, { unidade: " p.p." }), click: "cobertura",
+                info: "Contas com pelo menos um sinal que pontuou no período, sobre a base. A comparação usa a base que existia no período anterior.",
             },
             {
-                key: "respostas", icon: "fa-reply", label: "Respostas", value: respostas,
+                key: "intencao", icon: "fa-hand-pointer-o", label: "Sinais de intenção", value: fmtInt(intencao.length),
+                sub: `${contasInt} conta(s) · ${fmtInt(pontosInt)} pts`,
+                delta: delta(intencao.length, intencaoPrev && intencaoPrev.length), click: "intencao",
+                info: "Ações de pessoas das contas (visitas, follow, formulários, respostas…). Não inclui o relatório semanal do LinkedIn Ads.",
+            },
+            {
+                key: "respostas", icon: "fa-reply", label: "Respostas", value: fmtInt(respostas.length),
                 sub: `${bracos} braço(s) erguido(s)`,
-                delta: delta(respostas, sinaisPrev && sinaisPrev.filter((s) => TIPOS_RESPOSTA.has(s.x_tipo)).length),
-                color: "#f59e0b", click: "respostas",
+                delta: delta(respostas.length, intencaoPrev && intencaoPrev.filter((s) => TIPOS_RESPOSTA.has(s.x_tipo)).length),
+                click: "respostas",
+                info: "Respostas genuínas a e-mail ou DM (respostas automáticas ficam fora). Braço erguido = resposta positiva.",
             },
             {
-                key: "score", icon: "fa-thermometer-half", label: "Score médio",
-                value: score.length ? Math.round(score.reduce((a, b) => a + b, 0) / score.length) : 0,
-                sub: `${leads.filter((l) => l.x_abm_faixa === "engajada").length} engajadas · ${leads.filter((l) => l.x_abm_faixa === "quente").length} quentes`,
-                color: "#ef4444", click: "contas",
-            },
-            {
-                key: "feitas", icon: "fa-check-circle", label: "Atividades concluídas", value: concluidas.length,
-                sub: concluidas.length ? `${pct(onTime, concluidas.length)}% no prazo` : "nenhuma no período",
-                delta: delta(concluidas.length, concluidasPrev && concluidasPrev.length),
-                color: "#10b981", click: "concluidas",
-            },
-            {
-                key: "atrasadas", icon: "fa-exclamation-triangle", label: "Atividades atrasadas",
-                value: abertas.filter((a) => a.status === "overdue").length,
-                sub: `${abertas.length} abertas · ${abertas.filter((a) => a.status === "today").length} para hoje`,
-                color: "#dc2626", click: "atrasadas", danger: true,
+                key: "aquecidas", icon: "fa-fire", label: "Engajadas ou quentes", value: fmtInt(aquecidas.length),
+                sub: `${pct(aquecidas.length, leads.length)}% da base · score médio ${scoreMedio}`,
+                delta: null, click: "aquecidas",
+                info: "Contas com score ≥ 30 hoje (não depende do período).",
             },
         ];
 
-        // ---------- funil por estágio
-        const stageCount = new Map();
-        for (const l of leads) {
-            const id = l.stage_id && l.stage_id[0];
-            stageCount.set(id, (stageCount.get(id) || 0) + 1);
+        // ---------- LinkedIn Ads: última leitura de cada conta vs primeira do período
+        const porConta = (lista, maisRecente) => {
+            const m = new Map();
+            for (const s of lista) {
+                const atual = m.get(s.x_lead_id[0]);
+                if (!atual || (maisRecente ? s.dt > atual.dt : s.dt < atual.dt)) m.set(s.x_lead_id[0], s);
+            }
+            return m;
+        };
+        const ultimaLi = porConta(rel, true);
+        const primeiraLi = porConta(rel, false);
+        const contaNivel = (mapa) => {
+            const c = new Map();
+            for (const s of mapa.values()) {
+                const n = nivelLi(s);
+                const k = n ? n.key : "none";
+                c.set(k, (c.get(k) || 0) + 1);
+            }
+            return c;
+        };
+        const nivUlt = contaNivel(ultimaLi);
+        const nivPri = contaNivel(primeiraLi);
+        const datasLi = rel.map((s) => s.dt).sort((a, b) => a - b);
+        const temComparacao = datasLi.length && !datasLi[0].hasSame(datasLi[datasLi.length - 1], "day");
+        const semLeitura = leads.length - ultimaLi.size;
+        const maxNivel = Math.max(1, ...nivUlt.values(), semLeitura);
+        const linkedin = {
+            data: datasLi.length ? datasLi[datasLi.length - 1].toFormat("dd/MM") : null,
+            dataInicio: datasLi.length ? datasLi[0].toFormat("dd/MM") : null,
+            temComparacao,
+            contas: ultimaLi.size,
+            interagindo: [...ultimaLi.values()].filter((s) => (nivelLi(s) || { rank: 0 }).rank >= 2).length,
+            linhas: [...NIVEIS_LI, SEM_LEITURA].map((n) => {
+                const count = n.key === "none" ? semLeitura : nivUlt.get(n.key) || 0;
+                const antes = n.key === "none" ? null : nivPri.get(n.key) || 0;
+                const d = temComparacao && antes !== null ? count - antes : null;
+                return {
+                    ...n, count, width: pct(count, maxNivel), zero: !count,
+                    delta: d ? { texto: d > 0 ? `+${d}` : `–${-d}`, classe: n.rank >= 3 ? (d > 0 ? "bom" : "ruim") : "neutro" } : null,
+                };
+            }),
+        };
+        linkedin.interagindoPct = pct(linkedin.interagindo, linkedin.contas);
+
+        // ---------- tipos de sinal de intenção ("Outro" desmembrado)
+        const tiposMap = new Map();
+        for (const s of intencao) {
+            const r = tiposMap.get(s.tipoKey) || { key: s.tipoKey, count: 0, pontos: 0, contas: new Set() };
+            r.count += 1;
+            r.pontos += s.x_pontos || 0;
+            r.contas.add(s.x_lead_id[0]);
+            tiposMap.set(s.tipoKey, r);
         }
-        const maxStage = Math.max(1, ...stageCount.values());
-        const funil = raw.stages.map((s, i) => ({
-            id: s.id, name: s.name, count: stageCount.get(s.id) || 0,
-            width: Math.max(2, pct(stageCount.get(s.id) || 0, maxStage)),
-            share: pct(stageCount.get(s.id) || 0, leads.length),
-            color: STAGE_COLORS[i % STAGE_COLORS.length],
+        const tiposArr = [...tiposMap.values()].sort((a, b) => b.contas.size - a.contas.size || b.pontos - a.pontos);
+        const maxTipo = Math.max(1, ...tiposArr.map((t) => t.contas.size));
+        const tipos = tiposArr.map((t) => ({
+            key: t.key, label: tipoLabel(t.key), count: t.count, pontos: t.pontos, contas: t.contas.size,
+            width: pct(t.contas.size, maxTipo), resposta: TIPOS_RESPOSTA.has(t.key) || t.key === "resposta_automatica",
+            tipo: t.key.startsWith("outro:") ? "outro" : t.key,
+            nome: t.key.startsWith("outro:") ? t.key.slice(6) : null,
         }));
 
-        // ---------- linha do tempo de sinais (empilhado por origem)
-        const firstDt = start || (sinais.length ? sinais[sinais.length - 1].dt.startOf("day") : end.startOf("day"));
+        // ---------- intenção ao longo do tempo (empilhado por origem)
+        const firstDt = start || (intencao.length ? intencao[intencao.length - 1].dt.startOf("day") : end.startOf("day"));
         const spanDays = Math.max(1, Math.round(end.diff(firstDt, "days").days));
-        const unit = spanDays <= 35 ? "day" : spanDays <= 180 ? "week" : "month";
+        const unit = spanDays <= 14 ? "day" : spanDays <= 180 ? "week" : "month";
         const buckets = [];
         let cur = firstDt.startOf(unit);
         while (cur <= end && buckets.length < 120) {
             buckets.push({ start: cur, end: cur.endOf(unit), byOrigem: {}, total: 0, pontos: 0 });
             cur = cur.plus({ [unit + "s"]: 1 });
         }
-        for (const s of sinais) {
+        for (const s of intencao) {
             const b = buckets.find((b) => s.dt >= b.start && s.dt <= b.end);
             if (b) {
                 const o = s.x_origem || "false";
@@ -385,13 +506,18 @@ export class AbmSetimaDashboard extends Component {
         }
         const maxBucket = Math.max(1, ...buckets.map((b) => b.total));
         const labelFmt = unit === "month" ? "MMM/yy" : "dd/MM";
+        const origemCount = new Map();
+        for (const s of intencao) origemCount.set(s.x_origem || "false", (origemCount.get(s.x_origem || "false") || 0) + 1);
         const timeline = {
             unit: unit === "day" ? "por dia" : unit === "week" ? "por semana" : "por mês",
             max: maxBucket,
+            origens: [...origemCount.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => ({
+                key: k, label: (ORIGENS[k] || ORIGENS.false).label, color: (ORIGENS[k] || ORIGENS.false).color, count: n,
+            })),
             bars: buckets.map((b, i) => ({
                 key: i,
                 label: b.start.setLocale("pt-BR").toFormat(labelFmt),
-                showLabel: buckets.length <= 7 || i % Math.ceil(buckets.length / 7) === 0,
+                showLabel: buckets.length <= 8 || i % Math.ceil(buckets.length / 8) === 0,
                 total: b.total,
                 title: `${b.start.toFormat("dd/MM")}${unit !== "day" ? " – " + b.end.toFormat("dd/MM") : ""}: ${b.total} sinal(is), ${b.pontos} pts`,
                 segs: Object.entries(b.byOrigem).map(([o, n]) => ({
@@ -400,150 +526,108 @@ export class AbmSetimaDashboard extends Component {
             })),
         };
 
-        // ---------- composição dos sinais
-        const groupCount = (items, keyFn) => {
-            const m = new Map();
-            for (const it of items) {
-                const k = keyFn(it);
-                const r = m.get(k) || { count: 0, pontos: 0 };
-                r.count += 1;
-                r.pontos += it.x_pontos || 0;
-                m.set(k, r);
-            }
-            return [...m.entries()].sort((a, b) => b[1].count - a[1].count);
-        };
-        const origens = groupCount(sinais, (s) => s.x_origem || "false").map(([k, v]) => ({
-            key: k, label: (ORIGENS[k] || ORIGENS.false).label, color: (ORIGENS[k] || ORIGENS.false).color, ...v,
-        }));
-        const maxTipo = Math.max(1, ...groupCount(sinais, (s) => s.x_tipo).map(([, v]) => v.count));
-        const tipos = groupCount(sinais, (s) => s.x_tipo).map(([k, v]) => ({
-            key: k, label: TIPOS[k] || k || "—", ...v, width: pct(v.count, maxTipo),
-            resposta: TIPOS_RESPOSTA.has(k),
+        // ---------- últimos sinais de intenção
+        const feed = intencao.slice(0, 6).map((s) => ({
+            ...s,
+            quando: s.dt.setLocale("pt-BR").toFormat("dd/MM HH:mm"),
+            tipoLabel: tipoLabel(s.tipoKey),
+            pessoa: (s.x_name || "").split(/\s+[–-]\s+/).slice(1).join(" – "),
+            origem: ORIGENS[s.x_origem || "false"] || ORIGENS.false,
         }));
 
-        // ---------- temperatura e cadência
+        // ---------- jornada: funil, temperatura, prontidão
+        const stageCount = new Map();
+        for (const l of leads) {
+            const id = l.stage_id && l.stage_id[0];
+            stageCount.set(id, (stageCount.get(id) || 0) + 1);
+        }
+        const maxStage = Math.max(1, ...stageCount.values());
+        const funil = raw.stages.map((s) => ({
+            id: s.id, name: s.name, count: stageCount.get(s.id) || 0,
+            width: pct(stageCount.get(s.id) || 0, maxStage),
+            share: pct(stageCount.get(s.id) || 0, leads.length),
+            zero: !stageCount.get(s.id),
+            novas: novas.filter((l) => l.stage_id && l.stage_id[0] === s.id).length,
+        }));
         const faixas = FAIXAS.map((f) => ({ ...f, count: leads.filter((l) => (l.x_abm_faixa || "fria") === f.key).length }));
         const cadencia = Object.entries(CADENCIA)
             .map(([k, v]) => ({ key: k, ...v, count: leads.filter((l) => String(l.x_abm_cadencia_status) === k).length }))
             .filter((c) => c.count);
-        const tiers = ["1", "2", "3", false].map((t) => ({
-            key: String(t), label: t ? `Tier ${t}` : "Sem tier",
-            count: leads.filter((l) => (l.x_abm_tier || false) === t).length,
-        })).filter((t) => t.count);
-
-        // ---------- atividades por tipo
-        const tipoAtiv = new Map();
-        const addAtiv = (a, status) => {
-            const name = (a.activity_type_id && a.activity_type_id[1] || "—").replace(/^ABM · /, "");
-            const r = tipoAtiv.get(name) || { name, done: 0, planned: 0, today: 0, overdue: 0, total: 0 };
-            r[status] += 1;
-            r.total += 1;
-            tipoAtiv.set(name, r);
-        };
-        concluidas.forEach((a) => addAtiv(a, "done"));
-        abertas.forEach((a) => addAtiv(a, a.status));
-        const maxAtiv = Math.max(1, ...[...tipoAtiv.values()].map((r) => r.total));
-        const atividadesTipo = [...tipoAtiv.values()]
-            .sort((a, b) => b.total - a.total)
-            .map((r) => ({
-                ...r,
-                segs: STATUS_ATIV.filter((s) => r[s.key]).map((s) => ({
-                    key: s.key, color: s.color, width: (r[s.key] * 100) / maxAtiv, n: r[s.key],
-                })),
-            }));
-        const statusTotals = STATUS_ATIV.map((s) => ({
-            ...s, count: s.key === "done" ? concluidas.length : abertas.filter((a) => a.status === s.key).length,
-        }));
-
-        // ---------- agenda: próximos 7 dias úteis
-        const agendaEnd = today.plus({ days: 7 });
-        const agenda = abertas
-            .filter((a) => a.dl <= agendaEnd)
-            .slice(0, 12)
-            .map((a) => ({
-                ...a,
-                tipo: (a.activity_type_id && a.activity_type_id[1] || "").replace(/^ABM · /, ""),
-                quando: a.status === "overdue"
-                    ? `atrasada ${Math.round(today.diff(a.dl, "days").days)}d`
-                    : a.status === "today" ? "hoje" : a.dl.setLocale("pt-BR").toFormat("ccc dd/MM"),
-            }));
-
-        // ---------- alertas estratégicos
-        const semSinalDias = (l) => {
-            const u = fromUtcSql(l.x_abm_ultimo_sinal_data);
-            return u ? Math.floor(today.diff(u.startOf("day"), "days").days) : null;
-        };
-        const stageName = (l) => (l.stage_id ? l.stage_id[1] : "");
-        const alertas = [
+        const ativas = leads.filter((l) => !ENCERRADAS.includes(stageName(l)));
+        const prontidao = [
             {
-                key: "quente_sem_cadencia", icon: "fa-fire", color: "#ef4444",
-                title: "Engajadas/quentes sem cadência ativa",
-                hint: "Prioridade: transformar atenção em conversa.",
-                items: leads.filter((l) => ["engajada", "quente"].includes(l.x_abm_faixa) && l.x_abm_cadencia_status !== "ativa"
-                    && !["Descartada", "Cliente – expansão"].includes(stageName(l))),
+                key: "decisor", label: "Comitê com decisor mapeado",
+                n: ativas.filter((l) => l.x_abm_comite_decisores).length, de: ativas.length,
             },
             {
-                key: "esfriando", icon: "fa-snowflake-o", color: "#3b82f6",
-                title: "Sem sinal há 21+ dias",
-                hint: "Contas em aquecimento/cadência que pararam de reagir.",
-                items: leads.filter((l) => {
-                    const n = semSinalDias(l);
-                    return ["Aquecendo", "Engajada", "Em cadência"].includes(stageName(l)) && (n === null || n >= 21);
-                }),
+                key: "comite", label: "Comitê mapeado (alguma pessoa)",
+                n: ativas.filter((l) => l.x_abm_comite_total).length, de: ativas.length,
             },
             {
-                key: "sem_decisor", icon: "fa-user-times", color: "#f59e0b",
-                title: "Comitê sem decisor mapeado",
-                hint: "Sem decisor a cadência não chega a quem assina.",
-                items: leads.filter((l) => !l.x_abm_comite_decisores && !["Descartada", "Cliente – expansão"].includes(stageName(l))),
+                key: "cadencia", label: "Engajadas/quentes em cadência ativa",
+                n: aquecidas.filter((l) => l.x_abm_cadencia_status === "ativa").length, de: aquecidas.length,
             },
-            {
-                key: "atrasadas", icon: "fa-clock-o", color: "#dc2626",
-                title: "Contas com atividade atrasada",
-                hint: "Execução da cadência travada.",
-                items: [...byLead.values()].filter((r) => r.atrasadas).map((r) => r.lead),
-            },
-        ].map((a) => ({ ...a, count: a.items.length, top: a.items.slice(0, 5) }));
+        ].map((p) => ({ ...p, pct: pct(p.n, p.de) }));
 
         // ---------- tabela de contas
-        const sorters = {
-            score: (a, b) => (b.lead.x_abm_score || 0) - (a.lead.x_abm_score || 0) || b.pontos - a.pontos,
-            sinais: (a, b) => b.pontos - a.pontos || b.sinais - a.sinais,
-            exposicao: (a, b) => (b.lead.x_abm_exposicao || 0) - (a.lead.x_abm_exposicao || 0),
-            atividades: (a, b) => b.atrasadas - a.atrasadas || b.abertas - a.abertas,
-            nome: (a, b) => a.lead.name.localeCompare(b.lead.name),
-        };
-        const contas = [...byLead.values()].sort(sorters[this.state.sort] || sorters.score).map((r) => {
-            const l = r.lead;
+        const ultimoInt = new Map();
+        const intPeriodo = new Map();
+        for (const s of intAll) {
+            const id = s.x_lead_id[0];
+            if (!ultimoInt.has(id)) ultimoInt.set(id, s); // intAll vem em ordem decrescente de data
+        }
+        for (const s of intencao) {
+            const r = intPeriodo.get(s.x_lead_id[0]) || { n: 0, pts: 0 };
+            r.n += 1;
+            r.pts += s.x_pontos || 0;
+            intPeriodo.set(s.x_lead_id[0], r);
+        }
+        const linhas = leads.map((l) => {
+            const li = ultimaLi.get(l.id);
+            const nivel = li ? nivelLi(li) || SEM_LEITURA : SEM_LEITURA;
+            const ult = ultimoInt.get(l.id);
+            const dias = ult ? Math.floor(today.diff(ult.dt.startOf("day"), "days").days) : null;
+            const ip = intPeriodo.get(l.id) || { n: 0, pts: 0 };
             const faixa = FAIXAS.find((f) => f.key === (l.x_abm_faixa || "fria"));
-            const dias = semSinalDias(l);
+            const exp = l.x_abm_exposicao || 0;
             return {
-                ...r,
                 id: l.id,
-                scorePct: Math.min(100, Math.round(((l.x_abm_score || 0) * 100) / SCORE_MAX)),
-                faixa,
+                lead: l,
+                nova: novasIds.has(l.id),
                 stage: stageName(l),
-                ultimoSinal: dias === null ? "—" : dias === 0 ? "hoje" : `há ${dias}d`,
-                cadencia: (CADENCIA[l.x_abm_cadencia_status] || CADENCIA.false),
-                comite: `${l.x_abm_comite_decisores || 0}/${l.x_abm_comite_total || 0}`,
-                exposicao: (l.x_abm_exposicao || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 }),
+                faixa,
+                score: l.x_abm_score || 0,
+                scorePct: Math.min(100, Math.round(((l.x_abm_score || 0) * 100) / SCORE_MAX)),
+                nivel,
+                liPts: li ? li.x_pontos || 0 : null,
+                liTitulo: li ? `${li.x_detalhe || ""}` : "Sem relatório do LinkedIn Ads no período",
+                intN: ip.n,
+                intPts: ip.pts,
+                ultimo: ult ? tipoLabel(ult.tipoKey) : null,
+                ultimoQuando: dias === null ? "" : dias === 0 ? "hoje" : dias === 1 ? "ontem" : `há ${dias}d`,
+                ultimoTitulo: ult ? `${ult.x_name || ""} · ${ult.dt.toFormat("dd/MM/yyyy")}` : "Nenhum sinal de intenção registrado",
+                freq: exp,
+                freqTxt: l.x_abm_comite_total ? `${exp.toLocaleString("pt-BR", { maximumFractionDigits: exp >= 10 ? 0 : 1 })}×` : "—",
+                freqNivel: !l.x_abm_comite_total ? "nd" : exp >= 4 ? "alta" : exp >= 2 ? "media" : "baixa",
+                decisores: l.x_abm_comite_decisores || 0,
+                comite: l.x_abm_comite_total || 0,
+                cadencia: CADENCIA[l.x_abm_cadencia_status] || CADENCIA.false,
             };
         });
-
-        // ---------- últimos sinais
-        const feed = sinais.slice(0, 10).map((s) => ({
-            ...s,
-            quando: s.dt.setLocale("pt-BR").toFormat("dd/MM HH:mm"),
-            tipoLabel: TIPOS[s.x_tipo] || s.x_tipo,
-            origem: ORIGENS[s.x_origem || "false"] || ORIGENS.false,
-        }));
+        const sorters = {
+            score: (a, b) => b.score - a.score || b.intPts - a.intPts || b.nivel.rank - a.nivel.rank,
+            intencao: (a, b) => b.intPts - a.intPts || b.intN - a.intN || b.score - a.score,
+            linkedin: (a, b) => b.nivel.rank - a.nivel.rank || b.score - a.score,
+            frequencia: (a, b) => b.freq - a.freq,
+            nome: (a, b) => a.lead.name.localeCompare(b.lead.name),
+        };
+        const contas = linhas.sort(sorters[this.state.sort] || sorters.score);
 
         return {
-            kpis, funil, timeline, origens, tipos, faixas, cadencia, tiers, atividadesTipo, statusTotals,
-            agenda, alertas, contas, feed, totalLeads: leads.length, totalSinais: sinais.length,
-            totalAtiv: concluidas.length + abertas.length,
+            kpis, linkedin, tipos, timeline, feed, funil, faixas, cadencia, prontidao, contas,
+            novas: novas.length, scoreMedio,
+            totalLeads: leads.length, totalIntencao: intencao.length,
             donutFaixas: this._donut(faixas),
-            donutOrigens: this._donut(origens),
             loadedAt: raw.loadedAt.toFormat("HH:mm"),
         };
     }
@@ -575,6 +659,10 @@ export class AbmSetimaDashboard extends Component {
         return this.state.tier === "all" ? [] : [[`${prefix}x_abm_tier`, "=", this.state.tier]];
     }
 
+    get _leadDomain() {
+        return [["team_id", "=", TEAM_ID], ["type", "=", "opportunity"], ...this._tierDomain()];
+    }
+
     openLead(id) {
         this.actionService.doAction({
             type: "ir.actions.act_window",
@@ -597,50 +685,43 @@ export class AbmSetimaDashboard extends Component {
         });
     }
 
+    openContas(name, domain) {
+        this.openList(name, "crm.lead", [...this._leadDomain, ...domain], [[false, "list"], [false, "kanban"], [false, "form"]]);
+    }
+
     openKpi(kind) {
-        const leadDom = [["team_id", "=", TEAM_ID], ["type", "=", "opportunity"], ...this._tierDomain()];
         const sinalBase = [["x_lead_id.team_id", "=", TEAM_ID], ...this._tierDomain("x_lead_id."), ...this._rangeDomain("x_data")];
+        const intencao = [...sinalBase, ["x_tipo", "!=", LI_RELATORIO]];
         if (kind === "contas") {
-            this.openList("Contas ABM", "crm.lead", leadDom, [[false, "list"], [false, "kanban"], [false, "form"]]);
-        } else if (kind === "sinais") {
-            this.openList(`Sinais · ${this.periodLabel}`, "x_abm_sinal", sinalBase);
+            this.openContas("Contas ABM", []);
+        } else if (kind === "novas") {
+            this.openContas(`Novas contas · ${this.periodLabel}`, this._rangeDomain("create_date"));
+        } else if (kind === "cobertura") {
+            this.openList(`Sinais que pontuaram · ${this.periodLabel}`, "x_abm_sinal", [...sinalBase, ["x_pontos", ">", 0]]);
+        } else if (kind === "intencao") {
+            this.openList(`Sinais de intenção · ${this.periodLabel}`, "x_abm_sinal", intencao);
+        } else if (kind === "linkedin") {
+            this.openList(`LinkedIn Ads · relatórios · ${this.periodLabel}`, "x_abm_sinal", [...sinalBase, ["x_tipo", "=", LI_RELATORIO]]);
         } else if (kind === "respostas") {
             this.openList(`Respostas · ${this.periodLabel}`, "x_abm_sinal", [...sinalBase, ["x_tipo", "in", [...TIPOS_RESPOSTA]]]);
-        } else if (kind === "concluidas") {
-            this.openList(
-                `Atividades concluídas · ${this.periodLabel}`, "mail.activity",
-                [...ACTIVITY_DOMAIN, ["active", "=", false], ...this._rangeDomain("date_done", true)],
-                [[false, "list"], [false, "form"]], { active_test: false }
-            );
-        } else if (kind === "atrasadas") {
-            this.openList("Atividades ABM atrasadas", "mail.activity",
-                [...ACTIVITY_DOMAIN, ["date_deadline", "<", DateTime.local().toISODate()]]);
+        } else if (kind === "aquecidas") {
+            this.openContas("Contas engajadas ou quentes", [["x_abm_faixa", "in", ["engajada", "quente"]]]);
         }
+    }
+
+    openTipo(t) {
+        const dom = [["x_lead_id.team_id", "=", TEAM_ID], ...this._tierDomain("x_lead_id."), ...this._rangeDomain("x_data"),
+            ["x_tipo", "=", t.tipo]];
+        if (t.nome) dom.push(["x_name", "=like", `${t.nome}%`]);
+        this.openList(`${t.label} · ${this.periodLabel}`, "x_abm_sinal", dom);
     }
 
     openStage(stageId) {
-        this.openList("Contas ABM", "crm.lead",
-            [["team_id", "=", TEAM_ID], ["type", "=", "opportunity"], ["stage_id", "=", stageId], ...this._tierDomain()],
-            [[false, "list"], [false, "kanban"], [false, "form"]]);
+        this.openContas("Contas ABM", [["stage_id", "=", stageId]]);
     }
 
     openFaixa(faixa) {
-        this.openList(`Contas ${faixa}`, "crm.lead",
-            [["team_id", "=", TEAM_ID], ["type", "=", "opportunity"], ["x_abm_faixa", "=", faixa], ...this._tierDomain()],
-            [[false, "list"], [false, "kanban"], [false, "form"]]);
-    }
-
-    openAlert(alerta) {
-        this.openList(alerta.title, "crm.lead", [["id", "in", alerta.items.map((l) => l.id)]],
-            [[false, "list"], [false, "kanban"], [false, "form"]]);
-    }
-
-    openActivity(a) {
-        if (a.res_model === "crm.lead") {
-            this.openLead(a.res_id);
-        } else {
-            this.openList("Atividade", "mail.activity", [["id", "=", a.id]]);
-        }
+        this.openContas(`Contas ${faixa}`, [["x_abm_faixa", "=", faixa]]);
     }
 }
 
